@@ -1,5 +1,8 @@
 # Her push'ta oyunu GitHub Pages'e otomatik yayınlar.
-# Yayın adresi: https://<kullanici-adi>.github.io/<repo-adi>/
+# Yayın adresi: https://yorulmaz91.github.io/cizgi-dovusu/
+# NOT: Bir çalışma başarısız olursa "Re-run" YAPMA — eski artifact yapışıp
+# "Multiple artifacts named 'github-pages'" hatası verir. Bunun yerine yeni
+# push at veya Actions sekmesinden "Run workflow" ile YENİ çalışma başlat.
 name: Oyunu GitHub Pages'e yayinla
 
 on:
@@ -24,15 +27,15 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Kodu indir
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Pages ayarini yap (gerekirse otomatik etkinlestir)
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
         with:
           enablement: true
       - name: Oyun dosyalarini paketle
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: .
       - name: Yayinla
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
