@@ -1,0 +1,38 @@
+# Her push'ta oyunu GitHub Pages'e otomatik yayınlar.
+# Yayın adresi: https://<kullanici-adi>.github.io/<repo-adi>/
+name: Oyunu GitHub Pages'e yayinla
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:   # Actions sekmesinden elle de calistirilabilir
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Kodu indir
+        uses: actions/checkout@v4
+      - name: Pages ayarini yap (gerekirse otomatik etkinlestir)
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - name: Oyun dosyalarini paketle
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - name: Yayinla
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -28,6 +28,16 @@ Ardından tarayıcıda açılan adresi (genelde `http://localhost:3000`) ziyaret
 > Not: `cizgi-dovusu.html` orijinal tek dosyalık sürümdür, yedek olarak duruyor;
 > oyunun güncel hali `index.html` + `css/` + `js/` klasörlerindedir.
 
+## Telefondan / uzaktan test
+
+- **Anlık deneme:** `start-tunnel.bat`'a çift tıkla → çıkan geçici
+  `https://....trycloudflare.com` adresini telefonda aç (cloudflared gerekir:
+  `winget install --id Cloudflare.cloudflared`).
+- **Kalıcı adres:** proje GitHub'a push'lanınca `.github/workflows/pages.yml`
+  oyunu GitHub Pages'te otomatik yayınlar:
+  `https://<kullanici-adi>.github.io/<repo-adi>/`
+- Hangi durumda hangisi: bkz. `CLAUDE.md` → "Uzaktan test" bölümü.
+
 ## Kontroller
 
 | Eylem   | Klavye | Dokunmatik |
