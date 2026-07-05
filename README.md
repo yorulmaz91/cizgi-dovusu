@@ -50,6 +50,7 @@ Ardından tarayıcıda açılan adresi (genelde `http://localhost:3000`) ziyaret
 | Blok    | C | BLK |
 | Skil    | V | SKİL |
 
+- Karakter seçiminden sonra zorluk seçilir (KOLAY/NORMAL/ZOR); tercih hatırlanır.
 - Yumruk/tekmeye art arda basınca vuruş zinciri (kombo) çıkar.
 - ▼ + Yumruk: rakibi havaya fırlatan launcher; havada juggle yapılabilir.
 - Rakibin canı bitince "BİTİR ONU!" yazısında SKİL'e basarsan fatality izlersin.

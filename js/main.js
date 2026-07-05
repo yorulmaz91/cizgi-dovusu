@@ -10,12 +10,13 @@ import {CHARS} from './characters.js';
 import {Fighter} from './fighter.js';
 import {PAPER,screenFx,setInverted,burst,drawGhosts,drawBursts,drawParticles} from './effects.js';
 import {updateFatality,drawFatalityFx} from './fatality.js';
-import {drawHUD,centerText,drawSelect,drawVS,drawResult,armResultLock,resetResultLock} from './ui.js';
+import {drawHUD,centerText,drawSelect,drawDifficulty,drawVS,drawResult,armResultLock,resetResultLock} from './ui.js';
 import * as sfx from './audio.js';
 
 /* ---------------- oyun akışı ---------------- */
 export const game={
   scene:'select',selIdx:0,selCd:0,
+  selCharIdx:0,diffIdx:1,difficulty:'normal',
   p1:null,p2:null,round:1,wins:[0,0],timer:60,
   splash:null,splashT:0,finishing:false,finishT:0,fatal:null,
   start(chIdx){
@@ -67,6 +68,8 @@ export const game={
     },1900);
   }
 };
+/* kayıtlı zorluk tercihini yükle */
+try{const z=localStorage.getItem('cd-zorluk');if(['kolay','normal','zor'].includes(z))game.difficulty=z;}catch(e){}
 
 /* ---------------- ana döngü ---------------- */
 let last=performance.now();
@@ -82,6 +85,7 @@ function loop(now){
   if(screenFx.shake>0){screenFx.shake=Math.max(0,screenFx.shake-40*.016);g.translate(rnd(-screenFx.shake,screenFx.shake),rnd(-screenFx.shake,screenFx.shake));}
 
   if(game.scene==='select'){drawSelect(g,.016);document.getElementById('controls').classList.add('on');}
+  else if(game.scene==='difficulty')drawDifficulty(g,.016);
   else if(game.scene==='vs')drawVS(g,.016);
   else if(game.scene==='result'){drawResult(g);armResultLock();}
   else if(game.scene==='fight'){

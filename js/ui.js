@@ -41,6 +41,12 @@ export function centerText(g,txt,size,y,sub){
 }
 
 /* ---------------- sahneler ---------------- */
+const ZORLUKLAR=[
+  {key:'kolay', ad:'KOLAY', desc:'Rahat başlangıç: az hasar, yavaş saldırılar'},
+  {key:'normal',ad:'NORMAL',desc:'Dengeli rakip'},
+  {key:'zor',   ad:'ZOR',   desc:'Tam hasar, hızlı zincirler, sık blok'}
+];
+
 export function drawSelect(g,dt){
   drawBG(g);
   centerText(g,'ÇİZGİ DÖVÜŞÜ',34,VH*0.13,'dövüşçünü seç');
@@ -48,7 +54,12 @@ export function drawSelect(g,dt){
   if(game.selCd<=0){
     if(keys.left){game.selIdx=(game.selIdx+CHARS.length-1)%CHARS.length;game.selCd=.25;}
     if(keys.right){game.selIdx=(game.selIdx+1)%CHARS.length;game.selCd=.25;}
-    if(keys.punch||keys.special){game.start(game.selIdx);keys.punch=keys.special=0;}
+    if(keys.punch||keys.special){
+      game.selCharIdx=game.selIdx;
+      game.diffIdx=Math.max(0,ZORLUKLAR.findIndex(z=>z.key===game.difficulty));
+      game.scene='difficulty';game.selCd=.3;
+      keys.punch=keys.special=0;
+    }
   }
   const gap=Math.min(160,VW/3.2);
   CHARS.forEach((c,i)=>{
@@ -66,17 +77,58 @@ export function drawSelect(g,dt){
       centerText(g,c.name,26,VH*0.66);
       g.font='500 13px Space Grotesk';g.fillStyle=INK;g.textAlign='center';
       g.globalAlpha=.55;
-      g.fillText(c.tagline,VW/2,VH*0.66+26);
+      g.fillText(c.tagline,VW/2,VH*0.66+24);
       g.globalAlpha=1;
-      g.fillText('SKİL: '+c.specName+' — '+c.specDesc,VW/2,VH*0.66+48);
-      g.fillText('YUMRUK: '+c.moves.p.map(m=>m.name).join(' → ')+'   ·   TEKME: '+c.moves.k.map(m=>m.name).join(' → '),VW/2,VH*0.66+68);
-      g.fillText('▼+YUM: '+c.moves.cp.name+' (fırlatır!)   ·   ▲+TEK: '+c.moves.jk.name,VW/2,VH*0.66+88);
+      // mini stat göstergesi: cam top mu tank mı, seçerken görün
+      const yildiz=n=>'★★★'.slice(0,n)+'☆☆☆'.slice(0,3-n);
+      const guc=c.punch+c.kick>=26?3:c.punch+c.kick>=18?2:1;
+      const hiz=c.speed>=250?3:c.speed>=200?2:1;
+      g.font='700 14px Space Grotesk';
+      g.fillText('CAN: '+c.hp+'   GÜÇ: '+yildiz(guc)+'   HIZ: '+yildiz(hiz),VW/2,VH*0.66+46);
+      g.font='500 13px Space Grotesk';
+      g.fillText('SKİL: '+c.specName+' — '+c.specDesc,VW/2,VH*0.66+66);
+      g.fillText('YUMRUK: '+c.moves.p.map(m=>m.name).join(' → ')+'   ·   TEKME: '+c.moves.k.map(m=>m.name).join(' → '),VW/2,VH*0.66+84);
+      g.fillText('▼+YUM: '+c.moves.cp.name+' (fırlatır!)   ·   ▲+TEK: '+c.moves.jk.name,VW/2,VH*0.66+102);
       g.font='700 13px Space Grotesk';
-      g.fillText('FATALITY: '+c.fatalName,VW/2,VH*0.66+108);
+      g.fillText('FATALITY: '+c.fatalName,VW/2,VH*0.66+118);
     }
   });
   g.font='500 12px Space Grotesk';g.fillStyle=INK;g.globalAlpha=.4;g.textAlign='center';
   g.fillText('◀ ▶ seç · YUM ile başla',VW/2,VH*0.92);
+  g.globalAlpha=1;
+}
+export function drawDifficulty(g,dt){
+  drawBG(g);
+  centerText(g,'ZORLUK SEÇ',34,VH*0.2,'AI rakibin seviyesi — tercihin hatırlanır');
+  game.selCd-=dt;
+  if(game.selCd<=0){
+    if(keys.left){game.diffIdx=(game.diffIdx+ZORLUKLAR.length-1)%ZORLUKLAR.length;game.selCd=.25;}
+    if(keys.right){game.diffIdx=(game.diffIdx+1)%ZORLUKLAR.length;game.selCd=.25;}
+    if(keys.block){game.scene='select';game.selCd=.3;keys.block=0;}
+    else if(keys.punch||keys.special){
+      game.difficulty=ZORLUKLAR[game.diffIdx].key;
+      try{localStorage.setItem('cd-zorluk',game.difficulty);}catch(e){}
+      keys.punch=keys.special=0;
+      game.start(game.selCharIdx);
+    }
+  }
+  const gap=Math.min(220,VW/3.4);
+  ZORLUKLAR.forEach((z,i)=>{
+    const x=VW/2+(i-1)*gap, sel=i===game.diffIdx;
+    g.save();g.globalAlpha=sel?1:.3;
+    g.textAlign='center';g.fillStyle=INK;
+    g.font=(sel?'700 30px':'500 22px')+' Space Grotesk';
+    g.fillText(z.ad,x,VH*0.48);
+    if(sel){
+      g.strokeStyle=INK;g.lineWidth=2;g.setLineDash([6,5]);
+      g.strokeRect(x-72,VH*0.48-36,144,52);g.setLineDash([]);
+    }
+    g.restore();
+  });
+  g.font='500 14px Space Grotesk';g.fillStyle=INK;g.textAlign='center';
+  g.globalAlpha=.7;g.fillText(ZORLUKLAR[game.diffIdx].desc,VW/2,VH*0.62);
+  g.globalAlpha=.4;g.font='500 12px Space Grotesk';
+  g.fillText('◀ ▶ seç · YUM ile dövüş · BLK geri',VW/2,VH*0.92);
   g.globalAlpha=1;
 }
 export function drawVS(g,dt){
