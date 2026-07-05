@@ -1,0 +1,11 @@
+{
+  "name": "cizgi-dovusu",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Siyah-beyaz karikatür stili çöp adam dövüş oyunu (canvas, ES modülleri)",
+  "scripts": {
+    "start": "npx serve .",
+    "start:python": "python -m http.server 8000"
+  }
+}

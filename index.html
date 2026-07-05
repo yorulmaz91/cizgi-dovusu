@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ÇİZGİ DÖVÜŞÜ — Karikatür</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<div class="controls" id="controls">
+  <div class="pad">
+    <button class="cbtn" data-k="up" style="grid-area:u">▲</button>
+    <button class="cbtn" data-k="left" style="grid-area:l">◀</button>
+    <button class="cbtn" data-k="right" style="grid-area:r">▶</button>
+    <button class="cbtn" data-k="down" style="grid-area:d">▼</button>
+  </div>
+  <div class="btns">
+    <button class="cbtn" data-k="punch">YUM</button>
+    <button class="cbtn" data-k="kick">TEK</button>
+    <button class="cbtn" data-k="block">BLK</button>
+    <button class="cbtn spec" data-k="special">SKİL</button>
+  </div>
+</div>
+
+<div id="rotate">
+  <div class="icon">📱</div>
+  <b>Telefonu yatay çevir</b>
+  <span>Bu oyun yatay ekran için tasarlandı</span>
+</div>
+
+<button id="fsBtn" title="Tam ekran">⛶</button>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+# ÇİZGİ DÖVÜŞÜ — Karikatür
+
+Siyah-beyaz karikatür stilinde, tuval (canvas) tabanlı çöp adam dövüş oyunu.
+3 karakter (GÖLGE / BETON / VOLT), Tekken tarzı vuruş zincirleri, zıplama/çömelme,
+launcher+juggle, AI rakip, fatality sahneleri ve çizgi roman efektleri içerir.
+
+## Nasıl çalıştırılır?
+
+Oyun ES modülleri kullandığı için `index.html` dosyasına **çift tıklayarak açmak çalışmaz**;
+küçük bir yerel sunucu gerekir. İki kolay yol:
+
+**1. Python yüklüyse** (bu bilgisayarda hazır):
+
+```
+python -m http.server 8000
+```
+
+Ardından tarayıcıda `http://localhost:8000` adresini aç.
+
+**2. Node.js yüklüyse:**
+
+```
+npm start
+```
+
+Ardından tarayıcıda açılan adresi (genelde `http://localhost:3000`) ziyaret et.
+
+> Not: `cizgi-dovusu.html` orijinal tek dosyalık sürümdür, yedek olarak duruyor;
+> oyunun güncel hali `index.html` + `css/` + `js/` klasörlerindedir.
+
+## Kontroller
+
+| Eylem   | Klavye | Dokunmatik |
+|---------|--------|------------|
+| Hareket | ← → (veya A/D) | D-pad ◀ ▶ |
+| Zıpla   | ↑ (veya W) | ▲ |
+| Çömel   | ↓ (veya S) | ▼ |
+| Yumruk  | Z | YUM |
+| Tekme   | X | TEK |
+| Blok    | C | BLK |
+| Skil    | V | SKİL |
+
+- Yumruk/tekmeye art arda basınca vuruş zinciri (kombo) çıkar.
+- ▼ + Yumruk: rakibi havaya fırlatan launcher; havada juggle yapılabilir.
+- Rakibin canı bitince "BİTİR ONU!" yazısında SKİL'e basarsan fatality izlersin.
+
+## Dosya yapısı
+
+```
+index.html          iskelet: tuval + kontrol butonları
+css/style.css       tüm görsel stiller
+js/main.js          oyun döngüsü + sahne yönetimi (game nesnesi)
+js/input.js         klavye + dokunmatik + tam ekran düğmesi
+js/fighter.js       Fighter sınıfı: fizik, vuruş zincirleri, skiller, AI
+js/characters.js    karakter verileri (statlar, hamleler, yüzler)
+js/poses.js         animasyon pozları (iskelet açıları)
+js/render.js        tuval kurulumu + çöp adam/kafa/el/arka plan çizimi
+js/effects.js       parçacıklar, patlamalar, hayaletler, mürekkep modu
+js/fatality.js      fatality sahneleri
+js/ui.js            HUD + seçim/VS/sonuç ekranları
+js/utils.js         ortak matematik yardımcıları (clamp/lerp/rnd)
+```
