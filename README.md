@@ -44,6 +44,16 @@ Ardından tarayıcıda açılan adresi (genelde `http://localhost:3000`) ziyaret
 - ▼ + Yumruk: rakibi havaya fırlatan launcher; havada juggle yapılabilir.
 - Rakibin canı bitince "BİTİR ONU!" yazısında SKİL'e basarsan fatality izlersin.
 
+## Ses
+
+Tüm sesler Web Audio API ile kodun içinde üretilir (harici ses dosyası yok):
+vuruşlar ağırlığa göre pes/tiz, savurma "whoosh", blok "tink", launcher'da
+yükselen ton, K.O. patlaması, fatality'de bas drop + kalp atışı.
+
+- Sağ üstteki 🔊 düğmesiyle sesi aç/kapa (tercih hatırlanır).
+- Mobil tarayıcıların autoplay engeli yüzünden ses, ekrana ilk dokunuşta /
+  ilk tuş basımında başlar.
+
 ## Dosya yapısı
 
 ```
@@ -56,6 +66,7 @@ js/characters.js    karakter verileri (statlar, hamleler, yüzler)
 js/poses.js         animasyon pozları (iskelet açıları)
 js/render.js        tuval kurulumu + çöp adam/kafa/el/arka plan çizimi
 js/effects.js       parçacıklar, patlamalar, hayaletler, mürekkep modu
+js/audio.js         prosedürel ses sistemi (Web Audio API)
 js/fatality.js      fatality sahneleri
 js/ui.js            HUD + seçim/VS/sonuç ekranları
 js/utils.js         ortak matematik yardımcıları (clamp/lerp/rnd)

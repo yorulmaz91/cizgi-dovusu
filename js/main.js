@@ -11,6 +11,7 @@ import {Fighter} from './fighter.js';
 import {PAPER,screenFx,setInverted,burst,drawGhosts,drawBursts,drawParticles} from './effects.js';
 import {updateFatality,drawFatalityFx} from './fatality.js';
 import {drawHUD,centerText,drawSelect,drawVS,drawResult,armResultLock,resetResultLock} from './ui.js';
+import * as sfx from './audio.js';
 
 /* ---------------- oyun akışı ---------------- */
 export const game={
@@ -43,12 +44,14 @@ export const game={
     loser.setState('hit');loser.stun=99;
     burst(loser.x,loser.y-80,42,'K.O.!');
     screenFx.shake=14;
+    sfx.koBlast();
     this.fatalWinner=winner;this.fatalLoser=loser;
   },
   doFatality(){
     this.fatal={t:0,w:this.fatalWinner,l:this.fatalLoser};
     this.fatal.w.setState('fatalP');this.fatal.l.setState('fatalV');
     screenFx.timeScale=.4;setInverted(true);
+    sfx.fatalityStart();
   },
   koFinish(){
     this.fatalLoser.setState('ko');this.finishing=false;

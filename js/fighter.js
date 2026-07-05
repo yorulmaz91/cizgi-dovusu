@@ -7,6 +7,7 @@ import {VW,GROUND,drawFighter} from './render.js';
 import {screenFx,spark,burst,floatText,floatBig,dust,drawStunMark,ghosts} from './effects.js';
 import {computePose} from './poses.js';
 import {game} from './main.js';
+import * as sfx from './audio.js';
 
 export class Fighter{
   constructor(ch,x,facing,isAI){
@@ -25,12 +26,14 @@ export class Fighter{
     this.chainIdx=0;this.mv=this.chain[0];this.mvKind=t;
     this.queued=0;this.hitDone=false;this.vx=0;
     this.setState('attack');
+    sfx.whoosh();if(this.mv.launch)sfx.rise();
   }
   startSingle(mv,kind,air){
     this.chain=[mv];this.chainIdx=0;this.mv=mv;this.mvKind=kind;
     this.queued=0;this.hitDone=false;this.airMove=!!air;
     if(!air)this.vx=0;
     this.setState('attack');
+    sfx.whoosh();if(mv.launch)sfx.rise();
   }
   update(dt,foe){
     this.st+=dt;this.cd=Math.max(0,this.cd-dt);
@@ -86,6 +89,7 @@ export class Fighter{
         if(this.queued){
           this.chainIdx++;this.mv=this.chain[this.chainIdx];
           this.st=0;this.queued=0;this.hitDone=false;
+          sfx.whoosh();
         }else if(this.airMove&&!this.grounded())this.setState('jump');
         else{this.airMove=false;this.setState('idle');}
       }
@@ -137,6 +141,7 @@ export class Fighter{
       spark(foe.x+this.facing*20,foe.y-70,5,.5);
       burst(foe.x+this.facing*24,foe.y-72,10);
       floatText(foe.x,foe.y-125,'BLOK');
+      sfx.block();
     }else{
       foe.setState('hit');foe.stun=mv.stun||.18;
       this.combo++;this.comboT=1.2;
@@ -148,6 +153,7 @@ export class Fighter{
       else if(this.combo>=3)floatBig(this.x,this.y-160,this.combo+' KOMBO!');
       if(mv.stun)for(let i=0;i<3;i++)drawStunMark(foe);
       if(mv.launch){foe.vy=-mv.launch;foe.y-=3;floatBig(foe.x,foe.y-150,'HAVADA!');}
+      sfx.hit(dmg,this.mvKind);
       screenFx.hitstop=.05;screenFx.shake=Math.min(10,4+dmg*.4);
     }
     foe.hp=Math.max(0,foe.hp-dmg);
@@ -158,6 +164,7 @@ export class Fighter{
   startSpecial(foe){
     this.setState('special');this.cd=this.ch.specCd;this.fx={};
     if(this.ch.id==='golge'){this.fx.sx=this.x;this.fx.tx=foe.x+this.facing*70;}
+    sfx.whoosh();
   }
   updateSpecial(dt,foe){
     if(this.state!=='special')return;

@@ -6,6 +6,7 @@ import {rnd,lerp} from './utils.js';
 import {GROUND,drawBolt} from './render.js';
 import {INK,screenFx,setInverted,spark,floatText,particles} from './effects.js';
 import {game} from './main.js';
+import * as sfx from './audio.js';
 
 export function updateFatality(dt){
   const F=game.fatal;F.t+=dt;
@@ -41,6 +42,7 @@ export function updateFatality(dt){
 }
 function endFatality(){
   screenFx.timeScale=1;setInverted(false);
+  sfx.fatalityEnd();
   const F=game.fatal;
   F.l.setState('ko');F.l.y=GROUND+(F.sink||0);
   game.fatal=null;game.finishing=false;

@@ -33,15 +33,16 @@ body{font-family:'Space Grotesk',sans-serif;color:#1A1A1A;touch-action:none}
 @keyframes rot{0%,100%{transform:rotate(0)}50%{transform:rotate(90deg)}}
 @media (orientation:portrait){#rotate{display:flex}}
 
-/* tam ekran butonu */
-#fsBtn{
+/* tam ekran + ses ayar butonları */
+#fsBtn,#sndBtn{
   position:fixed;top:10px;right:10px;z-index:30;
   width:40px;height:40px;border-radius:10px;
   background:rgba(255,255,255,.8);border:2px solid #1A1A1A;
   color:#1A1A1A;font-size:18px;font-weight:700;
   box-shadow:0 2px 0 #1A1A1A;font-family:inherit;
 }
-#fsBtn:active{transform:translateY(2px);box-shadow:none}
+#sndBtn{right:58px;font-size:16px}
+#fsBtn:active,#sndBtn:active{transform:translateY(2px);box-shadow:none}
 
 /* çok basık ekranlar (uygulama içi önizleme vb.) */
 @media (max-height:480px){
