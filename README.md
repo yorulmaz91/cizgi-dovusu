@@ -35,7 +35,7 @@ Ardından tarayıcıda açılan adresi (genelde `http://localhost:3000`) ziyaret
   `winget install --id Cloudflare.cloudflared`).
 - **Kalıcı adres:** proje GitHub'a push'lanınca `.github/workflows/pages.yml`
   oyunu GitHub Pages'te otomatik yayınlar:
-  `https://<kullanici-adi>.github.io/<repo-adi>/`
+  https://yorulmaz91.github.io/cizgi-dovusu/ (repo adı `cizgi-dovusu` olmalı)
 - Hangi durumda hangisi: bkz. `CLAUDE.md` → "Uzaktan test" bölümü.
 
 ## Kontroller

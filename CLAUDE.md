@@ -26,8 +26,8 @@ bilgisayar açık kalmalıdır. cloudflared gerekir
 **2. Kalıcı link / başkalarıyla paylaşmak / bilgisayar kapalıyken oynamak:**
 GitHub Pages. `git push` yeterli — `.github/workflows/pages.yml` her push'ta
 oyunu otomatik yayınlar (1-2 dk sürer). Adres sabittir:
-`https://<kullanici-adi>.github.io/<repo-adi>/`. Push'lanmamış değişiklikler
-burada GÖRÜNMEZ; anlık deneme için 1. yöntemi kullan.
+https://yorulmaz91.github.io/cizgi-dovusu/ (GitHub kullanıcısı: yorulmaz91).
+Push'lanmamış değişiklikler burada GÖRÜNMEZ; anlık deneme için 1. yöntemi kullan.
 
 **3. Sadece bu bilgisayarda test:** `python -m http.server 8000` →
 http://localhost:8000 (telefon aynı Wi-Fi'deyse `http://<PC-IP>:8000` de olur,
