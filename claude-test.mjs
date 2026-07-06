@@ -217,8 +217,12 @@ for(let ci=0; ci<3; ci++){
     pasifYap(p2,{block:1}); rakibiTopla(); p2.state='block'; yanYana(38); sn(0.3);
     const soldaydi = p1.x < p2.x;
     let d=p2.hp;
+    /* UYARLAMA (Claude): saf fırlatma ölçümünde AI'ın kırma zarı (%10-55)
+       kapatılır — kırma mekanizması hemen alttaki testte ayrıca ölçülüyor */
+    const Dz=DIFFS[game.difficulty]||DIFFS.normal, eskiTb=Dz.tbreak; Dz.tbreak=0;
     keys.punch=1; sn(0.033); keys.kick=1; sn(0.05); keys.punch=0; keys.kick=0;
     sn(1.2);
+    Dz.tbreak=eskiTb;
     d=+(d-p2.hp).toFixed(2);
     if(d>0) OK('fırlatma bloğu deldi', `${d} hasar`);
     else FAIL('fırlatma tutmadı', 'tolerans/menzil?');

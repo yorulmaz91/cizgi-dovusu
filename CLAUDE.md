@@ -44,14 +44,20 @@ Sıra önemli: sistem önce, içerik sonra, animasyon cilası en sona.
   fırlatma sistemlerine tam uyumlu.
 - Araya serpiştirilebilir: arena sistemi (farklı zeminler) hâlâ boşta.
 
-## Kalıcı regresyon testi
+## Kalıcı regresyon testleri — HER FAZIN SONUNDA İKİSİ DE KOŞULUR
 
-`test-arena.html` — her fazdan sonra koşulur. Tarayıcıda
-http://localhost:8000/test-arena.html açılır; rapor sağ panelde canlı akar,
-sol altta özet sayacı vardır. Headless koşu için adrese `?log=1` eklenir:
-her rapor satırı yerel sunucuya `GET /arena?m=...` olarak düşer ve sunucu
-günlüğünden okunur. Kuklalama "boş girdili AI" ile yapılır (dondur/serbest);
-stun ile dondurma KULLANILMAZ (tepki sistemi stun'ı ezer).
+**1. `claude-test.mjs` (Node, hızlı):** `node claude-test.mjs` — tarayıcıyı
+Node içinde taklit eder (sanal saat + DOM/WebAudio iskeleti), deterministik
+ölçümlü rapor basar. Node LTS bu makinede winget ile kuruludur.
+
+**2. `test-arena.html` (gerçek tarayıcı):** http://localhost:8000/test-arena.html
+açılır; rapor sağ panelde canlı akar, sol altta özet sayacı vardır. Headless
+koşu için adrese `?log=1` eklenir: her rapor satırı yerel sunucuya
+`GET /arena?m=...` olarak düşer ve sunucu günlüğünden okunur.
+
+Her iki pakette de kuklalama "boş girdili AI" ile yapılır (dondur/pasifYap);
+stun ile dondurma KULLANILMAZ (tepki sistemi stun'ı ezer). Raporlar kullanıcıya
+özetlenir; kırmızılar önce "oyun hatası mı, test varsayımı mı" diye ayrıştırılır.
 
 ## Uzaktan test — hangi durumda hangi yöntem?
 
