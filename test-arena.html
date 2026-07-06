@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>TEST ARENASI — Çizgi Dövüşü Regresyon Testleri</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<style>
+  #rapor{
+    position:fixed;top:0;right:0;bottom:0;width:min(560px,60vw);z-index:999;
+    background:rgba(20,20,20,.96);color:#EEE;overflow-y:auto;
+    font:12px/1.5 Consolas,monospace;padding:14px;white-space:pre-wrap;
+  }
+  #rapor .ok{color:#6FD98A}
+  #rapor .fail{color:#F07A6F;font-weight:700}
+  #rapor .info{color:#8A9BB5}
+  #rapor .baslik{color:#F0C24A;font-weight:700;font-size:13px}
+  #ozet{position:fixed;left:10px;bottom:10px;z-index:999;background:#111;color:#FFF;
+    padding:10px 16px;font:700 15px 'Space Grotesk',sans-serif;border:2px solid #FFF}
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<div class="controls" id="controls">
+  <div class="pad">
+    <button class="cbtn" data-k="up">▲</button><button class="cbtn" data-k="left">◀</button>
+    <button class="cbtn" data-k="right">▶</button><button class="cbtn" data-k="down">▼</button>
+  </div>
+  <div class="btns">
+    <button class="cbtn" data-k="punch">YUM</button><button class="cbtn" data-k="kick">TEK</button>
+    <button class="cbtn" data-k="block">BLK</button><button class="cbtn spec" data-k="special">SKİL</button>
+  </div>
+</div>
+<div id="rotate"></div>
+<button id="fsBtn">⛶</button>
+<button id="sndBtn">🔊</button>
+<div id="rapor"><span class="baslik">TEST ARENASI başlıyor...</span>
+</div>
+<div id="ozet">hazırlanıyor…</div>
+
+<script type="module">
+import {game} from './js/main.js';
+import {keys} from './js/input.js';
+import {GROUND} from './js/render.js'; /* UYARLAMA (Claude): kuklayı yere ışınlamak için */
+import {DIFFS} from './js/fighter.js'; /* UYARLAMA (Claude): fırlatma testinde AI kaçış zarını kapatmak için */
+
+/* ---------------- rapor altyapısı ---------------- */
+const R=document.getElementById('rapor'), OZ=document.getElementById('ozet');
+let pas=0, kal=0, atla=0, jsHata=0;
+window.addEventListener('error',e=>{jsHata++; yaz('JS HATASI: '+e.message,'fail');});
+/* UYARLAMA (Claude): ?log=1 ile açılırsa rapor satırları yerel sunucuya da
+   yollanır — headless koşuda raporu dışarı almak için. Normal kullanımı değiştirmez. */
+const uzakLog=new URLSearchParams(location.search).get('log');
+function yaz(m,c){const s=document.createElement('div');if(c)s.className=c;s.textContent=m;R.appendChild(s);R.scrollTop=R.scrollHeight;
+  if(uzakLog)fetch('/arena?m='+encodeURIComponent(m)).catch(()=>{});}
+function OK(ad,detay){pas++;yaz('  ✓ '+ad+(detay?'  ['+detay+']':''),'ok');}
+function FAIL(ad,detay){kal++;yaz('  ✗ '+ad+(detay?'  ['+detay+']':''),'fail');}
+function ATLA(ad,neden){atla++;yaz('  ~ '+ad+' ATLANDI ('+neden+')','info');}
+function BILGI(m){yaz('  · '+m,'info');}
+function BASLIK(m){yaz('\n'+m,'baslik');}
+const bekle=ms=>new Promise(r=>setTimeout(r,ms));
+function ozet(){OZ.textContent=`✓${pas}  ✗${kal}  ~${atla}  jsErr:${jsHata}`;}
+
+/* ---------------- yardımcılar ---------------- */
+function tumTuslariBirak(){for(const k in keys)keys[k]=0;}
+async function bas(tus,sure=70){keys[tus]=1;await bekle(sure);keys[tus]=0;}
+async function sahneyiBekle(hedef,zamanAsimi=6000){
+  const t0=performance.now();
+  while(performance.now()-t0<zamanAsimi){
+    if(game.scene===hedef)return true;
+    await bekle(60);
+  }
+  return false;
+}
+/* UYARLAMA (Claude): stun ile dondurmak iç yapıyla çelişiyor (tepkiler stun'ı
+   sıfırlar, kalkma dokunulmazlığı sonraki vuruşları yutar). Bunun yerine kukla,
+   "boş girdi üreten AI"ya çevrilir: doğal tepki verir ama asla saldırmaz.
+   Zorunlu duruşlar (crouch/block) girdiyle beslenir; kalıntı durumlar sıfırlanır. */
+function dondur(f,durum){
+  if(!f._eskiAi)f._eskiAi=f.ai;
+  const g={left:0,right:0,up:0,down:0,punch:0,kick:0,block:0,special:0};
+  if(durum==='crouch')g.down=1;
+  else if(durum==='block')g.block=1;
+  else if(durum==='crouchblock'){g.down=1;g.block=1;}
+  f.ai=()=>({...g});
+  f.stun=0;f.invuln=0;f.juggle=0;f.kvx=0;f.vx=0;f.vy=0;f.y=GROUND;
+  f.aiPlan=null;f.aiPause=0;f.otg=0;
+  if(durum){f.state=durum;f.st=0;}
+}
+function serbest(f){
+  if(f._eskiAi){f.ai=f._eskiAi;f._eskiAi=null;}
+  f.stun=0;f.invuln=0;
+  if(f.state!=='ko'){f.state='idle';f.st=0;}
+}
+function yanYanaGetir(mesafe=60){
+  const p1=game.p1,p2=game.p2;
+  p1.x=Math.max(80,p2.x-mesafe);
+  p1.facing=1;p2.facing=-1;
+}
+async function canDususuOlc(hedefFighter,eylem,maksMs=1200){
+  /* UYARLAMA (Claude): önce tuşları bırak ve saldıran toparlanana dek bekle —
+     yoksa basış yutulur ya da önceki zincirin devamı ölçülür */
+  tumTuslariBirak();
+  {const tb=performance.now();while(performance.now()-tb<900&&(game.p1.busy()||game.p1.pend))await bekle(30);}
+  const once=hedefFighter.hp;
+  await eylem();
+  const t0=performance.now();
+  while(performance.now()-t0<maksMs){
+    if(hedefFighter.hp<once)break;
+    await bekle(40);
+  }
+  await bekle(250); // tepkinin oturması
+  return +(once-hedefFighter.hp).toFixed(2);
+}
+
+/* ---------------- akış: seçimden dövüşe ---------------- */
+async function dovuseGir(karakterIdx){
+  // sonuç/başka sahnedeysek seçime dönmeyi dene
+  if(game.scene==='result'){await bas('kick');await bekle(300);}
+  if(game.scene!=='select'){game.scene='select';await bekle(200);}
+  tumTuslariBirak();
+  // istenen karaktere git (sağa basarak)
+  for(let g=0;g<6;g++){
+    const idx=(game.selIdx??game.selCharIdx??0);
+    if(idx===karakterIdx)break;
+    await bas('right');await bekle(320);
+  }
+  await bas('punch');await bekle(200);
+  // zorluk ekranı varsa NORMAL'i seç
+  if(game.scene==='difficulty'){
+    await bekle(240); /* UYARLAMA (Claude): ekranın giriş kilidi (0.3sn) dolsun */
+    await bas('punch');await bekle(200);
+  }
+  const vs=await sahneyiBekle('vs',3000)||game.scene==='fight';
+  await sahneyiBekle('fight',4000);
+  return game.scene==='fight';
+}
+
+/* ================= TEST GRUPLARI ================= */
+
+async function testZincir(ad){
+  BASLIK(`[${ad}] YUMRUK ZİNCİRİ`);
+  const p1=game.p1,p2=game.p2;
+  const zincir=p1.ch.moves.p;
+  dondur(p2,'idle');yanYanaGetir(55);
+  p2.hp=p2.maxHp;
+  const once=p2.hp;
+  // zinciri sürecek şekilde bas-bırak ritmi
+  const surus=setInterval(()=>{keys.punch=keys.punch?0:1;},110);
+  await bekle(zincir.reduce((a,m)=>a+m.dur*1000,0)+700);
+  clearInterval(surus);keys.punch=0;
+  const dusus=+(once-p2.hp).toFixed(2);
+  const beklenenIlk=zincir[0].dmg;
+  const beklenenToplam=zincir.reduce((a,m)=>a+m.dmg,0);
+  if(dusus>=beklenenIlk)OK('zincir vurdu',`toplam ${dusus} hasar (tek tur beklenen ~${beklenenToplam})`);
+  else FAIL('zincir vurmadı',`düşüş ${dusus}`);
+  serbest(p2);
+}
+
+async function testYukseklik(ad){
+  BASLIK(`[${ad}] YÜKSEKLİK SİSTEMİ`);
+  const p1=game.p1,p2=game.p2;
+  const jab=p1.ch.moves.p[0];
+  // 1) çömelen rakibe HIGH → ıskalamalı
+  if((jab.height||'high')==='high'){
+    dondur(p2,'crouch');yanYanaGetir(55);p2.hp=p2.maxHp;
+    const d=await canDususuOlc(p2,async()=>{await bas('punch');});
+    if(d===0)OK('çömelene HIGH ıskaladı',jab.name);
+    else FAIL('çömelen rakibi HIGH vurdu',`${jab.name} ${d} hasar verdi`);
+  }else ATLA('çömelene HIGH testi','ilk yumruk high değil');
+  // 2) ayakta blok yapan rakibe LOW → geçmeli
+  const lowMv=p1.ch.moves.ck||p1.ch.moves.k.find(m=>m.height==='low');
+  if(lowMv){
+    dondur(p2,'block');yanYanaGetir(60);p2.hp=p2.maxHp;
+    const d=await canDususuOlc(p2,async()=>{
+      keys.down=1;await bekle(60);await bas('kick',90);keys.down=0;
+    },1500);
+    if(d>=lowMv.dmg*0.8)OK('ayakta bloğa LOW geçti',`${lowMv.name} ${d} hasar`);
+    else if(d>0)OK('ayakta bloğa LOW kısmen geçti',`${d} hasar (çip olabilir?)`);
+    else FAIL('LOW ayakta bloğu delemedi',lowMv.name);
+  }else ATLA('LOW testi','low hamle bulunamadı');
+  // 3) çömelen rakibe MID → vurmalı
+  const midMv=p1.ch.moves.p.find(m=>m.height==='mid')||p1.ch.moves.k.find(m=>m.height==='mid');
+  if(midMv){
+    // mid hamleye ulaşmak zincir gerektirirse bu test kabaca kalır — cp (upper) mid ise onu kullan
+    const cp=p1.ch.moves.cp;
+    const kullan=(cp&&cp.height==='mid')?cp:null;
+    if(kullan){
+      dondur(p2,'crouch');yanYanaGetir(50);p2.hp=p2.maxHp;
+      const d=await canDususuOlc(p2,async()=>{
+        keys.down=1;await bekle(60);await bas('punch',90);keys.down=0;
+      },1500);
+      if(d>0)OK('çömelene MID vurdu',`${kullan.name} ${d} hasar`);
+      else FAIL('çömelene MID vurmadı',kullan.name);
+    }else ATLA('çömelene MID testi','uygun tek-hamlelik mid yok');
+  }
+  serbest(p2);tumTuslariBirak();
+}
+
+async function testFirlatma(ad){
+  BASLIK(`[${ad}] FIRLATMA`);
+  const p1=game.p1,p2=game.p2;
+  dondur(p2,'block');yanYanaGetir(40);p2.hp=p2.maxHp;
+  const solda=p1.x<p2.x;
+  /* UYARLAMA (Claude): AI'ın fırlatma kırma zarı (%10-55) testte kapatılır —
+     kaçış mekanizması zaten oyunda ayrıca var, burada saf fırlatma ölçülür */
+  const D=DIFFS[game.difficulty]||DIFFS.normal, eskiTbreak=D.tbreak;
+  D.tbreak=0;
+  const d=await canDususuOlc(p2,async()=>{
+    keys.punch=1;await bekle(40);keys.kick=1;await bekle(80);
+    keys.punch=0;keys.kick=0;
+  },1800);
+  D.tbreak=eskiTbreak;
+  if(d>0)OK('fırlatma bloğu deldi',`${d} hasar`);
+  else FAIL('fırlatma çıkmadı/bloklandı',`hasar ${d} — tolerans penceresi?`);
+  await bekle(600);
+  if(ad==='GÖLGE'){
+    const sonraSolda=p1.x<p2.x;
+    if(d>0&&solda!==sonraSolda)OK('Gölge fırlatması yön değiştirdi');
+    else if(d>0)FAIL('Gölge fırlatması yön değiştirmedi');
+  }
+  serbest(p2);tumTuslariBirak();
+}
+
+async function testCounter(ad){
+  BASLIK(`[${ad}] COUNTER HIT`);
+  const p1=game.p1,p2=game.p2;
+  const jab=p1.ch.moves.p[0];
+  // rakibi "saldırı hazırlığında donmuş" hale getir
+  dondur(p2);yanYanaGetir(55);p2.hp=p2.maxHp;
+  p2.state='attack';p2.st=0.03;
+  p2.mv={name:'sahte',anim:'jab',dur:2,t0:1.5,t1:1.6,range:10,dmg:0,kb:0,ky:-50,height:'high',reaction:'flinch'};
+  p2.chain=[p2.mv];p2.chainIdx=0;
+  const d=await canDususuOlc(p2,async()=>{await bas('punch');});
+  const beklenen=+(jab.dmg*1.3).toFixed(2);
+  if(Math.abs(d-beklenen)<0.5)OK('counter ×1.3 doğru',`${d} ≈ ${beklenen}`);
+  else if(d>jab.dmg)OK('counter bonusu var (oran farklı)',`${d} > ${jab.dmg}`);
+  else if(d>0)FAIL('counter bonusu yok',`${d} = normal hasar mı?`);
+  else FAIL('counter testi vuramadı');
+  serbest(p2);
+}
+
+async function testJuggle(ad){
+  BASLIK(`[${ad}] LAUNCHER + JUGGLE AZALMASI`);
+  const p1=game.p1,p2=game.p2;
+  const cp=p1.ch.moves.cp;
+  if(!cp||!cp.launch){ATLA('juggle','launcher yok');return;}
+  dondur(p2,'idle');yanYanaGetir(48);p2.hp=p2.maxHp;
+  const y0=p2.y;
+  /* UYARLAMA (Claude): havada kalış ~0.6-0.7sn; iki vuruşun da havada
+     yakalanması için launcher isabetinden hemen sonra sıkı tempoda vurulur. */
+  keys.down=1;await bekle(60);await bas('punch',80);keys.down=0;
+  await bekle(cp.t1*1000+60); // vuruş anı
+  const havada=(p2.vy<0)||(p2.y<y0-4);
+  if(havada)OK('launcher rakibi havaya kaldırdı',`vy=${p2.vy?.toFixed(0)}`);
+  else FAIL('launcher kaldırmadı');
+  /* UYARLAMA (Claude): saldıran launcher'dan toparlanana dek bekle; vuran
+     hamlenin hasarı ISABET ANINDA örneklenir (zincir ilerleyebilir),
+     oran hamle hasarına normalize edilir: beklenen ~0.8 */
+  {const tb=performance.now();while(performance.now()-tb<500&&game.p1.busy())await bekle(20);}
+  async function havaVurus(){
+    const h=p2.hp;await bas('punch',55);
+    let md=(game.p1.mv&&game.p1.mv.dmg)||p1.ch.moves.p[0].dmg;
+    let hava=!p2.grounded();
+    const t0=performance.now();
+    while(performance.now()-t0<260){
+      if(p2.hp<h){md=(game.p1.mv&&game.p1.mv.dmg)||md;hava=!p2.grounded()||p2.vy<0;break;}
+      await bekle(25);
+    }
+    await bekle(80);
+    return {v:+(h-p2.hp).toFixed(2),md,hava};
+  }
+  const u1=await havaVurus();
+  const u2=await havaVurus();
+  if(u1.v>0&&u2.v>0&&u1.hava&&u2.hava){
+    const oran=+((u2.v/u2.md)/(u1.v/u1.md)).toFixed(2);
+    if(oran<=0.9)OK('juggle azalması çalışıyor',`${u1.v}/${u1.md} → ${u2.v}/${u2.md} (oran ${oran})`);
+    else FAIL('juggle azalmıyor',`${u1.v}/${u1.md} → ${u2.v}/${u2.md} (oran ${oran})`);
+  }else ATLA('juggle oranı',`havada iki vuruş yakalanamadı: ${u1.v}(hava:${u1.hava}) / ${u2.v}(hava:${u2.hava})`);
+  serbest(p2);tumTuslariBirak();
+  await bekle(900);
+}
+
+async function testTepkiler(ad){
+  BASLIK(`[${ad}] VURUŞ TEPKİLERİ (yere yıkma + yerde 1 vuruş)`);
+  const p1=game.p1,p2=game.p2;
+  /* UYARLAMA (Claude): yıkıcı hamleler çoğunlukla zincirin 2.-4. halkasında.
+     Önce tek tuşla garanti çıkan ▼+TEK (ck) yıkıcısı denenir; yoksa tekme
+     zinciri yıkıcı halkaya ulaşana dek sürülür. */
+  const ckKd=(p1.ch.moves.ck&&p1.ch.moves.ck.reaction==='knockdown')?p1.ch.moves.ck:null;
+  const zincirKd=p1.ch.moves.k.find(m=>m.reaction==='knockdown');
+  if(!ckKd&&!zincirKd){ATLA('knockdown','yıkan hamle yok');return;}
+  dondur(p2,'idle');yanYanaGetir(60);p2.hp=p2.maxHp;
+  tumTuslariBirak();
+  {const tb=performance.now();while(performance.now()-tb<900&&(p1.busy()||p1.pend))await bekle(30);}
+  if(ckKd){
+    keys.down=1;await bekle(60);await bas('kick',90);keys.down=0;
+  }else{
+    // zincir sürüşü: geri itilen rakibi kovalamak için ileri de bas
+    const surus=setInterval(()=>{keys.kick=keys.kick?0:1;},110);
+    keys.right=1;
+    const t0=performance.now();
+    while(performance.now()-t0<3600&&p2.state!=='down')await bekle(50);
+    clearInterval(surus);keys.kick=0;keys.right=0;
+  }
+  // 'down' anını yakala (yerde kalış ~0.6sn)
+  {const t0=performance.now();while(performance.now()-t0<1600&&p2.state!=='down')await bekle(40);}
+  if(p2.state==='down')OK('rakip yere yıkıldı',`(${ckKd?ckKd.name:zincirKd.name})`);
+  else{ATLA('yerde-1-vuruş testi',`yıkılma gözlenmedi (state=${p2.state})`);serbest(p2);tumTuslariBirak();return;}
+  // saldıran toparlanana dek bekle, sonra dar pencerede iki hızlı vuruş
+  {const t0=performance.now();while(performance.now()-t0<700&&p1.busy())await bekle(30);}
+  if(p2.state!=='down'){ATLA('yerde-1-vuruş ölçümü','rakip vuruştan önce kalktı');serbest(p2);return;}
+  const h0=p2.hp;
+  await bas('punch',60);await bekle(170);
+  const g1=+(h0-p2.hp).toFixed(2);
+  const h1=p2.hp;
+  await bas('punch',60);await bekle(200);
+  const g2=+(h1-p2.hp).toFixed(2);
+  if(g1>0&&g2===0)OK('yerde tek vuruş kuralı çalışıyor',`1.:${g1} 2.:${g2}`);
+  else if(g1===0&&g2===0)BILGI('yerde hiç vuruş geçmedi (zamanlama olabilir)');
+  else FAIL('yerde birden çok vuruş geçti',`${g1} + ${g2}`);
+  serbest(p2);await bekle(800);
+}
+
+async function testFatalityVeRovans(ad){
+  BASLIK(`[${ad}] FATALITY + RÖVANŞ AKIŞI`);
+  const p1=game.p1,p2=game.p2;
+  game.wins=[1,0]; // tek raundla maç bitsin
+  dondur(p2,'idle');yanYanaGetir(55);
+  p2.hp=1;
+  tumTuslariBirak();
+  {const tb=performance.now();while(performance.now()-tb<900&&(p1.busy()||p1.pend))await bekle(30);}
+  await bas('punch');
+  const t0=performance.now();
+  while(!game.finishing&&!game.fatal&&performance.now()-t0<3000)await bekle(60);
+  if(game.finishing||game.fatal)OK('BİTİR ONU aşamasına geçildi');
+  else{FAIL('bitirme aşaması gelmedi');return;}
+  await bekle(200);await bas('special');
+  const t1=performance.now();
+  while(!game.fatal&&performance.now()-t1<2000)await bekle(60);
+  if(game.fatal)OK('fatality başladı');
+  else BILGI('fatality tetiklenmedi (normal K.O. olabilir)');
+  const sonuc=await sahneyiBekle('result',12000);
+  if(sonuc)OK('sonuç ekranına ulaşıldı');
+  else{FAIL('sonuç ekranı gelmedi',`sahne=${game.scene}`);return;}
+  await bekle(900);
+  await bas('punch'); // rövanş
+  const rovans=await sahneyiBekle('vs',3000)||await sahneyiBekle('fight',3000);
+  if(game.scene==='vs'||game.scene==='fight')OK('tek dokunuş rövanş çalışıyor');
+  else FAIL('rövanş çalışmadı',`sahne=${game.scene}`);
+  await sahneyiBekle('fight',5000);
+}
+
+/* UYARLAMA (Claude): KALEM'e özel — Silgi Darbesi uzuv silme testi */
+async function testSilgi(){
+  BASLIK('[KALEM] SİLGİ DARBESİ (uzuv silme)');
+  const p1=game.p1,p2=game.p2;
+  if(p1.ch.id!=='kalem'){ATLA('silgi','karakter kalem değil');return;}
+  dondur(p2,'idle');yanYanaGetir(70);p2.hp=p2.maxHp;
+  tumTuslariBirak();p1.pend=null; // askıda tuş kalmasın
+  {const tb=performance.now();while(performance.now()-tb<900&&p1.busy())await bekle(30);}
+  await bas('special');await bekle(900);
+  if(p2.erasedLimb&&p2.erasedT>0)OK('uzuv silindi',`${p2.erasedLimb} (${p2.erasedT.toFixed(1)}sn kaldı)`);
+  else{FAIL('uzuv silinmedi',`erasedLimb=${p2.erasedLimb}`);serbest(p2);return;}
+  const kol=p2.erasedLimb[0]==='a';
+  if(typeof p2.canUse==='function'&&p2.canUse(kol?'p':'k')===false)
+    OK('silinen uzuvla saldırı kilitli',kol?'yumruklar':'tekmeler');
+  else FAIL('silinen uzuvla saldırı kilidi çalışmıyor');
+  await bekle(2200);
+  if(!p2.erasedLimb)OK('uzuv 2 sn sonra geri geldi');
+  else FAIL('uzuv geri gelmedi',`kalan ${p2.erasedT?.toFixed(2)}`);
+  serbest(p2);
+}
+
+async function testZorluk(){
+  BASLIK('[GENEL] ZORLUK FARKI (AI hasar çıkışı, 6 sn örneklem)');
+  const sonuclar={};
+  for(const z of ['kolay','normal','zor']){
+    game.difficulty=z;
+    const p1=game.p1,p2=game.p2;
+    p1.hp=p1.maxHp;p2.hp=p2.maxHp;
+    serbest(p2);
+    p1.x=game.p2.x-70; // yakın dur, blok yapma
+    tumTuslariBirak();
+    const once=p1.hp;
+    await bekle(6000);
+    sonuclar[z]=+(once-p1.hp).toFixed(1);
+    p1.hp=p1.maxHp;p2.hp=p2.maxHp;
+    BILGI(`${z.toUpperCase()}: ${sonuclar[z]} hasar aldık`);
+  }
+  if(sonuclar.kolay<sonuclar.zor)OK('KOLAY < ZOR hasar sıralaması doğru',
+    `${sonuclar.kolay} < ${sonuclar.zor}`);
+  else FAIL('zorluk hasar sıralaması ters/etkisiz',JSON.stringify(sonuclar));
+  if(sonuclar.kolay<=sonuclar.normal&&sonuclar.normal<=sonuclar.zor)
+    OK('tam sıralama kolay≤normal≤zor');
+  else BILGI('normal beklenen aralıkta değil (rastgelelik olabilir, tekrar koş)');
+}
+
+/* ================= ANA AKIŞ ================= */
+(async function(){
+  yaz('Oyun modülleri yüklendi. Sahne: '+game.scene,'info');
+  await bekle(800);
+  const KARAKTERLER=['GÖLGE','BETON','VOLT','KALEM']; /* UYARLAMA (Claude): KALEM eklendi */
+  for(let i=0;i<KARAKTERLER.length;i++){
+    BASLIK(`════════ ${KARAKTERLER[i]} TESTLERİ ════════`);
+    const girdi=await dovuseGir(i);
+    if(!girdi){FAIL(KARAKTERLER[i]+' ile dövüşe girilemedi',`sahne=${game.scene}`);continue;}
+    if(game.p1.ch.name!==KARAKTERLER[i])
+      BILGI(`dikkat: seçilen ${game.p1.ch.name} (indeks kayması olabilir)`);
+    OK('dövüşe girildi',`${game.p1.ch.name} vs ${game.p2.ch.name} · zorluk=${game.difficulty}`);
+    dondur(game.p2,'idle'); // AI'ı sustur, ölçümler kirlenmesin
+    await testZincir(KARAKTERLER[i]);
+    await testYukseklik(KARAKTERLER[i]);
+    await testFirlatma(KARAKTERLER[i]);
+    await testCounter(KARAKTERLER[i]);
+    await testJuggle(KARAKTERLER[i]);
+    await testTepkiler(KARAKTERLER[i]);
+    if(KARAKTERLER[i]==='KALEM')await testSilgi();
+    await testFatalityVeRovans(KARAKTERLER[i]);
+    ozet();
+  }
+  // zorluk testi son maçın içinde
+  if(game.scene==='fight')await testZorluk();
+  else BILGI('zorluk testi için dövüş sahnesi yok, atlandı');
+
+  BASLIK('════════ SONUÇ ════════');
+  yaz(`GEÇEN: ${pas}   KALAN: ${kal}   ATLANAN: ${atla}   JS HATASI: ${jsHata}`,
+    kal===0&&jsHata===0?'ok':'fail');
+  yaz(kal===0&&jsHata===0
+    ?'TÜM SİSTEMLER YEŞİL — bu raporu Claude\'a gönder.'
+    :'KIRMIZILAR VAR — bu raporun tamamını kopyalayıp Claude\'a gönder, birlikte bakalım.',
+    'baslik');
+  ozet();
+})();
+</script>
+</body>
+</html>

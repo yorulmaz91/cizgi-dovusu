@@ -164,6 +164,12 @@ export function computePose(f){
     if(f.ch.id==='golge'){P.lean=.5;P.aR=[1.4,.1];P.aL=[-.8,.5];P.lL=[.9,.3];P.lR=[-.7,.6];}
     if(f.ch.id==='beton'){P.lean=.35*k;P.aR=[lerp(-2.4,1.1,Math.min(1,t/.45)),.15];P.aL=[.6,.7];P.dip=6*k;P.lL=[.5,.4];P.lR=[-.4,.5];}
     if(f.ch.id==='volt'){P.aL=[2.6,.1];P.aR=[2.6,.1];P.head=.15;P.dip=-3;}
+    if(f.ch.id==='kalem'){ // geniş silgi savuruşu: arkadan öne büyük yay
+      const kk=Math.min(1,t/.62);
+      P.lean=lerp(-.25,.35,kk);P.head=.1;
+      P.aR=[lerp(-2.0,1.6,Math.min(1,kk*1.4)),.15];P.aL=[.9,1.0];
+      P.lL=[.45,.2];P.lR=[-.4,.35];P.dip=3*Math.sin(kk*Math.PI);
+    }
   }
   if(s==='throwing'){ // rakibi kavrayıp savurma
     const k=Math.min(1,t/.25);

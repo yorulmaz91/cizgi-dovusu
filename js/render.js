@@ -89,8 +89,22 @@ export function drawBG(g){
   }
 }
 
+/* dev kalem: KALEM karakterinin elinde taşıdığı silah (special'da silgi ucu önde) */
+function drawPencil(g,x,y,ang,flip){
+  g.save();g.translate(x,y);g.rotate(ang);if(flip)g.rotate(Math.PI);
+  g.lineWidth=1.6;g.strokeStyle=INK;g.fillStyle=PAPER;
+  g.beginPath();g.rect(-14,-3.6,38,7.2);g.fill();g.stroke();        // gövde
+  g.beginPath();g.moveTo(24,-3.6);g.lineTo(34,0);g.lineTo(24,3.6);g.closePath();g.fill();g.stroke(); // uç
+  g.fillStyle=INK;
+  g.beginPath();g.arc(33,0,1.7,0,7);g.fill();                       // grafit
+  g.beginPath();g.rect(-20,-4,6,8);g.fill();                        // silgi
+  g.lineWidth=1;g.beginPath();g.moveTo(-2,-3.6);g.lineTo(-2,3.6);g.moveTo(6,-3.6);g.lineTo(6,3.6);g.stroke(); // yiv
+  g.restore();
+}
+
 /* ---------------- dövüşçü çizimi ---------------- */
 export function drawFighter(g,ftr){
+  if(ftr.hidden)return; // KALEM fatality'si tamamen silineni çizmez
   const p=ftr.pose(),f=ftr.facing,c=ftr.ch;
   const hipY=ftr.y-46+p.dip, hip=[ftr.x,hipY];
   const seg=(x,y,a,len)=>[x+Math.sin(a)*len*f,y+Math.cos(a)*len];
@@ -106,8 +120,9 @@ export function drawFighter(g,ftr){
   const nk=[hip[0]+Math.sin(p.lean)*26*f,hip[1]-Math.cos(p.lean)*26];
   const w1=c.lw+0.6,w2=c.lw-0.2;
 
-  // bacaklar + ayakkabılar
-  for(const[leg,side]of[[p.lL,1],[p.lR,-1]]){
+  // bacaklar + ayakkabılar (silinen uzuv çizilmez — KALEM skili)
+  for(const[leg,side,adL]of[[p.lL,1,'lL'],[p.lR,-1,'lR']]){
+    if(ftr.erasedLimb===adL&&ftr.erasedT>0)continue;
     const kn=seg(hip[0],hip[1],leg[0],22);
     const ft=seg(kn[0],kn[1],leg[0]-leg[1]*side,20);
     tstroke(g,[hip,kn,ft],w1,w2);
@@ -126,14 +141,20 @@ export function drawFighter(g,ftr){
   // gövde
   tstroke(g,[hip,[lerp(hip[0],nk[0],.5)-f,lerp(hip[1],nk[1],.5)],nk],w1+0.4,w2+0.4);
 
-  // kollar + eller
+  // kollar + eller (silinen uzuv çizilmez — KALEM skili)
   const fist=(ftr.state==='attack'&&ftr.mv&&ftr.mv.anim!=='palm'&&ftr.mv.anim!=='shuto')||(ftr.state==='special'&&ftr.ch.id!=='volt');
-  for(const[arm,side]of[[p.aL,1],[p.aR,-1]]){
+  let sagEl=null;
+  for(const[arm,side,adA]of[[p.aL,1,'aL'],[p.aR,-1,'aR']]){
+    if(ftr.erasedLimb===adA&&ftr.erasedT>0)continue;
     const el=seg(nk[0],nk[1],arm[0],18);
     const hn=seg(el[0],el[1],arm[0]+arm[1]*side,17);
     tstroke(g,[[nk[0],nk[1]],el,hn],w1,w2-0.3);
-    drawToonHand(g,hn[0],hn[1],Math.atan2(hn[1]-el[1],(hn[0]-el[0])),fist?'fist':'open',c.lw);
+    const ang=Math.atan2(hn[1]-el[1],(hn[0]-el[0]));
+    drawToonHand(g,hn[0],hn[1],ang,fist?'fist':'open',c.lw);
+    if(adA==='aR')sagEl={x:hn[0],y:hn[1],ang};
   }
+  // KALEM elinde dev kalem taşır (special'da silgi ucu önde)
+  if(c.id==='kalem'&&sagEl)drawPencil(g,sagEl.x,sagEl.y,sagEl.ang,ftr.state==='special');
 
   // hız yayları (whoosh)
   if(ftr.state==='attack'&&ftr.mv){
@@ -223,6 +244,14 @@ function drawHead(g,ftr,x,y,R,f){
       const tx=Math.cos(a)*48+3,ty=Math.sin(a)*48;
       g.beginPath();g.moveTo(bx-6,by+2);g.lineTo(tx,ty);g.lineTo(bx+6,by+2);g.closePath();g.fill();
     }
+  }
+  if(c.hair==='beret'){ // yana yatık ressam beresi + kulak arkasında yedek kalem
+    g.beginPath();g.ellipse(-3,-25,27,10,-.14,0,7);g.fill();
+    g.beginPath();g.arc(-1,-33,4,0,7);g.fill();          // bere sapı
+    g.save();g.rotate(.5);
+    g.fillStyle=INK;g.fillRect(14,-24,18,3.4);            // kalem gövdesi
+    g.beginPath();g.moveTo(32,-24);g.lineTo(37,-22.3);g.lineTo(32,-20.6);g.closePath();g.fill(); // ucu
+    g.restore();
   }
   // gözler
   const blink=(expr==='idle'&&Math.sin(performance.now()/770+ftr.x)>0.97)?0.12:1;

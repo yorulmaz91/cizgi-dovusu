@@ -77,5 +77,30 @@ export const CHARS=[
       jp:{name:'Ay Tekmesi',anim:'crescent',dur:.32,t0:.1,t1:.22,range:62,dmg:9,kb:140,ky:-50,height:'high',reaction:'flinch'}, // crescent kick — stil gereği havada da tekme
       jk:{name:'Uçan Tekme',anim:'flykick',dur:.5,t0:.1,t1:.4,range:70,dmg:12,kb:240,ky:-46,airlunge:340,height:'mid',reaction:'flinch'}
     }
+  },
+  {
+    id:'kalem',name:'KALEM',lw:2.1,
+    speed:230,hp:96,punch:7,kick:9,
+    specName:'Silgi Darbesi',specDesc:'Rakibin bir uzvunu 2 saniyeliğine siler',
+    specCd:6,tagline:'Stil dışı · sivri uçlu · öngörülemez',
+    fatalName:'TEMİZ SAYFA',
+    throwName:'Sayfa Çevirme', // rakibi sayfa çevirir gibi kaldırıp öne kapaklar
+    hair:'beret',mood:'smirk',
+    moves:{
+      p:[
+        {name:'Kalem Saplama',anim:'jab',dur:.22,t0:.06,t1:.13,range:86,dmg:5,kb:90,ky:-56,height:'mid',reaction:'flinch'}, // uzun menzilli ORTA poke — kural dışı açılış
+        {name:'Kıvrık Çizgi',anim:'hook',dur:.34,t0:.13,t1:.21,range:70,dmg:8,kb:140,ky:-60,height:'high',reaction:'flinch'},
+        {name:'Silgi Tokadı',anim:'palm',dur:.34,t0:.12,t1:.2,range:72,dmg:9,kb:200,ky:-58,height:'mid',reaction:'stagger',counterReaction:'crumple'}
+      ],
+      k:[
+        {name:'Cetvel Süpürmesi',anim:'sweep',dur:.36,t0:.13,t1:.22,range:80,dmg:6,kb:100,ky:-12,height:'low',reaction:'flinch'}, // ALÇAK zincir BAŞLANGICI — öngörülemez
+        {name:'Pergel Tekmesi',anim:'round',dur:.4,t0:.15,t1:.26,range:86,dmg:10,kb:190,ky:-62,height:'high',reaction:'stagger'},
+        {name:'Nokta Koyma',anim:'axe',dur:.48,t0:.24,t1:.34,range:72,dmg:12,kb:130,ky:-88,height:'mid',reaction:'knockdown'}
+      ],
+      cp:{name:'Kalem Ucu',anim:'upper',dur:.4,t0:.13,t1:.23,range:56,dmg:9,kb:60,ky:-82,launch:540,height:'mid',reaction:'launch'},
+      ck:{name:'Çizik Atma',anim:'lowkick',dur:.28,t0:.09,t1:.16,range:74,dmg:6,kb:100,ky:-12,height:'low',reaction:'flinch'},
+      jp:{name:'Havada Karalama',anim:'airpunch',dur:.3,t0:.09,t1:.2,range:60,dmg:8,kb:130,ky:-42,height:'mid',reaction:'flinch'},
+      jk:{name:'İmza Tekmesi',anim:'flykick',dur:.5,t0:.1,t1:.4,range:68,dmg:11,kb:220,ky:-44,airlunge:320,height:'mid',reaction:'flinch'}
+    }
   }
 ];

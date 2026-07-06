@@ -122,6 +122,20 @@ export function koBlast(){
   n.start(t);n.stop(t+0.55);
 }
 
+/* silgi sürtmesi: iki kısa cızırtı (KALEM skili) */
+export function erase(){
+  if(!ready())return;
+  const t=ctx.currentTime;
+  for(const d0 of[0,.12]){
+    const n=noise();
+    const bp=ctx.createBiquadFilter();bp.type='bandpass';bp.Q.value=2.2;
+    bp.frequency.setValueAtTime(700,t+d0);
+    bp.frequency.exponentialRampToValueAtTime(1500,t+d0+.09);
+    n.connect(bp);bp.connect(env(.22,t+d0,.1));
+    n.start(t+d0);n.stop(t+d0+.11);
+  }
+}
+
 /* fatality: bas drop + kalp atışı (sahne bitene dek sürer) */
 let heartId=null;
 export function fatalityStart(){

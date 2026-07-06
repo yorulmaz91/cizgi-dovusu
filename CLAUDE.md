@@ -37,7 +37,21 @@ Sıra önemli: sistem önce, içerik sonra, animasyon cilası en sona.
   bloklanan ağır hamleyi cezalandırır (punish).
 - **FAZ D (Görev 7):** animasyon cilası — hazırlık→vuruş→geri çekme aşamaları,
   ağırlık aktarımı, vuruş anında "tık" duruşu, tepki animasyonu inceltme.
-- Araya serpiştirilebilir: arena sistemi, KALEM karakteri (moral görevleri).
+- **KALEM karakteri — TAMAMLANDI:** stil dışı meta-karakter (bere + dev kalem);
+  skili Silgi Darbesi rakibin rastgele bir uzvunu 2 sn siler (uzuv çizilmez,
+  o uzuvla saldırı/fırlatma kilitli — canUse()); fatality TEMİZ SAYFA rakibi
+  tepeden aşağı siler (clip ile çizim + hidden bayrağı). Yükseklik/tepki/
+  fırlatma sistemlerine tam uyumlu.
+- Araya serpiştirilebilir: arena sistemi (farklı zeminler) hâlâ boşta.
+
+## Kalıcı regresyon testi
+
+`test-arena.html` — her fazdan sonra koşulur. Tarayıcıda
+http://localhost:8000/test-arena.html açılır; rapor sağ panelde canlı akar,
+sol altta özet sayacı vardır. Headless koşu için adrese `?log=1` eklenir:
+her rapor satırı yerel sunucuya `GET /arena?m=...` olarak düşer ve sunucu
+günlüğünden okunur. Kuklalama "boş girdili AI" ile yapılır (dondur/serbest);
+stun ile dondurma KULLANILMAZ (tepki sistemi stun'ı ezer).
 
 ## Uzaktan test — hangi durumda hangi yöntem?
 

@@ -39,6 +39,17 @@ export function updateFatality(dt){
     if(F.smoke&&Math.random()<.3)particles.push({x:l.x+rnd(-10,10),y:l.y-rnd(20,100),vx:rnd(-10,10),vy:-40,life:.8,t:0,r:rnd(3,7),smoke:1});
     if(F.t>3)endFatality();
   }
+  if(id==='kalem'){ // TEMİZ SAYFA: silgi tepeden inerek rakibi baştan aşağı siler
+    if(F.t<.5)w.x=lerp(w.x,l.x-72*w.facing,dt*8);
+    else{
+      F.eraseY=(F.eraseY??(l.y-170))+dt*80;             // silgi çizgisi aşağı iner
+      w.x=l.x-72*w.facing+Math.sin(F.t*16)*9;           // sürtme sallanışı
+      if(Math.random()<.6)particles.push({x:l.x+rnd(-26,26),y:(F.eraseY)+rnd(-6,6),vx:rnd(-20,20),vy:rnd(10,45),life:rnd(.4,.8),t:0,r:rnd(1.5,3),smoke:1}); // kırıntılar
+      if(Math.random()<.2)screenFx.shake=3;
+      if(F.eraseY>GROUND-6&&!F.bitti){F.bitti=1;l.hidden=true;} // tamamen silindi
+    }
+    if(F.t>3.1)endFatality();
+  }
 }
 function endFatality(){
   screenFx.timeScale=1;setInverted(false);
@@ -53,7 +64,19 @@ function endFatality(){
 export function drawFatalityFx(g){
   const F=game.fatal;if(!F)return;
   const l=F.l,id=F.w.ch.id;
-  F.w.draw(g);F.l.draw(g);
+  F.w.draw(g);
+  if(id==='kalem'&&F.eraseY!=null){
+    // kurban yalnızca silgi çizgisinin ALTINDAN itibaren çizilir (üstü silinmiş)
+    if(!l.hidden){
+      g.save();g.beginPath();
+      g.rect(l.x-100,F.eraseY,200,GROUND+60-F.eraseY);
+      g.clip();F.l.draw(g);g.restore();
+      g.save();g.strokeStyle=INK;g.globalAlpha=.5;g.lineWidth=2;
+      g.setLineDash([5,4]);
+      g.beginPath();g.moveTo(l.x-56,F.eraseY);g.lineTo(l.x+56,F.eraseY);g.stroke();
+      g.restore();
+    }
+  }else F.l.draw(g);
   if(id==='golge'&&F.shade&&F.shade.a>0){
     g.save();g.globalAlpha=Math.max(0,F.shade.a);
     g.strokeStyle=INK;g.lineWidth=4;g.lineCap='round';

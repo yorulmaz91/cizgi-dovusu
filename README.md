@@ -75,6 +75,11 @@ Ardından tarayıcıda açılan adresi (genelde `http://localhost:3000`) ziyaret
 - **VOLT** — YUM: Jab → Şok Avucu → **Dönen Topuk** (ÜST, çökertir) ·
   TEK: İtme Tekmesi (uzağa iter) → Yan Tekme → Dönen Tekme → Balta ·
   havada YUM: **Ay Tekmesi**
+- **KALEM** — stil dışı meta-karakter. YUM: Kalem Saplama (uzun ORTA poke) →
+  Kıvrık Çizgi → Silgi Tokadı · TEK: Cetvel Süpürmesi (ALÇAK açılış!) →
+  Pergel Tekmesi → Nokta Koyma · SKİL **Silgi Darbesi**: rakibin bir uzvunu
+  2 saniyeliğine siler (o uzuvla saldıramaz) · FATALITY **TEMİZ SAYFA**:
+  rakibi baştan aşağı siler
 - ▼ + Yumruk: rakibi havaya fırlatan launcher; havada juggle yapılabilir.
 - Rakibin canı bitince "BİTİR ONU!" yazısında SKİL'e basarsan fatality izlersin.
 

@@ -29,6 +29,7 @@ export class Fighter{
     this.juggle=0;this.kvx=0;this.invuln=0;this.otg=0;this.whiffed=false;
     this.pPrev=false;this.kPrev=false;this.pBuf=0;this.kBuf=0;this.pend=null; // YUM+TEK toleransı
     this.thrFoe=null;this.thrHit=false;this.thrEscape=false;this.thrEscT=0;
+    this.erasedLimb=null;this.erasedT=0;this.hidden=false; // KALEM: silinen uzuv
     this.aiT=0;this.fx={};this.aiPause=0;this.aiChainAt=-1;this.aiChainGo=false;this.aiBlockLow=false;
   }
   setState(s){this.state=s;this.st=0;}
@@ -52,6 +53,11 @@ export class Fighter{
     this.st+=dt;this.cd=Math.max(0,this.cd-dt);
     this.invuln=Math.max(0,this.invuln-dt);
     this.comboT-=dt;if(this.comboT<=0)this.combo=0;
+    // silinen uzuv 2 sn sonra geri belirir
+    if(this.erasedT>0){
+      this.erasedT-=dt;
+      if(this.erasedT<=0){this.erasedLimb=null;spark(this.x,this.y-70,4,.4);}
+    }
 
     /* --- yerçekimi & iniş (fırlatılan rakibi fırlatan taşır) --- */
     if(this.state!=='thrown'&&(!this.grounded()||this.vy<0)){
@@ -79,8 +85,8 @@ export class Fighter{
       if(!this.isAI){
         const pE=!!keys.punch&&!this.pPrev, kE=!!keys.kick&&!this.kPrev;
         this.pPrev=!!keys.punch;this.kPrev=!!keys.kick;
-        this.pBuf=pE?.08:Math.max(0,this.pBuf-dt);
-        this.kBuf=kE?.08:Math.max(0,this.kBuf-dt);
+        this.pBuf=pE?.1:Math.max(0,this.pBuf-dt);
+        this.kBuf=kE?.1:Math.max(0,this.kBuf-dt);
         if(this.st<.2&&this.pBuf>0&&this.kBuf>0)this.thrEscape=true;
       }else if(this.thrEscT&&this.st>=this.thrEscT)this.thrEscape=true;
       return;
@@ -92,15 +98,15 @@ export class Fighter{
     /* tuş kenarları + 80ms tamponlar (YUM+TEK fırlatma toleransı) */
     const pEdge=!!inp.punch&&!this.pPrev, kEdge=!!inp.kick&&!this.kPrev;
     this.pPrev=!!inp.punch;this.kPrev=!!inp.kick;
-    this.pBuf=pEdge?.08:Math.max(0,this.pBuf-dt);
-    this.kBuf=kEdge?.08:Math.max(0,this.kBuf-dt);
+    this.pBuf=pEdge?.1:Math.max(0,this.pBuf-dt);
+    this.kBuf=kEdge?.1:Math.max(0,this.kBuf-dt);
 
     /* --- havada: sürüklenme + hava saldırıları --- */
     if(this.state==='jump'){
       this.vx=(inp.right-inp.left)*this.ch.speed*0.9;
       this.x=clamp(this.x+this.vx*dt,60,VW-60);
-      if(inp.punch)this.startSingle(this.ch.moves.jp,'p',true);
-      else if(inp.kick)this.startSingle(this.ch.moves.jk,'k',true);
+      if(inp.punch&&this.canUse('p'))this.startSingle(this.ch.moves.jp,'p',true);
+      else if(inp.kick&&this.canUse('k'))this.startSingle(this.ch.moves.jk,'k',true);
     }
 
     /* --- saldırı zinciri --- */
@@ -178,19 +184,19 @@ export class Fighter{
           }
           else this.setStateIf('idle');
           const yakin=Math.abs(foe.x-this.x)<=THROW_RANGE;
-          if(this.pBuf>0&&this.kBuf>0){ // YUM+TEK (80ms içinde ikisi) = fırlatma
+          if(this.pBuf>0&&this.kBuf>0){ // YUM+TEK (kısa tolerans içinde ikisi) = fırlatma
             this.pBuf=this.kBuf=0;this.pend=null;
-            this.tryThrow(foe);
+            if(this.canUse('p')&&this.canUse('k'))this.tryThrow(foe); // silinmiş uzuvla kavrama yok
           }
           else if(this.pend){ // yakın mesafede ikinci tuş için kısa bekleme
             this.pend.t-=dt;
-            if(this.pend.t<=0){const kk=this.pend.k;this.pend=null;this.startChain(kk);}
+            if(this.pend.t<=0){const kk=this.pend.k;this.pend=null;if(this.canUse(kk))this.startChain(kk);}
           }
           else if(inp.punch||inp.kick){
             const kind=inp.punch?'p':'k';
             const taze=(kind==='p'&&pEdge)||(kind==='k'&&kEdge);
-            if(yakin&&taze)this.pend={k:kind,t:.08}; // fırlatma toleransı
-            else this.startChain(kind);
+            if(yakin&&taze)this.pend={k:kind,t:.1}; // fırlatma toleransı (~100ms)
+            else if(this.canUse(kind))this.startChain(kind);
           }
           else if(inp.special&&this.cd<=0){this.startSpecial(foe);}
         }
@@ -199,8 +205,8 @@ export class Fighter{
       // çömelme: blokla, kalk veya çömelme saldırısı
       this.facing=foe.x>this.x?1:-1;this.vx=0;
       if(inp.block)this.setState('crouchblock');
-      else if(inp.punch)this.startSingle(this.ch.moves.cp,'p',false);
-      else if(inp.kick)this.startSingle(this.ch.moves.ck,'k',false);
+      else if(inp.punch&&this.canUse('p'))this.startSingle(this.ch.moves.cp,'p',false);
+      else if(inp.kick&&this.canUse('k'))this.startSingle(this.ch.moves.ck,'k',false);
       else if(!inp.down)this.setState('idle');
     }else if(this.state!=='attack'&&this.state!=='jump')this.vx=0;
 
@@ -210,6 +216,12 @@ export class Fighter{
     this.updateSpecial(dt,foe);
   }
   setStateIf(s){if(this.state!==s)this.setState(s);}
+  /* silinmiş uzuvla saldırı yok: kol silindiyse yumruk, bacak silindiyse tekme kilitli */
+  canUse(kind){
+    if(!this.erasedLimb||this.erasedT<=0)return true;
+    const tip=this.erasedLimb[0]; // 'a' kol, 'l' bacak
+    return kind==='p'?tip!=='a':tip!=='l';
+  }
   landHit(foe,mv,finisher){
     let dmg=mv.dmg,kb=mv.kb,ky=mv.ky,rc=null;
     if(this.isAI)dmg*=(DIFFS[game.difficulty]||DIFFS.normal).dmg; // zorluk çarpanı
@@ -266,6 +278,7 @@ export class Fighter{
     foe.kvx=this.facing*kb*1.44; // eski anlık itmeyle aynı toplam mesafe, kayarak
     if(rc==='stagger')foe.kvx*=1.6; // sendeleme: 2-3 adım geriye
     if(foe.hp<=0&&!game.finishing)game.finishHim(this,foe);
+    return blocked?'blocked':(foe.state==='down'&&!rc?'otg':'hit'); // KALEM skili temiz isabeti ayırt eder
   }
   /* ---------- fırlatma (belge 2.2): blok işlemez, kaçış YUM+TEK ---------- */
   tryThrow(foe){
@@ -325,6 +338,17 @@ export class Fighter{
       }
       if(T>=.8){this.endThrow(v);}
     }
+    if(id==='kalem'){ // sayfa çevirme: kaldır, sayfa gibi çevir, öne kapakla
+      if(T>=.2&&T<.5){const k=(T-.2)/.3;v.x=clamp(this.x+f*lerp(36,18,k),60,VW-60);v.y=GROUND-Math.sin(k*Math.PI*.5)*95;}
+      if(T>=.5&&T<.6){const k=(T-.5)/.1;v.x=clamp(this.x+f*lerp(18,78,k),60,VW-60);v.y=GROUND-95*(1-k);}
+      if(T>=.6&&!this.thrHit){
+        this.thrHit=true;
+        v.x=clamp(this.x+f*78,60,VW-60);v.y=GROUND;
+        for(let i=0;i<6;i++)dust(v.x+rnd(-24,24),GROUND-2,Math.sign(rnd(-1,1)));
+        this.throwImpact(v,12*mul,'down');
+      }
+      if(T>=.78){this.endThrow(v);}
+    }
     if(id==='volt'){ // tut + elektrik ver + it (yıkmaz, sersemletir)
       if(T>=.2&&T<.55){
         v.x=clamp(this.x+f*36,60,VW-60);v.y=GROUND;
@@ -356,7 +380,7 @@ export class Fighter{
     this.thrFoe=null;if(v)v.thrBy=null;
     this.setState('idle');
   }
-  specDur(){return this.ch.id==='golge'?.55:this.ch.id==='beton'?.7:.9;}
+  specDur(){return this.ch.id==='golge'?.55:this.ch.id==='beton'?.7:this.ch.id==='kalem'?.62:.9;}
   startSpecial(foe){
     this.setState('special');this.cd=this.ch.specCd;this.fx={};
     if(this.ch.id==='golge'){this.fx.sx=this.x;this.fx.tx=foe.x+this.facing*70;}
@@ -376,6 +400,23 @@ export class Fighter{
         for(let i=0;i<10;i++)dust(this.x+this.facing*40+rnd(-70,70),GROUND-2,Math.sign(rnd(-1,1)));
         burst(this.x+this.facing*44,GROUND-8,26);
         if(Math.abs(foe.x-this.x)<190){this.landHit(foe,{dmg:20,kb:320,ky:-20,height:'low',reaction:'knockdown'},false);floatBig(foe.x,foe.y-150,'DEPREM!');}
+      }
+    }
+    if(id==='kalem'){
+      // silgi savuruşu: temiz isabette rastgele bir uzvu 2 saniyeliğine siler
+      if(t>.45&&!this.fx.hit){
+        this.fx.hit=true;
+        if(Math.abs(foe.x-this.x)<110&&Math.sign(foe.x-this.x)===this.facing){
+          const sonuc=this.landHit(foe,{dmg:6,kb:140,ky:-60,name:'Silgi Darbesi',height:'mid',reaction:'flinch'},false);
+          if(sonuc==='hit'){
+            const uzuvlar=['aL','aR','lL','lR'];
+            foe.erasedLimb=uzuvlar[Math.floor(Math.random()*uzuvlar.length)];
+            foe.erasedT=2;
+            floatBig(foe.x,foe.y-155,'SİLİNDİ!');
+            for(let i=0;i<9;i++)dust(foe.x+rnd(-16,16),foe.y-rnd(30,110),Math.sign(rnd(-1,1))); // silgi kırıntıları
+            sfx.erase();
+          }
+        }
       }
     }
     if(id==='volt'){
