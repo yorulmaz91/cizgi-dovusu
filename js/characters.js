@@ -8,6 +8,7 @@ export const CHARS=[
     specName:'Gölge Geçişi',specDesc:'Rakibin içinden geçer, arkasından vurur',
     specCd:3.5,tagline:'Hızlı · kırılgan · acımasız',
     fatalName:'GÖLGE SÖKÜMÜ',
+    throwName:'Gölge Savurması', // ense kavrama + arkaya atış (yön değişir)
     hair:'long',mood:'smirk',
     moves:{
       p:[
@@ -31,10 +32,11 @@ export const CHARS=[
     specName:'Deprem Yumruğu',specDesc:'Yere vurur, şok dalgası yayar',
     specCd:5,tagline:'Yavaş · dayanıklı · ezici',
     fatalName:'BETON MEZARI',
+    throwName:'Beton Çakması', // judo kalça atışı — en yüksek fırlatma hasarı
     hair:'flat',mood:'frown',
     moves:{
       p:[
-        {name:'Kanca',anim:'hook',dur:.38,t0:.14,t1:.24,range:64,dmg:10,kb:150,ky:-60,height:'high',reaction:'flinch'},
+        {name:'Kanca',anim:'hook',dur:.38,t0:.14,t1:.24,range:64,dmg:10,kb:150,ky:-60,height:'high',reaction:'flinch',counterReaction:'crumple'},
         {name:'Balyoz',anim:'hay',dur:.6,t0:.3,t1:.42,range:72,dmg:15,kb:300,ky:-70,lunge:60,height:'mid',reaction:'stagger'}
       ],
       k:[
@@ -53,6 +55,7 @@ export const CHARS=[
     specName:'Yıldırım Zinciri',specDesc:'3 şimşek üst üste çarpar',
     specCd:4.5,tagline:'Dengeli · elektrikli · şok edici',
     fatalName:'RÖNTGEN ÇARPMASI',
+    throwName:'Şok Kavraması', // tutup elektrik verir — az hasar + sersemletme
     hair:'spiky',mood:'grin',
     moves:{
       p:[

@@ -13,10 +13,11 @@ import * as sfx from './audio.js';
    zincirin devamını basma / blok / skil olasılıkları,
    low: alçak vuruş kullanma sıklığı, read: gelen vuruşun yüksekliğini doğru okuma */
 export const DIFFS={
-  kolay :{dmg:.6,pauseMin:.5, pauseMax:1,  chain:.25,block:.15,special:.2, low:.08,read:.2},
-  normal:{dmg:.8,pauseMin:.25,pauseMax:.6, chain:.6, block:.3, special:.35,low:.18,read:.5},
-  zor   :{dmg:1, pauseMin:.05,pauseMax:.15,chain:.85,block:.5, special:.6, low:.3, read:.85}
+  kolay :{dmg:.6,pauseMin:.5, pauseMax:1,  chain:.25,block:.15,special:.2, low:.08,read:.2, throw:.1, tbreak:.1},
+  normal:{dmg:.8,pauseMin:.25,pauseMax:.6, chain:.6, block:.3, special:.35,low:.18,read:.5, throw:.25,tbreak:.3},
+  zor   :{dmg:1, pauseMin:.05,pauseMax:.15,chain:.85,block:.5, special:.6, low:.3, read:.85,throw:.45,tbreak:.55}
 };
+const THROW_RANGE=48; // fırlatma menzili (belge 2.2)
 
 export class Fighter{
   constructor(ch,x,facing,isAI){
@@ -26,10 +27,12 @@ export class Fighter{
     this.cd=0;this.blockHeld=false;this.walkPhase=0;
     this.dead=false;this.stun=0;this.combo=0;this.comboT=0;
     this.juggle=0;this.kvx=0;this.invuln=0;this.otg=0;this.whiffed=false;
+    this.pPrev=false;this.kPrev=false;this.pBuf=0;this.kBuf=0;this.pend=null; // YUM+TEK toleransı
+    this.thrFoe=null;this.thrHit=false;this.thrEscape=false;this.thrEscT=0;
     this.aiT=0;this.fx={};this.aiPause=0;this.aiChainAt=-1;this.aiChainGo=false;this.aiBlockLow=false;
   }
   setState(s){this.state=s;this.st=0;}
-  busy(){return ['attack','special','hit','stagger','crumple','down','getup','ko','fatalP','fatalV','jump'].includes(this.state);}
+  busy(){return ['attack','special','hit','stagger','crumple','down','getup','throwing','thrown','ko','fatalP','fatalV','jump'].includes(this.state);}
   grounded(){return this.y>=GROUND-0.5;}
   startChain(t){
     this.chain=this.ch.moves[t];
@@ -50,8 +53,8 @@ export class Fighter{
     this.invuln=Math.max(0,this.invuln-dt);
     this.comboT-=dt;if(this.comboT<=0)this.combo=0;
 
-    /* --- yerçekimi & iniş --- */
-    if(!this.grounded()||this.vy<0){
+    /* --- yerçekimi & iniş (fırlatılan rakibi fırlatan taşır) --- */
+    if(this.state!=='thrown'&&(!this.grounded()||this.vy<0)){
       this.vy+=1600*dt;this.y+=this.vy*dt;
       if(this.y>=GROUND){
         this.y=GROUND;this.vy=0;this.juggle=0;
@@ -71,7 +74,26 @@ export class Fighter{
     if(this.stun>0){this.stun-=dt;return;}
     if(this.state==='ko'||this.state==='fatalV')return;
 
+    /* --- fırlatılıyorken: sadece kaçış girdisi dinlenir --- */
+    if(this.state==='thrown'){
+      if(!this.isAI){
+        const pE=!!keys.punch&&!this.pPrev, kE=!!keys.kick&&!this.kPrev;
+        this.pPrev=!!keys.punch;this.kPrev=!!keys.kick;
+        this.pBuf=pE?.08:Math.max(0,this.pBuf-dt);
+        this.kBuf=kE?.08:Math.max(0,this.kBuf-dt);
+        if(this.st<.2&&this.pBuf>0&&this.kBuf>0)this.thrEscape=true;
+      }else if(this.thrEscT&&this.st>=this.thrEscT)this.thrEscape=true;
+      return;
+    }
+    /* --- fırlatıyorken: animasyonu sürdür --- */
+    if(this.state==='throwing'){this.updateThrow(dt);return;}
+
     const inp=this.isAI?this.ai(dt,foe):keys;
+    /* tuş kenarları + 80ms tamponlar (YUM+TEK fırlatma toleransı) */
+    const pEdge=!!inp.punch&&!this.pPrev, kEdge=!!inp.kick&&!this.kPrev;
+    this.pPrev=!!inp.punch;this.kPrev=!!inp.kick;
+    this.pBuf=pEdge?.08:Math.max(0,this.pBuf-dt);
+    this.kBuf=kEdge?.08:Math.max(0,this.kBuf-dt);
 
     /* --- havada: sürüklenme + hava saldırıları --- */
     if(this.state==='jump'){
@@ -152,8 +174,21 @@ export class Fighter{
             if(Math.random()<dt*8)dust(this.x-this.facing*12,this.y-2,this.facing);
           }
           else this.setStateIf('idle');
-          if(inp.punch)this.startChain('p');
-          else if(inp.kick)this.startChain('k');
+          const yakin=Math.abs(foe.x-this.x)<=THROW_RANGE;
+          if(this.pBuf>0&&this.kBuf>0){ // YUM+TEK (80ms içinde ikisi) = fırlatma
+            this.pBuf=this.kBuf=0;this.pend=null;
+            this.tryThrow(foe);
+          }
+          else if(this.pend){ // yakın mesafede ikinci tuş için kısa bekleme
+            this.pend.t-=dt;
+            if(this.pend.t<=0){const kk=this.pend.k;this.pend=null;this.startChain(kk);}
+          }
+          else if(inp.punch||inp.kick){
+            const kind=inp.punch?'p':'k';
+            const taze=(kind==='p'&&pEdge)||(kind==='k'&&kEdge);
+            if(yakin&&taze)this.pend={k:kind,t:.08}; // fırlatma toleransı
+            else this.startChain(kind);
+          }
           else if(inp.special&&this.cd<=0){this.startSpecial(foe);}
         }
       }
@@ -175,6 +210,9 @@ export class Fighter{
   landHit(foe,mv,finisher){
     let dmg=mv.dmg,kb=mv.kb,ky=mv.ky,rc=null;
     if(this.isAI)dmg*=(DIFFS[game.difficulty]||DIFFS.normal).dmg; // zorluk çarpanı
+    /* counter hit: rakip kendi saldırısının hazırlık/aktif karelerindeyken vurulursa */
+    const counter=foe.state==='attack'&&foe.mv&&foe.st<=foe.mv.t1;
+    if(counter)dmg*=1.3; // ses de hasara bağlı olduğundan otomatik tok çıkar
     /* blok tablosu: ayakta blok ÜST+ORTA keser (ALÇAK yer);
        çömelik blok ALÇAK keser (ORTA yer). ÜST'ün çömelene ıskası vuruş penceresinde. */
     const h=mv.height||'mid';
@@ -191,10 +229,12 @@ export class Fighter{
       // juggle: havadaki rakibe her ardışık vuruş öncekinin %80'i kadar
       if(!foe.grounded()){dmg*=Math.pow(.8,foe.juggle);foe.juggle++;}
       const otg=foe.state==='down';
+      if(counter)floatBig(foe.x,foe.y-172,'KARŞI!');
       if(otg){
         foe.otg=(foe.otg||0)+1; // yerde en fazla 1 vuruş; durumunu değiştirmez
       }else{
-        rc=foe.grounded()?(mv.reaction||'flinch'):'flinch'; // havadaki juggle akışı bozulmaz
+        // counter bazı hamlelerde tepkiyi yükseltir (örn. Kanca → crumple)
+        rc=foe.grounded()?((counter&&mv.counterReaction)||mv.reaction||'flinch'):'flinch';
         if(rc==='stagger'){foe.setState('stagger');foe.stun=0;}
         else if(rc==='crumple'){foe.setState('crumple');foe.stun=0;}
         else if(rc==='knockdown'){foe.setState('down');foe.otg=0;foe.stun=0;}
@@ -219,6 +259,95 @@ export class Fighter{
     foe.kvx=this.facing*kb*1.44; // eski anlık itmeyle aynı toplam mesafe, kayarak
     if(rc==='stagger')foe.kvx*=1.6; // sendeleme: 2-3 adım geriye
     if(foe.hp<=0&&!game.finishing)game.finishHim(this,foe);
+  }
+  /* ---------- fırlatma (belge 2.2): blok işlemez, kaçış YUM+TEK ---------- */
+  tryThrow(foe){
+    const yakin=Math.abs(foe.x-this.x)<=THROW_RANGE&&Math.abs(foe.y-this.y)<40;
+    const tutulur=['idle','walk','block','crouchblock','crouch'].includes(foe.state)
+      &&foe.grounded()&&foe.invuln<=0;
+    if(!yakin||!tutulur){ // boşa kapış: kısa, cezalandırılabilir uzanma
+      this.startSingle({name:'Kapış',anim:'palm',dur:.34,t0:9,t1:9,range:0,dmg:0,kb:0,ky:-60},'p',false);
+      return;
+    }
+    this.setState('throwing');this.thrFoe=foe;this.thrHit=false;
+    foe.setState('thrown');foe.thrEscape=false;foe.thrEscT=0;foe.thrBy=this;
+    this.vx=0;this.kvx=0;foe.vx=0;foe.vy=0;foe.kvx=0;
+    this.facing=foe.x>this.x?1:-1;foe.facing=-this.facing;
+    foe.x=clamp(this.x+this.facing*36,60,VW-60);foe.y=GROUND;
+    if(foe.isAI){ // AI kaçış zarını fırlatma anında atar (zorluğa göre)
+      const D=DIFFS[game.difficulty]||DIFFS.normal;
+      if(Math.random()<D.tbreak)foe.thrEscT=rnd(.05,.14);
+    }else floatText(foe.x,foe.y-155,'KIR: YUM+TEK!');
+    sfx.whoosh();
+  }
+  updateThrow(dt){
+    const v=this.thrFoe;if(!v){this.setState('idle');return;}
+    const f=this.facing,T=this.st,id=this.ch.id;
+    /* kaçış penceresi (~ilk 10 kare): itişip ayrılırlar */
+    if(T<.2&&v.thrEscape){
+      floatBig((this.x+v.x)/2,GROUND-160,'KIRILDI!');
+      spark((this.x+v.x)/2,GROUND-80,8);
+      sfx.block();
+      this.kvx=-f*400;v.kvx=f*400;
+      this.endThrow(v);v.setState('idle');
+      return;
+    }
+    const mul=this.isAI?(DIFFS[game.difficulty]||DIFFS.normal).dmg:1;
+    if(id==='golge'){ // ense kavrama → arkaya savurma (yön değişir)
+      if(T>=.2&&T<.5){
+        const k=(T-.2)/.3;
+        v.x=clamp(this.x+f*lerp(36,-52,k),60,VW-60);
+        v.y=GROUND-Math.sin(k*Math.PI)*74;
+      }
+      if(T>=.5&&!this.thrHit){
+        this.thrHit=true;
+        v.x=clamp(this.x-f*52,60,VW-60);v.y=GROUND;
+        this.throwImpact(v,10*mul,'down');
+      }
+      if(T>=.62){this.endThrow(v);}
+    }
+    if(id==='beton'){ // judo kalça atışı: kaldır → yere çak
+      if(T>=.2&&T<.5){const k=(T-.2)/.3;v.x=clamp(this.x+f*lerp(36,14,k),60,VW-60);v.y=GROUND-k*84;}
+      if(T>=.5&&T<.58){const k=(T-.5)/.08;v.x=clamp(this.x+f*lerp(14,40,k),60,VW-60);v.y=GROUND-84*(1-k);}
+      if(T>=.58&&!this.thrHit){
+        this.thrHit=true;
+        v.x=clamp(this.x+f*40,60,VW-60);v.y=GROUND;
+        screenFx.shake=13;
+        for(let i=0;i<8;i++)dust(v.x+rnd(-30,30),GROUND-2,Math.sign(rnd(-1,1)));
+        this.throwImpact(v,16*mul,'down');
+      }
+      if(T>=.8){this.endThrow(v);}
+    }
+    if(id==='volt'){ // tut + elektrik ver + it (yıkmaz, sersemletir)
+      if(T>=.2&&T<.55){
+        v.x=clamp(this.x+f*36,60,VW-60);v.y=GROUND;
+        if(Math.random()<dt*22)drawStunMark(v);
+        if(Math.random()<dt*14)spark(v.x+rnd(-8,8),v.y-rnd(30,100),2,.4);
+      }
+      if(T>=.55&&!this.thrHit){
+        this.thrHit=true;
+        this.throwImpact(v,8*mul,'stun');
+        v.kvx=f*430;
+      }
+      if(T>=.7){this.endThrow(v);}
+    }
+  }
+  throwImpact(v,dmg,tepki){
+    spark(v.x,v.y-60,12);
+    burst(v.x,v.y-64,14+dmg);
+    floatText(v.x,v.y-135,'-'+Math.round(dmg));
+    floatBig(this.x,this.y-170,this.ch.throwName.toUpperCase()+'!');
+    if(tepki==='down'){v.setState('down');v.otg=0;v.stun=0;}
+    else{v.setState('hit');v.stun=.6;for(let i=0;i<4;i++)drawStunMark(v);}
+    v.hp=Math.max(0,v.hp-dmg);
+    sfx.hit(dmg,'k');
+    screenFx.hitstop=clamp(.03+dmg*.004,.04,.11);
+    screenFx.shake=Math.min(10,4+dmg*.4);
+    if(v.hp<=0&&!game.finishing)game.finishHim(this,v);
+  }
+  endThrow(v){
+    this.thrFoe=null;if(v)v.thrBy=null;
+    this.setState('idle');
   }
   specDur(){return this.ch.id==='golge'?.55:this.ch.id==='beton'?.7:.9;}
   startSpecial(foe){
@@ -279,6 +408,7 @@ export class Fighter{
         const gelenLow=!!(fmv&&fmv.height==='low');
         this.aiBlockLow=Math.random()<D.read?gelenLow:Math.random()<.35;
       }
+      else if(atkOk&&ad<=THROW_RANGE+4&&Math.random()<D.throw*((foe.state==='block'||foe.state==='crouchblock')?1:.4))this.aiPlan='throw';
       else if(atkOk&&ad<80&&Math.random()<D.low)this.aiPlan=Math.random()<.5?'crouchP':'crouchK';
       else if(atkOk&&ad<80&&Math.random()<.12)this.aiPlan='crouchP';
       else if(atkOk&&ad<210&&ad>110&&Math.random()<.15)this.aiPlan='jumpK';
@@ -286,7 +416,7 @@ export class Fighter{
       else if(atkOk&&ad<230&&this.cd<=0&&Math.random()<D.special*.5)this.aiPlan='special';
       else if(!atkOk&&ad<90)this.aiPlan=Math.random()<.4?'retreat':null; // bekle / açıl
       else this.aiPlan=Math.random()<.85?'chase':'retreat';
-      if(['punch','kick','crouchP','crouchK','jumpK','special'].includes(this.aiPlan))
+      if(['punch','kick','crouchP','crouchK','jumpK','special','throw'].includes(this.aiPlan))
         this.aiPause=rnd(D.pauseMin,D.pauseMax); // insan gibi nefes payı
     }
     if(this.aiPlan==='chase')d>0?inp.right=1:inp.left=1;
@@ -295,6 +425,7 @@ export class Fighter{
     if(this.aiPlan==='punch'){inp.punch=1;this.aiPlan=null;}   // basılı tutma yok:
     if(this.aiPlan==='kick'){inp.kick=1;this.aiPlan=null;}     // tek karelik basış
     if(this.aiPlan==='special'){inp.special=1;this.aiPlan=null;}
+    if(this.aiPlan==='throw'){inp.punch=1;inp.kick=1;this.aiPlan=null;} // YUM+TEK aynı kare
     if(this.aiPlan==='crouchP'){inp.down=1;inp.punch=1;}
     if(this.aiPlan==='crouchK'){inp.down=1;inp.kick=1;} // alçak tekme
     if(this.aiPlan==='jumpK'){

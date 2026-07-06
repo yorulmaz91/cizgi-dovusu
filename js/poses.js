@@ -131,6 +131,20 @@ export function computePose(f){
     if(f.ch.id==='beton'){P.lean=.35*k;P.aR=[lerp(-2.4,1.1,Math.min(1,t/.45)),.15];P.aL=[.6,.7];P.dip=6*k;P.lL=[.5,.4];P.lR=[-.4,.5];}
     if(f.ch.id==='volt'){P.aL=[2.6,.1];P.aR=[2.6,.1];P.head=.15;P.dip=-3;}
   }
+  if(s==='throwing'){ // rakibi kavrayıp savurma
+    const k=Math.min(1,t/.25);
+    P.lean=.3*k;P.aL=[1.2,.3];P.aR=[1.0,.4]; // iki el önde kavrama
+    P.lL=[.4,.2];P.lR=[-.35,.3];P.dip=4*k;
+    if(f.ch.id==='beton'&&t>.35){P.lean=-.25;P.dip=-3;P.aL=[1.9,.2];P.aR=[1.6,.3];} // kaldırma
+    if(f.ch.id==='golge'&&t>.3){P.lean=-.3;P.head=-.2;P.aL=[2.0,.2];P.aR=[-1.5,.4];} // savurma
+    if(f.ch.id==='volt'&&t>.3){P.aL=[1.3,.25];P.aR=[1.1,.35];P.head=.1;} // tutup şok
+  }
+  if(s==='thrown'){ // kavranmış: geriye kaykılır, kollar çırpınır
+    const w=Math.sin(t*14);
+    P.lean=-.2;P.head=-.3;
+    P.aL=[1.5+w*.2,.4];P.aR=[-1.2-w*.2,.5];
+    P.lL=[.3,.5];P.lR=[-.3,.6];P.dip=6;
+  }
   if(s==='ko'){P.dip=44;P.lean=f.facing*-1.4;P.head=.8;P.aL=[1.4,.2];P.aR=[-1.5,.2];P.lL=[1.2,.3];P.lR=[-1.1,.2];}
   return P;
 }

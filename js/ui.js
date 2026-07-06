@@ -94,7 +94,7 @@ export function drawSelect(g,dt){
       g.fillText('TEKME: '+c.moves.k.map(etk).join(' → '),VW/2,VH*0.66+94);
       g.fillText('▼+YUM: '+c.moves.cp.name+' (fırlatır!)   ·   ▼+TEK: '+etk(c.moves.ck)+'   ·   ▲+TEK: '+c.moves.jk.name,VW/2,VH*0.66+111);
       g.font='700 13px Space Grotesk';
-      g.fillText('FATALITY: '+c.fatalName,VW/2,VH*0.66+127);
+      g.fillText('FIRLATMA: '+c.throwName+' (yakında YUM+TEK)   ·   FATALITY: '+c.fatalName,VW/2,VH*0.66+127);
     }
   });
   g.font='500 12px Space Grotesk';g.fillStyle=INK;g.globalAlpha=.4;g.textAlign='center';

@@ -23,9 +23,11 @@ Sıra önemli: sistem önce, içerik sonra, animasyon cilası en sona.
   launch), yerden kalkma + 0.4sn dokunulmazlık, yerdeki rakibe en fazla 1 vuruş,
   LOW iz çizgisi / HIGH ıskalama görsel dili, AI'ın çömelik blok + alçak tekme
   öğrenmesi, seçim ekranında yükseklik etiketleri.
-- **FAZ B (Görev 5):** fırlatma (yakında YUM+TEK, throw break penceresi,
-  karaktere özel 3 fırlatma) + counter hit (tespit, "KARŞI!", hasar ×1.3,
-  tepki yükseltme).
+- **FAZ B (Görev 5) — TAMAMLANDI:** fırlatma (yakında YUM+TEK, 80ms tuş
+  toleransı, throw break penceresi ~0.2sn, karaktere özel 3 fırlatma:
+  Gölge arkaya savurur/yön değişir, Beton yere çakar, Volt şoklar+iter) +
+  counter hit (saldırı hazırlık/aktif karesinde vurulan rakibe ×1.3 hasar,
+  "KARŞI!", counterReaction alanıyla tepki yükseltme — Kanca counter'da çökertir).
 - **FAZ C (Görev 6):** teknik genişletme — Bölüm 3'teki YENİ hamleler (Bıçak El,
   Gövde Çengeli, Dönen Topuk, İtme Tekmesi, Kayma Tekmesi, Ay Tekmesi),
   poke/ağır ayrımı, zincirlerin yeniden düzenlenmesi.

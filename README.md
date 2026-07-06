@@ -49,6 +49,7 @@ Ardından tarayıcıda açılan adresi (genelde `http://localhost:3000`) ziyaret
 | Tekme   | X | TEK |
 | Blok    | C | BLK |
 | Çömelik blok | ▼ + C | ▼ + BLK |
+| Fırlatma | Z + X birlikte | YUM + TEK birlikte |
 | Skil    | V | SKİL |
 
 - Karakter seçiminden sonra zorluk seçilir (KOLAY/NORMAL/ZOR); tercih hatırlanır.
@@ -57,6 +58,11 @@ Ardından tarayıcıda açılan adresi (genelde `http://localhost:3000`) ziyaret
   çömelmek ÜST vuruşları ıskalatır; çömelik blok ALÇAK'ı keser ama ORTA yer.
 - Süpürme gibi hamleler yere yıkar; yerdeki rakip en fazla 1 vuruş yer ve
   kalkarken kısa süre dokunulmazdır.
+- Fırlatma (yakın mesafede YUM+TEK, iki tuşa 80ms içinde basmak yeterli):
+  blok İŞLEMEZ — blok yapan rakibe cevaptır. Fırlatılan taraf ilk anda
+  kendi YUM+TEK'ine basarsa fırlatmayı kırar. Her karakterin fırlatması farklı.
+- Counter hit: rakip saldırı animasyonundayken vurursan ×1.3 hasar + "KARŞI!"
+  (bazı hamleler counter'da daha ağır tepki verir, örn. Beton'un Kancası çökertir).
 - ▼ + Yumruk: rakibi havaya fırlatan launcher; havada juggle yapılabilir.
 - Rakibin canı bitince "BİTİR ONU!" yazısında SKİL'e basarsan fatality izlersin.
 
