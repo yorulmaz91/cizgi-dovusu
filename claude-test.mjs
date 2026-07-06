@@ -133,9 +133,9 @@ function dovuseGir(idx, zorluk='normal'){
 /* =====================================================================
    TEST BATARYASI
    ===================================================================== */
-const ISIMLER=['GÖLGE','BETON','VOLT'];
+const ISIMLER=['GÖLGE','BETON','VOLT','KALEM'];
 
-for(let ci=0; ci<3; ci++){
+for(let ci=0; ci<ISIMLER.length; ci++){
   BASLIK(`════════════ ${ISIMLER[ci]} ════════════`);
   if(!dovuseGir(ci)){ FAIL('dövüşe girilemedi','sahne='+game.scene); continue; }
   OK('dövüşe girildi', `${game.p1.ch.name} vs ${game.p2.ch.name}`);
@@ -174,7 +174,11 @@ for(let ci=0; ci<3; ci++){
     pasifYap(p2,{down:1}); rakibiTopla(); p2.state='crouch'; yanYana(50); sn(0.3);
     let d = p2.hp; basVeBirak('punch'); sn(0.5); d=+(d-p2.hp).toFixed(2);
     if((jab.height==='high') && d===0) OK('çömelene ÜST ıskaladı', jab.name);
-    else if(jab.height!=='high') ATLA('çömelene ÜST', 'ilk yumruk high değil');
+    else if(jab.height!=='high'){
+      // KALEM'in stil dışı ORTA açılışı: çömeleni ISKALAMAZ, vurur
+      if(Math.abs(d-jab.dmg)<0.01) OK('stil dışı ORTA açılış çömeleni vurdu', `${jab.name} ${d} hasar`);
+      else FAIL('ORTA açılış çömelene işlemedi', `${d} ≠ ${jab.dmg}`);
+    }
     else FAIL('çömelen rakibi ÜST vurdu', `${d} hasar`);
 
     // b) çömelen rakibe MID (launcher) → vurur
@@ -235,6 +239,11 @@ for(let ci=0; ci<3; ci++){
       if(p2.stun>0 || p2.state==='hit') OK('Volt fırlatması sersemletti', `stun=${p2.stun.toFixed(2)}`);
       else BILGI('Volt stun penceresi kaçırıldı olabilir, elle doğrula');
     }
+    if(ci===3 && d>0){
+      if(Math.abs(d-12)<0.01 && ['down','getup'].includes(p2.state))
+        OK('Sayfa Çevirme öne kapaklayıp yerde bıraktı', `${d} hasar · durum=${p2.state}`);
+      else BILGI(`Sayfa Çevirme sonucu: ${d} hasar, durum=${p2.state}`);
+    }
     sn(1.0);
 
     // throw break: kaçış zamanını elle kurup KIRILDI yolunu test et
@@ -277,6 +286,19 @@ for(let ci=0; ci<3; ci++){
       else FAIL('Kanca counter tepkisi yükselmedi', `durum=${p2.state}`);
       sn(1.6);
     }
+    // KALEM'in Silgi Tokadı counter'da çökertmeli
+    if(ci===3){
+      rakibiTopla(); yanYana(55); sn(0.3);
+      p2.state='attack'; p2.st=0;
+      p2.mv={name:'sahte',anim:'jab',dur:9,t0:8,t1:8.5,range:5,dmg:0,kb:0,ky:-50,height:'high',reaction:'flinch'};
+      p2.chain=[p2.mv]; p2.chainIdx=0;
+      const tokat=p1.ch.moves.p[2];
+      p1.startSingle(tokat,'p',false);
+      sn(tokat.dur+0.15);
+      if(p2.state==='crumple'||p2.state==='down') OK('Silgi Tokadı counter\'da çökertti', `durum=${p2.state}`);
+      else FAIL('Silgi Tokadı counter tepkisi yükselmedi', `durum=${p2.state}`);
+      sn(1.6);
+    }
   }
 
   /* --- 5) LAUNCHER + JUGGLE AZALMASI (kontrollü: aynı hamle iki kez) --- */
@@ -298,6 +320,35 @@ for(let ci=0; ci<3; ci++){
     else if(v1>0&&v2>0&&v2<v1) OK('juggle azalıyor', `${v1} → ${v2}`);
     else FAIL('juggle sorunlu', `${v1} → ${v2} (havada:${!p2.grounded()})`);
     sn(1.6);
+  }
+
+  /* --- 5b) KALEM: SİLGİ DARBESİ (uzuv silme) --- */
+  if(ci===3){
+    BASLIK(`[${ISIMLER[ci]}] silgi darbesi (uzuv silme)`);
+    pasifYap(p2); rakibiTopla(); yanYana(60); sn(0.3);
+    p1.cd=0;
+    let d=p2.hp;
+    basVeBirak('special'); sn(0.75);
+    d=+(d-p2.hp).toFixed(2);
+    if(p2.erasedLimb&&p2.erasedT>0) OK('uzuv silindi', `${p2.erasedLimb} · ${d} hasar · ${p2.erasedT.toFixed(2)}sn kaldı`);
+    else FAIL('uzuv silinmedi', `d=${d} durum=${p2.state}`);
+    if(p2.erasedLimb){
+      const kol=p2.erasedLimb[0]==='a';
+      if(p2.canUse(kol?'p':'k')===false) OK('silinen uzuvla saldırı kilitli', kol?'yumruklar':'tekmeler');
+      else FAIL('saldırı kilidi çalışmıyor', p2.erasedLimb);
+      // kukla kilitli tuşa bassın: saldırı ÇIKMAMALI
+      p2.ai=()=>({left:0,right:0,up:0,down:0,punch:kol?1:0,kick:kol?0:1,block:0,special:0});
+      sn(0.4);
+      if(p2.state!=='attack') OK('kilitli uzuvla saldırı çıkmadı', `durum=${p2.state}`);
+      else FAIL('kilitli uzuvla saldırı çıktı!', p2.mv?.name||'');
+      pasifYap(p2);
+      let guard=0; while(p2.erasedLimb&&guard++<220) sn(0.033);
+      if(!p2.erasedLimb) OK('uzuv 2 sn sonra geri geldi');
+      else FAIL('uzuv geri gelmedi', `kalan=${p2.erasedT.toFixed(2)}`);
+    }
+    if(p1.cd>3.5) OK('skil bekleme süresi işliyor', `${p1.cd.toFixed(1)}sn kaldı`);
+    else BILGI(`skil cd düşük görünüyor: ${p1.cd.toFixed(1)}`);
+    sn(0.5);
   }
 
   /* --- 6) YERE YIKMA + YERDE TEK VURUŞ + KALKIŞ DOKUNULMAZLIĞI --- */
@@ -351,6 +402,13 @@ for(let ci=0; ci<3; ci++){
     if(game.finishing&&!game.fatal){ basVeBirak('special'); sn(0.3); }
     if(game.fatal) OK('fatality başladı', game.p1.ch.fatalName);
     else BILGI('fatality tetiklenmedi (normal K.O.)');
+    // KALEM: TEMİZ SAYFA sonunda rakip tamamen silinmiş (çizilmiyor) olmalı
+    if(ci===3&&game.fatal){
+      // fatality yavaş çekim (×0.4): silme ~6.5 sanal saniye sürer
+      let g=0; while(!p2.hidden&&game.fatal&&g++<90) sn(0.1);
+      if(p2.hidden) OK('TEMİZ SAYFA: rakip baştan aşağı silindi (hidden)');
+      else BILGI('silinme bayrağı yakalanamadı — elle doğrula');
+    }
     // fatality yavaş çekim + sahne + endRound(1900ms) → result
     let guard=0;
     while(game.scene!=='result' && guard++<1200) sn(0.1);
@@ -390,10 +448,10 @@ BASLIK('════════════ ZORLUK FARKI (gerçek AI, 12 sn ör
 }
 
 /* --- 9) KAOS TESTİ: 3 maç, rastgele tuşlar, çökme avı --- */
-BASLIK('════════════ KAOS TESTİ (rastgele girdiyle 3 maç) ════════════');
+BASLIK('════════════ KAOS TESTİ (rastgele girdiyle 4 maç) ════════════');
 {
   const oncekiHata=jsErrors.length;
-  for(let m=0;m<3;m++){
+  for(let m=0;m<ISIMLER.length;m++){
     dovuseGir(m,'zor');
     for(let t=0;t<20*10;t++){ // 20 sanal saniye
       if(Math.random()<0.3) keys.left=+(Math.random()<0.5), keys.right=+(Math.random()<0.5);
@@ -410,7 +468,7 @@ BASLIK('════════════ KAOS TESTİ (rastgele girdiyle 3 ma
     BILGI(`maç ${m+1}: sahne=${game.scene} p1=${game.p1?.hp.toFixed(0)} p2=${game.p2?.hp.toFixed(0)}`);
   }
   const yeni=jsErrors.length-oncekiHata;
-  if(yeni===0) OK('60 sanal saniye kaosta sıfır JS hatası');
+  if(yeni===0) OK(`${ISIMLER.length*20} sanal saniye kaosta sıfır JS hatası`,'4 karakter × 20sn');
   else FAIL('kaos testinde hata', jsErrors.slice(-yeni).join(' | '));
 }
 
