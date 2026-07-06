@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.deployment.outputs.page_url || steps.deployment2.outputs.page_url }}
     steps:
       - name: Kodu indir
         uses: actions/checkout@v7
@@ -36,6 +36,18 @@ jobs:
         uses: actions/upload-pages-artifact@v5
         with:
           path: .
+      # GitHub'ın yayın servisi ara ara "Deployment failed, try again later"
+      # veriyor (actions/deploy-pages#406). İlk deneme düşerse 30 sn bekleyip
+      # AYNI çalışma içinde bir kez daha deniyoruz (artifact yeniden
+      # yüklenmediği için "multiple artifacts" sorunu oluşmaz).
       - name: Yayinla
         id: deployment
+        continue-on-error: true
+        uses: actions/deploy-pages@v5
+      - name: Bekle (yeniden denemeden önce)
+        if: steps.deployment.outcome == 'failure'
+        run: sleep 30
+      - name: Yayinla (2. deneme)
+        id: deployment2
+        if: steps.deployment.outcome == 'failure'
         uses: actions/deploy-pages@v5
