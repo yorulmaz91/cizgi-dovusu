@@ -62,7 +62,19 @@ Ardından tarayıcıda açılan adresi (genelde `http://localhost:3000`) ziyaret
   blok İŞLEMEZ — blok yapan rakibe cevaptır. Fırlatılan taraf ilk anda
   kendi YUM+TEK'ine basarsa fırlatmayı kırar. Her karakterin fırlatması farklı.
 - Counter hit: rakip saldırı animasyonundayken vurursan ×1.3 hasar + "KARŞI!"
-  (bazı hamleler counter'da daha ağır tepki verir, örn. Beton'un Kancası çökertir).
+  (bazı hamleler counter'da daha ağır tepki verir: Beton'un Kancası ve
+  Gölge'nin Bıçak El'i çökertir).
+
+## Karakter zincirleri (YUM/TEK'e art arda basarak)
+
+- **GÖLGE** — YUM: Jab → Kroşe → Bıçak El (ORTA) → Ters Yumruk ·
+  TEK: Ön Tekme → Topuk Kesme (yıkar) · ▼+TEK: **Kayma Tekmesi**
+  (öne kayarak ALÇAK, yıkar)
+- **BETON** — YUM: Dürtme (poke) → Kanca → Gövde Çengeli (ORTA, **çökertir —
+  zinciri burada kesip yerde ezebilirsin**) → Balyoz · TEK: Diz → Omuz Şarjı
+- **VOLT** — YUM: Jab → Şok Avucu → **Dönen Topuk** (ÜST, çökertir) ·
+  TEK: İtme Tekmesi (uzağa iter) → Yan Tekme → Dönen Tekme → Balta ·
+  havada YUM: **Ay Tekmesi**
 - ▼ + Yumruk: rakibi havaya fırlatan launcher; havada juggle yapılabilir.
 - Rakibin canı bitince "BİTİR ONU!" yazısında SKİL'e basarsan fatality izlersin.
 

@@ -75,26 +75,28 @@ export function drawSelect(g,dt){
     dummy.draw(g);g.restore();
     if(sel){
       centerText(g,c.name,26,VH*0.66);
+      // basık ekranlarda satır aralığını sıkılaştır (dokunmatik butonlara taşmasın)
+      const oy=VH*0.66, s=VH<500?.8:1;
       g.font='500 13px Space Grotesk';g.fillStyle=INK;g.textAlign='center';
       g.globalAlpha=.55;
-      g.fillText(c.tagline,VW/2,VH*0.66+22);
+      g.fillText(c.tagline,VW/2,oy+22*s);
       g.globalAlpha=1;
       // mini stat göstergesi: cam top mu tank mı, seçerken görün
       const yildiz=n=>'★★★'.slice(0,n)+'☆☆☆'.slice(0,3-n);
       const guc=c.punch+c.kick>=26?3:c.punch+c.kick>=18?2:1;
       const hiz=c.speed>=250?3:c.speed>=200?2:1;
       g.font='700 14px Space Grotesk';
-      g.fillText('CAN: '+c.hp+'   GÜÇ: '+yildiz(guc)+'   HIZ: '+yildiz(hiz),VW/2,VH*0.66+42);
+      g.fillText('CAN: '+c.hp+'   GÜÇ: '+yildiz(guc)+'   HIZ: '+yildiz(hiz),VW/2,oy+42*s);
       // hamle listeleri yükseklik etiketiyle: [ÜST]/[ORTA]/[ALÇAK]
       const yk={high:'ÜST',mid:'ORTA',low:'ALÇAK'};
       const etk=m=>m.name+' ['+(yk[m.height]||'ORTA')+']';
       g.font='500 13px Space Grotesk';
-      g.fillText('SKİL: '+c.specName+' — '+c.specDesc,VW/2,VH*0.66+60);
-      g.fillText('YUMRUK: '+c.moves.p.map(etk).join(' → '),VW/2,VH*0.66+77);
-      g.fillText('TEKME: '+c.moves.k.map(etk).join(' → '),VW/2,VH*0.66+94);
-      g.fillText('▼+YUM: '+c.moves.cp.name+' (fırlatır!)   ·   ▼+TEK: '+etk(c.moves.ck)+'   ·   ▲+TEK: '+c.moves.jk.name,VW/2,VH*0.66+111);
+      g.fillText('SKİL: '+c.specName+' — '+c.specDesc,VW/2,oy+60*s);
+      g.fillText('YUMRUK: '+c.moves.p.map(etk).join(' → '),VW/2,oy+77*s);
+      g.fillText('TEKME: '+c.moves.k.map(etk).join(' → '),VW/2,oy+94*s);
+      g.fillText('▼+YUM: '+c.moves.cp.name+' (fırlatır!)   ·   ▼+TEK: '+etk(c.moves.ck)+'   ·   ▲+TEK: '+c.moves.jk.name,VW/2,oy+111*s);
       g.font='700 13px Space Grotesk';
-      g.fillText('FIRLATMA: '+c.throwName+' (yakında YUM+TEK)   ·   FATALITY: '+c.fatalName,VW/2,VH*0.66+127);
+      g.fillText('FIRLATMA: '+c.throwName+' (yakında YUM+TEK)   ·   FATALITY: '+c.fatalName,VW/2,oy+127*s);
     }
   });
   g.font='500 12px Space Grotesk';g.fillStyle=INK;g.globalAlpha=.4;g.textAlign='center';

@@ -127,7 +127,7 @@ export function drawFighter(g,ftr){
   tstroke(g,[hip,[lerp(hip[0],nk[0],.5)-f,lerp(hip[1],nk[1],.5)],nk],w1+0.4,w2+0.4);
 
   // kollar + eller
-  const fist=(ftr.state==='attack'&&ftr.mv&&ftr.mv.anim!=='palm')||(ftr.state==='special'&&ftr.ch.id!=='volt');
+  const fist=(ftr.state==='attack'&&ftr.mv&&ftr.mv.anim!=='palm'&&ftr.mv.anim!=='shuto')||(ftr.state==='special'&&ftr.ch.id!=='volt');
   for(const[arm,side]of[[p.aL,1],[p.aR,-1]]){
     const el=seg(nk[0],nk[1],arm[0],18);
     const hn=seg(el[0],el[1],arm[0]+arm[1]*side,17);

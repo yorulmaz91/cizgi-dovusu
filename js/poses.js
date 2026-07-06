@@ -82,6 +82,40 @@ export function computePose(f){
         P.lean=.2*k;
         P.aR=[lerp(-.3,1.4,k),lerp(.5,.1,k)];P.aL=[.9,1.2];
         P.lL=[.5,1.1];P.lR=[-.4,1.2];break;
+      case 'shuto': // bıçak el: dıştan içe, boyun hizasına el kesişi
+        P.lean=.18*k;P.head=.1*k;
+        P.aR=[lerp(-1.6,1.15,k),lerp(.6,.2,k)];P.aL=[.85,1.15];
+        P.lL=[.35,.15];P.lR=[-.3,.3];P.dip=1.5*k;break;
+      case 'slide': // kayma tekmesi: geriye yatıp zeminde ileri kayış
+        P.dip=26;P.lean=-.55;P.head=.15;
+        P.lR=[lerp(.2,1.5,Math.min(1,tt*1.8)),.06];P.lL=[-.7,1.2];
+        P.aL=[-1.2,.5];P.aR=[-1.6,.4];break;
+      case 'bodyhook': // gövde çengeli: çömelip bele saplanan kanca
+        P.lean=.32*k;P.dip=8*k;P.head=.15*k;
+        P.aR=[lerp(-1.2,1.05,k),lerp(.9,.5,k)];P.aL=[.85,1.25];
+        P.lL=[.4,.25];P.lR=[-.3,.35];break;
+      case 'teep':{ // itme tekmesi: diz kalkar, taban göbeğe iter
+        const up=Math.min(1,tt/.45), push=Math.max(0,(tt-.45)/.55);
+        P.lean=-.28*k;P.head=-.05;
+        P.lR=push>0?[lerp(.9,1.35,push),lerp(1.2,.1,push)]:[lerp(-.15,.9,up),lerp(.15,1.2,up)];
+        P.lL=[.12,.28];P.aL=[1.0,.55];P.aR=[-1.0,.55];P.dip=-2*k;break;}
+      case 'spinhook':{ // dönen topuk: gövde ters yöne burulur, topuk tepeden süpürür
+        const wind=Math.min(1,tt/.5), spin=Math.max(0,Math.min(1,(tt-.5)/.35));
+        if(spin<=0){ // burulma: kafa arkaya döner, kollar gövdeye sarılır
+          P.lean=.35*wind;P.head=.85*wind;
+          P.aL=[lerp(.5,1.3,wind),.9];P.aR=[lerp(-.4,.9,wind),1.1];
+          P.lL=[.3,.3];P.lR=[lerp(-.15,-.7,wind),.25];P.dip=6*wind;
+        }else{ // dönüş: bacak arkadan tepeye, kollar savrulur, kafa öne çevrilir
+          P.lean=lerp(.35,-.3,spin);P.head=lerp(.85,-.4,spin);
+          P.lR=[lerp(-2.3,1.8,spin),.05];P.lL=[.25,.3];
+          P.aL=[lerp(1.3,-.8,spin),.5];P.aR=[lerp(.9,-.6,spin),.6];
+          P.dip=lerp(6,-6,spin);
+        }
+        break;}
+      case 'crescent': // ay tekmesi: havada yarım ay çizen bacak
+        P.lean=-.15;P.head=-.1;
+        P.lR=[lerp(-.8,1.6,k),.1];P.lL=[.4,1.3];
+        P.aL=[1.5,.4];P.aR=[-1.3,.5];break;
     }
   }
   if(s==='jump'){

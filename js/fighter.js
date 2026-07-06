@@ -13,9 +13,9 @@ import * as sfx from './audio.js';
    zincirin devamını basma / blok / skil olasılıkları,
    low: alçak vuruş kullanma sıklığı, read: gelen vuruşun yüksekliğini doğru okuma */
 export const DIFFS={
-  kolay :{dmg:.6,pauseMin:.5, pauseMax:1,  chain:.25,block:.15,special:.2, low:.08,read:.2, throw:.1, tbreak:.1},
-  normal:{dmg:.8,pauseMin:.25,pauseMax:.6, chain:.6, block:.3, special:.35,low:.18,read:.5, throw:.25,tbreak:.3},
-  zor   :{dmg:1, pauseMin:.05,pauseMax:.15,chain:.85,block:.5, special:.6, low:.3, read:.85,throw:.45,tbreak:.55}
+  kolay :{dmg:.6,pauseMin:.5, pauseMax:1,  chain:.25,block:.15,special:.2, low:.08,read:.2, throw:.1, tbreak:.1, punish:.05},
+  normal:{dmg:.8,pauseMin:.25,pauseMax:.6, chain:.6, block:.3, special:.35,low:.18,read:.5, throw:.25,tbreak:.3, punish:.25},
+  zor   :{dmg:1, pauseMin:.05,pauseMax:.15,chain:.85,block:.5, special:.6, low:.3, read:.85,throw:.45,tbreak:.55,punish:.6}
 };
 const THROW_RANGE=48; // fırlatma menzili (belge 2.2)
 
@@ -118,6 +118,9 @@ export class Fighter{
       // alçak hamleler zeminde iz çizgisi bırakır (görsel dil)
       if(mv.height==='low'&&this.st>=mv.t0-.05&&this.st<mv.t1&&Math.random()<dt*30)
         streak(this.x+this.facing*rnd(16,mv.range*.8),GROUND-2,this.facing,10);
+      // dönen topuk: dönüş hız çizgileri (kafa hizasında)
+      if(mv.anim==='spinhook'&&this.st>=mv.t0-.12&&this.st<mv.t1&&Math.random()<dt*40)
+        streak(this.x+this.facing*rnd(-10,70),this.y-rnd(95,140),this.facing,20);
       // vuruş penceresi (dikey mesafe de kontrol edilir)
       if(this.st>=mv.t0&&this.st<=mv.t1&&!this.hitDone){
         if(Math.abs(foe.x-this.x)<mv.range+28
@@ -225,6 +228,10 @@ export class Fighter{
       burst(foe.x+this.facing*24,foe.y-72,10);
       floatText(foe.x,foe.y-125,'BLOK');
       sfx.block();
+      // belge 2.5: ZOR AI bloklanan AĞIR hamleyi cezalandırır (hemen cevap planlar)
+      if(foe.isAI&&mv.dur>=.38&&Math.random()<(DIFFS[game.difficulty]||DIFFS.normal).punish){
+        foe.aiPause=0;foe.aiT=0;
+      }
     }else{
       // juggle: havadaki rakibe her ardışık vuruş öncekinin %80'i kadar
       if(!foe.grounded()){dmg*=Math.pow(.8,foe.juggle);foe.juggle++;}

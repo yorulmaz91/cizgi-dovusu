@@ -28,9 +28,13 @@ Sıra önemli: sistem önce, içerik sonra, animasyon cilası en sona.
   Gölge arkaya savurur/yön değişir, Beton yere çakar, Volt şoklar+iter) +
   counter hit (saldırı hazırlık/aktif karesinde vurulan rakibe ×1.3 hasar,
   "KARŞI!", counterReaction alanıyla tepki yükseltme — Kanca counter'da çökertir).
-- **FAZ C (Görev 6):** teknik genişletme — Bölüm 3'teki YENİ hamleler (Bıçak El,
-  Gövde Çengeli, Dönen Topuk, İtme Tekmesi, Kayma Tekmesi, Ay Tekmesi),
-  poke/ağır ayrımı, zincirlerin yeniden düzenlenmesi.
+- **FAZ C (Görev 6) — TAMAMLANDI:** 6 yeni hamle eklendi ve zincirler yeniden
+  dizildi — Gölge YUM: Jab→Kroşe→Bıçak El(counter'da çökertir)→Ters Yumruk,
+  ▼+TEK Kayma Tekmesi (Alçak Tekme'nin yerine); Beton YUM: Dürtme(poke)→Kanca→
+  Gövde Çengeli(çökertir)→Balyoz; Volt YUM: Jab→Şok Avucu→Dönen Topuk(vitrin,
+  çökertir), TEK: İtme Tekmesi(iten poke)→Yan→Dönen Tekme→Balta, havada YUM
+  Ay Tekmesi (Şimşek Yumruk'un yerine). Poke'lar hızlı/güvenli; ZOR AI
+  bloklanan ağır hamleyi cezalandırır (punish).
 - **FAZ D (Görev 7):** animasyon cilası — hazırlık→vuruş→geri çekme aşamaları,
   ağırlık aktarımı, vuruş anında "tık" duruşu, tepki animasyonu inceltme.
 - Araya serpiştirilebilir: arena sistemi, KALEM karakteri (moral görevleri).

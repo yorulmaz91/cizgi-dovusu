@@ -12,8 +12,9 @@ export const CHARS=[
     hair:'long',mood:'smirk',
     moves:{
       p:[
-        {name:'Jab',anim:'jab',dur:.22,t0:.06,t1:.13,range:60,dmg:4,kb:60,ky:-58,height:'high',reaction:'flinch'},
+        {name:'Jab',anim:'jab',dur:.2,t0:.05,t1:.12,range:60,dmg:4,kb:60,ky:-58,height:'high',reaction:'flinch'}, // poke: hızlı ve güvenli
         {name:'Kroşe',anim:'cross',dur:.26,t0:.08,t1:.16,range:66,dmg:5,kb:90,ky:-56,height:'high',reaction:'flinch'},
+        {name:'Bıçak El',anim:'shuto',dur:.3,t0:.11,t1:.18,range:68,dmg:7,kb:110,ky:-62,height:'mid',reaction:'flinch',counterReaction:'crumple'}, // shuto — counter'da çökertir
         {name:'Ters Yumruk',anim:'backfist',dur:.4,t0:.16,t1:.26,range:74,dmg:9,kb:230,ky:-60,lunge:130,height:'high',reaction:'stagger'}
       ],
       k:[
@@ -21,7 +22,7 @@ export const CHARS=[
         {name:'Topuk Kesme',anim:'sweep',dur:.45,t0:.18,t1:.3,range:82,dmg:8,kb:140,ky:-10,height:'low',reaction:'knockdown'}
       ],
       cp:{name:'Yükselen Gölge',anim:'upper',dur:.38,t0:.12,t1:.22,range:56,dmg:9,kb:60,ky:-80,launch:520,height:'mid',reaction:'launch'},
-      ck:{name:'Alçak Tekme',anim:'lowkick',dur:.3,t0:.1,t1:.18,range:70,dmg:6,kb:90,ky:-14,height:'low',reaction:'flinch'},
+      ck:{name:'Kayma Tekmesi',anim:'slide',dur:.5,t0:.14,t1:.32,range:66,dmg:8,kb:150,ky:-10,lunge:280,height:'low',reaction:'knockdown'}, // çömelikten ileri kayarak
       jp:{name:'Hava Yumruğu',anim:'airpunch',dur:.3,t0:.08,t1:.2,range:58,dmg:7,kb:120,ky:-40,height:'mid',reaction:'flinch'},
       jk:{name:'Dalış Tekmesi',anim:'flykick',dur:.5,t0:.1,t1:.4,range:66,dmg:10,kb:200,ky:-40,airlunge:300,height:'mid',reaction:'flinch'}
     }
@@ -36,7 +37,9 @@ export const CHARS=[
     hair:'flat',mood:'frown',
     moves:{
       p:[
+        {name:'Dürtme',anim:'jab',dur:.22,t0:.07,t1:.14,range:62,dmg:5,kb:70,ky:-58,height:'high',reaction:'flinch'}, // Beton'un tek hızlısı (poke)
         {name:'Kanca',anim:'hook',dur:.38,t0:.14,t1:.24,range:64,dmg:10,kb:150,ky:-60,height:'high',reaction:'flinch',counterReaction:'crumple'},
+        {name:'Gövde Çengeli',anim:'bodyhook',dur:.36,t0:.14,t1:.22,range:56,dmg:12,kb:80,ky:-40,lunge:150,height:'mid',reaction:'crumple'}, // karaciğere kanca, içeri adımla — zinciri burada kes, rakip çöker
         {name:'Balyoz',anim:'hay',dur:.6,t0:.3,t1:.42,range:72,dmg:15,kb:300,ky:-70,lunge:60,height:'mid',reaction:'stagger'}
       ],
       k:[
@@ -60,16 +63,18 @@ export const CHARS=[
     moves:{
       p:[
         {name:'Jab',anim:'jab',dur:.2,t0:.05,t1:.12,range:62,dmg:6,kb:70,ky:-58,height:'high',reaction:'flinch'},
-        {name:'Şok Avucu',anim:'palm',dur:.3,t0:.1,t1:.18,range:66,dmg:8,kb:160,ky:-56,stun:.35,height:'mid',reaction:'flinch'}
+        {name:'Şok Avucu',anim:'palm',dur:.3,t0:.1,t1:.18,range:66,dmg:8,kb:160,ky:-56,stun:.35,height:'mid',reaction:'flinch'},
+        {name:'Dönen Topuk',anim:'spinhook',dur:.55,t0:.3,t1:.4,range:86,dmg:13,kb:200,ky:-66,height:'high',reaction:'crumple'} // spinning hook kick — Volt'un vitrini
       ],
       k:[
+        {name:'İtme Tekmesi',anim:'teep',dur:.26,t0:.1,t1:.17,range:78,dmg:6,kb:220,ky:-44,height:'mid',reaction:'stagger'}, // teep: uzağa iten poke
         {name:'Yan Tekme',anim:'side',dur:.32,t0:.12,t1:.2,range:82,dmg:9,kb:180,ky:-42,height:'mid',reaction:'stagger'},
         {name:'Dönen Tekme',anim:'round',dur:.42,t0:.16,t1:.28,range:88,dmg:12,kb:220,ky:-64,height:'high',reaction:'flinch'},
         {name:'Balta',anim:'axe',dur:.5,t0:.26,t1:.36,range:70,dmg:14,kb:120,ky:-90,height:'mid',reaction:'knockdown'}
       ],
       cp:{name:'Volt Yükselişi',anim:'upper',dur:.4,t0:.14,t1:.24,range:56,dmg:10,kb:60,ky:-85,launch:560,stun:.2,height:'mid',reaction:'launch'},
       ck:{name:'Süpürme',anim:'lowkick',dur:.32,t0:.1,t1:.2,range:76,dmg:8,kb:110,ky:-12,height:'low',reaction:'knockdown'},
-      jp:{name:'Şimşek Yumruk',anim:'airpunch',dur:.28,t0:.08,t1:.18,range:58,dmg:8,kb:130,ky:-40,height:'mid',reaction:'flinch'},
+      jp:{name:'Ay Tekmesi',anim:'crescent',dur:.32,t0:.1,t1:.22,range:62,dmg:9,kb:140,ky:-50,height:'high',reaction:'flinch'}, // crescent kick — stil gereği havada da tekme
       jk:{name:'Uçan Tekme',anim:'flykick',dur:.5,t0:.1,t1:.4,range:70,dmg:12,kb:240,ky:-46,airlunge:340,height:'mid',reaction:'flinch'}
     }
   }
