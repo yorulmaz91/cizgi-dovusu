@@ -14,6 +14,25 @@ autoplay engeli nedeniyle ilk kullanıcı dokunuşunda başlatılır.
 - ES modülleri yüzünden `index.html` çift tıklayarak açılmaz, sunucu şart.
 - Kullanıcı programcı değildir: her adım Türkçe ve tek cümleyle açıklanır.
 
+## Yol haritası — dövüş sistemi (detaylar: docs/dovus-sistemi.md)
+
+Sıra önemli: sistem önce, içerik sonra, animasyon cilası en sona.
+
+- **FAZ A (Görev 4) — TAMAMLANDI:** yükseklik sistemi (high/mid/low + blok
+  tablosu + çömelik blok), vuruş tepkileri (flinch/stagger/crumple/knockdown/
+  launch), yerden kalkma + 0.4sn dokunulmazlık, yerdeki rakibe en fazla 1 vuruş,
+  LOW iz çizgisi / HIGH ıskalama görsel dili, AI'ın çömelik blok + alçak tekme
+  öğrenmesi, seçim ekranında yükseklik etiketleri.
+- **FAZ B (Görev 5):** fırlatma (yakında YUM+TEK, throw break penceresi,
+  karaktere özel 3 fırlatma) + counter hit (tespit, "KARŞI!", hasar ×1.3,
+  tepki yükseltme).
+- **FAZ C (Görev 6):** teknik genişletme — Bölüm 3'teki YENİ hamleler (Bıçak El,
+  Gövde Çengeli, Dönen Topuk, İtme Tekmesi, Kayma Tekmesi, Ay Tekmesi),
+  poke/ağır ayrımı, zincirlerin yeniden düzenlenmesi.
+- **FAZ D (Görev 7):** animasyon cilası — hazırlık→vuruş→geri çekme aşamaları,
+  ağırlık aktarımı, vuruş anında "tık" duruşu, tepki animasyonu inceltme.
+- Araya serpiştirilebilir: arena sistemi, KALEM karakteri (moral görevleri).
+
 ## Uzaktan test — hangi durumda hangi yöntem?
 
 **1. Telefondan HEMEN denemek (kod bilgisayarda, henüz push'lanmadı):**

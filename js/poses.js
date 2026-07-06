@@ -96,7 +96,35 @@ export function computePose(f){
     P.aL=[.9,1.4];P.aR=[.6,1.5];
   }
   if(s==='block'){P.lean=.08;P.aL=[.9,1.5];P.aR=[.7,1.7];P.lL=[.3,.2];P.lR=[-.25,.3];}
+  if(s==='crouchblock'){ // çömelik blok: çömelme + önde koruma kolları
+    P.dip=22;P.lean=.1;P.head=-.05;
+    P.lL=[.85,1.5];P.lR=[-.75,1.55];
+    P.aL=[.95,1.55];P.aR=[.75,1.7];
+  }
   if(s==='hit'){const k=1-Math.min(1,t/.3);P.lean=-.3*k;P.head=-.45*k;P.aL=[.2,.8];P.aR=[-.6,.8];P.dip=4*k;}
+  if(s==='stagger'){ // geriye sendeleme: kollar savrulur, ayaklar karışır
+    const k=Math.min(1,t/.45), w=Math.sin(t*16);
+    P.lean=-.38*(1-k*.4);P.head=-.3*(1-k);
+    P.aL=[.9-w*.3,.5];P.aR=[-1.1+w*.3,.4];
+    P.lL=[w*.45-.1,.35];P.lR=[-w*.45-.1,.4];
+    P.dip=3+Math.abs(w)*2;
+  }
+  if(s==='crumple'){ // dizler çözülür, öne çöker
+    const k=Math.min(1,t/.55);
+    P.dip=8+k*30;P.lean=.15+k*.35;P.head=.2+k*.4;
+    P.lL=[.7+k*.5,1.3+k*.4];P.lR=[-.6-k*.4,1.4+k*.4];
+    P.aL=[.6-k*.4,.2+.7*(1-k)];P.aR=[-.5+k*.2,.2+.6*(1-k)];
+  }
+  if(s==='down'){ // sırtüstü yerde
+    P.dip=46;P.lean=f.facing*-1.5;P.head=.7;
+    P.aL=[1.3,.25];P.aR=[-1.4,.2];P.lL=[1.1,.35];P.lR=[-1.0,.25];
+  }
+  if(s==='getup'){ // yerden doğrulma (bu sırada dokunulmaz)
+    const k=1-Math.min(1,t/.4);
+    P.dip=10+36*k;P.lean=f.facing*-1.5*k+.15*(1-k);P.head=.5*k;
+    P.lL=[.8,.3+1.2*k];P.lR=[-.7,.35+1.2*k];
+    P.aL=[1.0,.3+1.0*k];P.aR=[.5,.3+1.1*k];
+  }
   if(s==='special'){
     const k=Math.sin(Math.min(1,t/f.specDur())*Math.PI);
     if(f.ch.id==='golge'){P.lean=.5;P.aR=[1.4,.1];P.aL=[-.8,.5];P.lL=[.9,.3];P.lR=[-.7,.6];}

@@ -40,6 +40,9 @@ export function drawMiniBolt(g,x,y){
 export function drawStunMark(f){ // sersemleme yıldızcıkları
   particles.push({x:f.x+rnd(-18,18),y:f.y-118+rnd(-8,8),vx:rnd(-20,20),vy:-30,life:.5,t:0,txt:'✦'});
 }
+export function streak(x,y,dir,len=16){ // hız/iz çizgisi (alçak hamle izi, üstten ıskalama)
+  particles.push({x,y,vx:dir*rnd(120,240),vy:0,life:rnd(.18,.3),t:0,line:len});
+}
 
 /* ardıl görüntüler (dash hayaletleri) — dövüş sahnesinde dövüşçülerden önce çizilir */
 export function drawGhosts(g,dt){
@@ -78,10 +81,14 @@ export function drawBursts(g,dt){
 export function drawParticles(g,dt){
   particles=particles.filter(p=>{
     p.t+=dt||.016;if(p.t>p.life)return false;
-    p.x+=p.vx*(dt||.016);p.y+=p.vy*(dt||.016);p.vy+=400*(dt||.016)*(p.txt?0:1);
+    p.x+=p.vx*(dt||.016);p.y+=p.vy*(dt||.016);p.vy+=400*(dt||.016)*((p.txt||p.line)?0:1);
     const a=1-p.t/p.life;
     g.globalAlpha=p.smoke?a*.4:a;
-    if(p.txt){
+    if(p.line){
+      g.strokeStyle=INK;g.lineWidth=1.6;g.lineCap='round';
+      g.beginPath();g.moveTo(p.x-p.line/2,p.y);g.lineTo(p.x+p.line/2,p.y);g.stroke();
+    }
+    else if(p.txt){
       g.save();g.translate(p.x,p.y);
       if(p.rot)g.rotate(p.rot);
       g.font=p.big?'700 34px Space Grotesk':'700 17px Space Grotesk';

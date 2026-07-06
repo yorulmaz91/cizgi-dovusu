@@ -77,20 +77,24 @@ export function drawSelect(g,dt){
       centerText(g,c.name,26,VH*0.66);
       g.font='500 13px Space Grotesk';g.fillStyle=INK;g.textAlign='center';
       g.globalAlpha=.55;
-      g.fillText(c.tagline,VW/2,VH*0.66+24);
+      g.fillText(c.tagline,VW/2,VH*0.66+22);
       g.globalAlpha=1;
       // mini stat göstergesi: cam top mu tank mı, seçerken görün
       const yildiz=n=>'★★★'.slice(0,n)+'☆☆☆'.slice(0,3-n);
       const guc=c.punch+c.kick>=26?3:c.punch+c.kick>=18?2:1;
       const hiz=c.speed>=250?3:c.speed>=200?2:1;
       g.font='700 14px Space Grotesk';
-      g.fillText('CAN: '+c.hp+'   GÜÇ: '+yildiz(guc)+'   HIZ: '+yildiz(hiz),VW/2,VH*0.66+46);
+      g.fillText('CAN: '+c.hp+'   GÜÇ: '+yildiz(guc)+'   HIZ: '+yildiz(hiz),VW/2,VH*0.66+42);
+      // hamle listeleri yükseklik etiketiyle: [ÜST]/[ORTA]/[ALÇAK]
+      const yk={high:'ÜST',mid:'ORTA',low:'ALÇAK'};
+      const etk=m=>m.name+' ['+(yk[m.height]||'ORTA')+']';
       g.font='500 13px Space Grotesk';
-      g.fillText('SKİL: '+c.specName+' — '+c.specDesc,VW/2,VH*0.66+66);
-      g.fillText('YUMRUK: '+c.moves.p.map(m=>m.name).join(' → ')+'   ·   TEKME: '+c.moves.k.map(m=>m.name).join(' → '),VW/2,VH*0.66+84);
-      g.fillText('▼+YUM: '+c.moves.cp.name+' (fırlatır!)   ·   ▲+TEK: '+c.moves.jk.name,VW/2,VH*0.66+102);
+      g.fillText('SKİL: '+c.specName+' — '+c.specDesc,VW/2,VH*0.66+60);
+      g.fillText('YUMRUK: '+c.moves.p.map(etk).join(' → '),VW/2,VH*0.66+77);
+      g.fillText('TEKME: '+c.moves.k.map(etk).join(' → '),VW/2,VH*0.66+94);
+      g.fillText('▼+YUM: '+c.moves.cp.name+' (fırlatır!)   ·   ▼+TEK: '+etk(c.moves.ck)+'   ·   ▲+TEK: '+c.moves.jk.name,VW/2,VH*0.66+111);
       g.font='700 13px Space Grotesk';
-      g.fillText('FATALITY: '+c.fatalName,VW/2,VH*0.66+118);
+      g.fillText('FATALITY: '+c.fatalName,VW/2,VH*0.66+127);
     }
   });
   g.font='500 12px Space Grotesk';g.fillStyle=INK;g.globalAlpha=.4;g.textAlign='center';

@@ -172,9 +172,9 @@ export function drawFighter(g,ftr){
 
 function drawHead(g,ftr,x,y,R,f){
   const c=ftr.ch,s=ftr.state;
-  const expr=s==='ko'?'ko':s==='hit'?'hit'
+  const expr=s==='ko'?'ko':(s==='hit'||s==='stagger'||s==='crumple'||s==='down')?'hit'
     :(s==='attack'||s==='special')?'angry'
-    :s==='block'?'focus':'idle';
+    :(s==='block'||s==='crouchblock'||s==='getup')?'focus':'idle';
   const k=R/30;
   g.save();g.translate(x,y);g.scale(f*k,k);
   // vuruş yiyince kafa yamulur

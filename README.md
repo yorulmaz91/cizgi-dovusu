@@ -48,10 +48,15 @@ Ardından tarayıcıda açılan adresi (genelde `http://localhost:3000`) ziyaret
 | Yumruk  | Z | YUM |
 | Tekme   | X | TEK |
 | Blok    | C | BLK |
+| Çömelik blok | ▼ + C | ▼ + BLK |
 | Skil    | V | SKİL |
 
 - Karakter seçiminden sonra zorluk seçilir (KOLAY/NORMAL/ZOR); tercih hatırlanır.
 - Yumruk/tekmeye art arda basınca vuruş zinciri (kombo) çıkar.
+- Vuruşların yüksekliği vardır: ayakta blok ÜST+ORTA'yı keser ama ALÇAK yer;
+  çömelmek ÜST vuruşları ıskalatır; çömelik blok ALÇAK'ı keser ama ORTA yer.
+- Süpürme gibi hamleler yere yıkar; yerdeki rakip en fazla 1 vuruş yer ve
+  kalkarken kısa süre dokunulmazdır.
 - ▼ + Yumruk: rakibi havaya fırlatan launcher; havada juggle yapılabilir.
 - Rakibin canı bitince "BİTİR ONU!" yazısında SKİL'e basarsan fatality izlersin.
 
