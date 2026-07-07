@@ -126,25 +126,25 @@ export function computePose(f){
         P.lL=[lerp(.28,.36,kk),lerp(.13,.28,kk)];
         P.lR=[lerp(-.22,-.45,kk),lerp(.28,.08,kk)];break;
       case 'front': // ön tekme: şambr → gövde geriye yaslanır, kalça öne fırlar, taban şaklar
-        P.lean=-.38*k;P.head=.14*kk;P.hipTw=.85*kk;P.twist=.35*kk;
+        P.lean=-.42*k;P.head=.16*kk;P.hipTw=.85*kk;P.twist=.35*kk;
         P.hipShift+=5*kk;                          // kalça itişi: gövde geride, kalça önde
-        P.lR=bacak([-.15,.15],[.65,1.55],[1.52,.05]);
-        P.lL=[lerp(.1,.2,kk),lerp(.25,.1,kk)];     // destek bacağı dikleşir
+        P.lR=bacak([-.15,.15],[.8,1.6],[1.9,.04]); // taban GÖĞÜS hizasına fırlar
+        P.lL=[lerp(.1,.2,kk),lerp(.25,.08,kk)];    // destek bacağı dikleşir
         P.aL=[lerp(.9,.5,kk),lerp(.5,.8,kk)];P.aR=[lerp(-.9,-1.15,kk),lerp(.5,.35,kk)]; // kollar geriye denge
-        P.dip=-2*(tt<a?ww:1)-2.5*kk;break;
+        P.dip=-3*(tt<a?ww:1)-3*kk;break;           // gövde tekmeyle yükselir
       case 'side': // yan tekme: şambr + gövde ters yatar, baş rakipte kalır
-        P.lean=-.46*k;P.head=.2*kk;P.hipTw=.9*kk;P.twist=.5*kk;
+        P.lean=-.52*k;P.head=.24*kk;P.hipTw=.9*kk;P.twist=.5*kk;
         P.hipShift+=4*kk;
-        P.lR=bacak([-.15,.15],[.5,1.45],[1.38,.04]);
-        P.lL=[lerp(.15,.22,kk),lerp(.3,.1,kk)];
+        P.lR=bacak([-.15,.15],[.7,1.5],[1.95,.03]); // topuk GÖĞÜS hizasına
+        P.lL=[lerp(.15,.22,kk),lerp(.3,.08,kk)];
         P.aL=[lerp(1.1,.8,kk),.6];P.aR=[lerp(-1.1,-.8,kk),.6];
-        P.dip=-2*(tt<a?ww:1)-1.5*kk;break;
+        P.dip=-3*(tt<a?ww:1)-3*kk;break;
       case 'round': // dönen tekme (tekvando roundhouse): kalça tam döner ve öne akar
-        P.lean=-.44*k;P.head=-.15*k;P.hipTw=kk;P.twist=.6*kk;
+        P.lean=-.5*k;P.head=-.18*k;P.hipTw=kk;P.twist=.6*kk;
         P.hipShift+=4*kk;
-        P.lR=bacak([-.3,.15],[.35,1.35],[1.92,.06]);
-        P.lL=[lerp(.2,.28,kk),lerp(.35,.12,kk)];
-        P.aL=[lerp(.9,-.6,k),.5];P.aR=[lerp(-.9,.6,k),.5];P.dip=-6*k;break;
+        P.lR=bacak([-.3,.15],[.55,1.45],[2.3,.05]); // ayak KAFA hizasına savrulur
+        P.lL=[lerp(.2,.28,kk),lerp(.35,.1,kk)];
+        P.aL=[lerp(.9,-.6,k),.5];P.aR=[lerp(-.9,.6,k),.5];P.dip=-8*k;break;
       case 'axe':{ // balta: bacak gergin yükselir, topuk kamçı gibi iner
         const up=Math.min(1,tt/.5), down=Math.max(0,(tt-.5)/.5);
         P.hipTw=.6*Math.max(up,down);
@@ -177,7 +177,7 @@ export function computePose(f){
         P.aL=[1.0,1.0];P.aR=[lerp(.5,.2,kk),1.2];break;
       case 'flykick':
         P.lean=-.3;P.head=-.1;P.reach=4*kk;
-        P.lR=[lerp(.4,1.55,Math.min(1,tt*2.2)),lerp(.9,.05,Math.min(1,tt*2.2))];P.lL=[-.4,1.4];
+        P.lR=[lerp(.4,1.75,Math.min(1,tt*2.2)),lerp(.9,.05,Math.min(1,tt*2.2))];P.lL=[-.4,1.4];
         P.aL=[1.3,.4];P.aR=[-1.2,.5];break;
       case 'airpunch':
         P.lean=.2*k;P.reach=5*kk;P.head=-.04*kk;P.twist=.6*kk;
@@ -202,7 +202,7 @@ export function computePose(f){
       case 'teep':{ // itme tekmesi: diz kalkar, taban göbeğe iter
         const up=Math.min(1,tt/.45), push=Math.max(0,(tt-.45)/.55);
         P.lean=-.28*k;P.head=-.05;
-        P.lR=push>0?[lerp(.9,1.35,push),lerp(1.2,.1,push)]:[lerp(-.15,.9,up),lerp(.15,1.2,up)];
+        P.lR=push>0?[lerp(.9,1.7,push),lerp(1.2,.08,push)]:[lerp(-.15,.9,up),lerp(.15,1.2,up)];
         P.lL=[.12,.28];P.aL=[1.0,.55];P.aR=[-1.0,.55];P.dip=-2*k;break;}
       case 'spinhook':{ // dönen topuk: gövde ters yöne burulur, topuk tepeden süpürür
         const wind=Math.min(1,tt/.5), spin=Math.max(0,Math.min(1,(tt-.5)/.35));
@@ -212,14 +212,14 @@ export function computePose(f){
           P.lL=[.3,.3];P.lR=[lerp(-.15,-.7,wind),.25];P.dip=6*wind;
         }else{ // dönüş: bacak arkadan tepeye, kollar savrulur, kafa öne çevrilir
           P.lean=lerp(.35,-.3,spin);P.head=lerp(.85,-.4,spin);
-          P.lR=[lerp(-2.3,1.8,spin),.05];P.lL=[.25,.3];
+          P.lR=[lerp(-2.3,2.35,spin),.05];P.lL=[.25,.3];
           P.aL=[lerp(1.3,-.8,spin),.5];P.aR=[lerp(.9,-.6,spin),.6];
           P.dip=lerp(6,-6,spin);
         }
         break;}
       case 'crescent': // ay tekmesi: havada yarım ay çizen bacak
         P.lean=-.15;P.head=-.1;P.hipTw=.7*kk;
-        P.lR=[lerp(-.8,1.6,k),lerp(.7,.06,kk2)];P.lL=[.4,1.3];
+        P.lR=[lerp(-.8,2.2,k),lerp(.7,.05,kk2)];P.lL=[.4,1.3];
         P.aL=[1.5,.4];P.aR=[-1.3,.5];break;
     }
   }
