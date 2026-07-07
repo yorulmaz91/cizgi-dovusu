@@ -99,8 +99,18 @@ if(trnDummy)trnDummy.addEventListener('click',()=>{
 });
 const trnList=document.getElementById('trnList');
 if(trnList)trnList.addEventListener('click',()=>{game.trainPanel=!game.trainPanel;});
+/* GÖSTERİ: tekme + yumruk zincirlerini yavaş çekimde otomatik oynatır
+   (tuş ritmi gerekmez — animasyonları izlemek için) */
+const trnDemo=document.getElementById('trnDemo');
+if(trnDemo)trnDemo.addEventListener('click',()=>{
+  if(game.scene!=='training')return;
+  game.demo={sira:['k','p'],i:0,bekle:.2};
+});
 const trnExit=document.getElementById('trnExit');
-if(trnExit)trnExit.addEventListener('click',()=>{game.scene='select';game.selCd=.3;});
+if(trnExit)trnExit.addEventListener('click',()=>{
+  game.scene='select';game.selCd=.3;
+  game.demo=null;screenFx.timeScale=1; // gösteri yarıda kaldıysa hızı geri al
+});
 
 /* ---------------- ana döngü ---------------- */
 let last=performance.now();
@@ -121,6 +131,21 @@ function loop(now){
   else if(game.scene==='training'){
     resetResultLock();keys.any=0;
     drawBG(g);
+    // GÖSTERİ sürücüsü: zinciri kendisi basar, ağır çekimde oynar
+    if(game.demo){
+      const d=game.demo,p=game.p1;
+      screenFx.timeScale=.42;
+      if(p.state==='attack'){if(p.chain&&p.chain[p.chainIdx+1])p.queued=1;}
+      else if(!p.busy()){
+        d.bekle-=dt;
+        if(d.bekle<=0){
+          if(d.i<d.sira.length){
+            p.x=Math.max(80,Math.min(VW-80,game.p2.x-p.facing*95)); // hep menzilde
+            p.startChain(d.sira[d.i++]);d.bekle=.55;
+          }else{game.demo=null;screenFx.timeScale=1;}
+        }
+      }
+    }
     game.p1.update(dt,game.p2);
     game.p2.update(dt,game.p1);
     // kukla canı: son vuruştan ~1 sn sonra ikisi de tazelenir (K.O. yok)
@@ -134,7 +159,7 @@ function loop(now){
     if(game.trainPanel)drawTrainPanel(g);
     if(game.splash&&game.splashT<1.4){
       game.splashT+=.016;
-      centerText(g,game.splash,44,VH*0.4,'kukla vurmaz · canlar kendini tazeler');
+      centerText(g,game.splash,44,VH*0.4,'kukla vurmaz · canlar tazelenir · GÖSTERİ: zinciri kendisi oynatır');
     }
   }
   else if(game.scene==='vs')drawVS(g,.016);
