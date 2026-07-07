@@ -31,6 +31,7 @@ export class Fighter{
     this.thrFoe=null;this.thrHit=false;this.thrEscape=false;this.thrEscT=0;
     this.erasedLimb=null;this.erasedT=0;this.hidden=false; // KALEM: silinen uzuv
     this.armorT=0; // BETON süper zırh görsel ipucu
+    this.poseS=null;this.poseClk=0;this.turnT=0; // poz eritme (insansı geçiş) + dönüş esnemesi
     this.aiT=0;this.fx={};this.aiPause=0;this.aiChainAt=-1;this.aiChainGo=false;this.aiBlockLow=false;
   }
   setState(s){this.state=s;this.st=0;}
@@ -53,6 +54,7 @@ export class Fighter{
   update(dt,foe){
     this.st+=dt;this.cd=Math.max(0,this.cd-dt);
     this.invuln=Math.max(0,this.invuln-dt);
+    this.turnT=Math.max(0,this.turnT-dt); // dönüş esnemesi sayacı
     this.comboT-=dt;if(this.comboT<=0)this.combo=0;
     this.armorT=Math.max(0,this.armorT-dt);
     // silinen uzuv 2 sn sonra geri belirir
@@ -168,7 +170,9 @@ export class Fighter{
     if(this.state==='special'&&this.st>=this.specDur())this.setState('idle');
 
     if(!this.busy()&&this.state!=='crouch'){
+      const onceF=this.facing;
       this.facing=foe.x>this.x?1:-1;
+      if(this.facing!==onceF)this.turnT=.14; // yön değişti: küçük dönüş esnemesi (görsel)
       this.blockHeld=!!inp.block;
       if(this.blockHeld){this.setStateIf(inp.down?'crouchblock':'block');this.vx=0;}
       else{
@@ -209,7 +213,9 @@ export class Fighter{
       }
     }else if(this.state==='crouch'){
       // çömelme: blokla, kalk veya çömelme saldırısı
+      const onceF=this.facing;
       this.facing=foe.x>this.x?1:-1;this.vx=0;
+      if(this.facing!==onceF)this.turnT=.14;
       if(inp.block)this.setState('crouchblock');
       else if(inp.punch&&this.canUse('p'))this.startSingle(this.ch.moves.cp,'p',false);
       else if(inp.kick&&this.canUse('k'))this.startSingle(this.ch.moves.ck,'k',false);
@@ -496,7 +502,34 @@ export class Fighter{
     }
     return inp;
   }
+  /* ---------- poz eritme: insansı geçişler ----------
+     Hedef poz (poses.js) her karede anında uygulanmaz; çizilen poz hedefe
+     doğru üstel hızla eritilir. Böylece duruş değişimleri (idle→walk,
+     saldırı→idle, yere düşüş...) ışınlanma yerine akış gibi görünür.
+     Hamle süreleri/hasarlar DEĞİŞMEZ — salt görsel katman. */
+  pozHizi(){ // erime hızı (1/sn): vuruş anı keskin kalır, geçişler yumuşar
+    const s=this.state;
+    if(s==='attack')return this.mv&&this.st<this.mv.t0?26:55; // hazırlık akıcı, patlama anlık
+    if(s==='hit'||s==='stagger'||s==='crumple'||s==='thrown')return 32; // darbe kamçı gibi
+    if(s==='down')return 20;
+    if(s==='walk')return 19; // adım ritmi diri kalsın (sönmesin)
+    return 13; // idle/walk/blok/zıplama vb. geçişleri
+  }
+  pose(){
+    const hedef=computePose(this);
+    const now=performance.now();
+    let pdt=this.poseClk?Math.min(.05,(now-this.poseClk)/1000):0;
+    this.poseClk=now;
+    if(screenFx.hitstop>0)pdt=0;else pdt*=(screenFx.timeScale||1); // vuruş donması pozu da dondurur
+    if(!this.poseS||this.state==='fatalP'||this.state==='fatalV'){this.poseS=hedef;return hedef;}
+    const S=this.poseS,a=1-Math.exp(-this.pozHizi()*pdt);
+    for(const k of ['lean','head','dip','hipShift'])S[k]+=((hedef[k]||0)-S[k])*a;
+    for(const k of ['aL','aR','lL','lR']){
+      S[k][0]+=(hedef[k][0]-S[k][0])*a;
+      S[k][1]+=(hedef[k][1]-S[k][1])*a;
+    }
+    return S;
+  }
   /* poz hesabı poses.js'te, çizim render.js'te */
-  pose(){return computePose(this);}
   draw(g){drawFighter(g,this);}
 }

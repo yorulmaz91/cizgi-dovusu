@@ -213,5 +213,11 @@ export function computePose(f){
     P.lL=[.3,.5];P.lR=[-.3,.6];P.dip=6;
   }
   if(s==='ko'){P.dip=44;P.lean=f.facing*-1.4;P.head=.8;P.aL=[1.4,.2];P.aR=[-1.5,.2];P.lL=[1.2,.3];P.lR=[-1.1,.2];}
+  /* dönüş esnemesi: yön değiştirirken gövde bir an çöküp toparlanır (ayna
+     çevrilmesini maskeler, ağırlık hissi verir) — fighter.js turnT kurar */
+  if(f.turnT>0&&(s==='idle'||s==='walk'||s==='crouch')){
+    const k=Math.sin((f.turnT/.14)*Math.PI);
+    P.dip+=3.5*k;P.head-=.12*k;P.lean+=.06*k;
+  }
   return P;
 }
