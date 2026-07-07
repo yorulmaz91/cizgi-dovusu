@@ -212,6 +212,25 @@ jab → ıskalamalı" durumlarını nasıl test edeceğimi göster.
 
 ---
 
+## EK — Görev 8: denge ve kontrol güncellemesi (uygulandı)
+
+- **Can eşitleme:** dört karakterin canı da 100. Kimlik artık statlarla
+  (güç/hız/menzil) ve mekaniklerle taşınıyor, can farkıyla değil.
+- **BETON süper zırhı:** Balyoz ve Omuz Şarjı'nın hazırlık+aktif karelerinde
+  BETON hasar yer ama flinch/stagger olmaz, hamleyi tamamlar; launch,
+  knockdown ve crumple zırhı DELER. Görsel: gövde çizgisi kalınlaşır +
+  "ZIRH!" yazısı; itilme de çok azalır. Toparlanma kareleri zırhsızdır —
+  2.5'teki "bloklanan ağır hamle cezalandırılır" dengesi korunur.
+- **Dokunmatik kontrol (Tasarım A):** sağda başparmak yayına oturan elmas —
+  YUM/TEK büyük altta, BLK/SKİL küçük üstte; elmasın solunda orta boy
+  FIRLAT tuşu (tek dokunuş fırlatma; fırlatılırken basılırsa throw break).
+  Klavyede YUM+TEK (~100ms tolerans) aynen geçerli.
+- **ANTRENMAN modu:** karakter seçiminde TEK ile girilir. Kukla AI'sızdır;
+  düğmeyle SERBEST → AYAKTA BLOK → ÇÖMELİK BLOK → ÇÖMELME duruşlarına
+  sokulur (yükseklik sistemini öğrenme aracı). Canlar boşalınca ~1 sn sonra
+  tazelenir, K.O./fatality tetiklenmez; seçili karakterin tam hamle listesi
+  paneli açılıp kapanabilir.
+
 ## Kapanış notu
 "Gerçekçilik" hedefinde çıta şu: bir taekwondocu Volt'u izlediğinde
 "bu dönen topuk tekmesi, ağırlık aktarımı bile doğru" demeli; bir boksör

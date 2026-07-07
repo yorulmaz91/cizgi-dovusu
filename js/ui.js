@@ -4,7 +4,7 @@
 import {CHARS} from './characters.js';
 import {Fighter} from './fighter.js';
 import {keys} from './input.js';
-import {INK} from './effects.js';
+import {INK,PAPER} from './effects.js';
 import {VW,VH,drawBG} from './render.js';
 import {game} from './main.js';
 
@@ -30,7 +30,33 @@ export function drawHUD(g){
     g.fillText('★'.repeat(game.wins[i])||' ',i===0?x:x+bw,y+46);
   }
   g.textAlign='center';g.font='700 26px Space Grotesk';g.fillStyle=INK;
-  g.fillText(Math.ceil(game.timer),VW/2,y+22);
+  g.fillText(game.scene==='training'?'∞':Math.ceil(game.timer),VW/2,y+22);
+}
+
+/* antrenman: seçili karakterin tam hamle listesi paneli */
+export function drawTrainPanel(g){
+  const c=game.p1.ch;
+  const yk={high:'ÜST',mid:'ORTA',low:'ALÇAK'};
+  const et=m=>m.name+' ['+(yk[m.height]||'ORTA')+']';
+  const L=[
+    ['700',c.name+' — HAMLE LİSTESİ'],
+    ['500','YUM: '+c.moves.p.map(et).join(' → ')],
+    ['500','TEK: '+c.moves.k.map(et).join(' → ')],
+    ['500','▼+YUM: '+et(c.moves.cp)+' (fırlatır)   ·   ▼+TEK: '+et(c.moves.ck)],
+    ['500','havada YUM: '+et(c.moves.jp)+'   ·   havada TEK: '+et(c.moves.jk)],
+    ['500','FIRLAT tuşu (veya YUM+TEK): '+c.throwName+' — blok işlemez'],
+    ['500','SKİL: '+c.specName+' — '+c.specDesc],
+    ['500','Blok tablosu: ayakta blok ÜST+ORTA keser · çömelik blok ALÇAK keser'],
+  ];
+  const yBas=VH*0.78, satir=15;
+  g.save();
+  g.fillStyle=PAPER;g.globalAlpha=.82;
+  g.fillRect(0,yBas-20,VW,L.length*satir+30);
+  g.globalAlpha=1;g.strokeStyle=INK;g.lineWidth=1.5;
+  g.beginPath();g.moveTo(0,yBas-20);g.lineTo(VW,yBas-20);g.stroke();
+  g.textAlign='center';g.fillStyle=INK;
+  L.forEach((s,i)=>{g.font=s[0]+' 11px Space Grotesk';g.fillText(s[1],VW/2,yBas+i*satir);});
+  g.restore();
 }
 export function centerText(g,txt,size,y,sub){
   g.textAlign='center';
@@ -60,6 +86,11 @@ export function drawSelect(g,dt){
       game.scene='difficulty';game.selCd=.3;
       keys.punch=keys.special=0;
     }
+    else if(keys.kick){ // TEK: antrenman modu
+      game.selCharIdx=game.selIdx;
+      keys.kick=0;
+      game.startTraining(game.selCharIdx);
+    }
   }
   const gap=Math.min(160,VW/3.2);
   CHARS.forEach((c,i)=>{
@@ -81,12 +112,14 @@ export function drawSelect(g,dt){
       g.globalAlpha=.55;
       g.fillText(c.tagline,VW/2,oy+22*s);
       g.globalAlpha=1;
-      // mini stat göstergesi: cam top mu tank mı, seçerken görün
+      // mini stat göstergesi (canlar eşit: 100 — gösterilmez)
       const yildiz=n=>'★★★'.slice(0,n)+'☆☆☆'.slice(0,3-n);
       const guc=c.punch+c.kick>=26?3:c.punch+c.kick>=18?2:1;
       const hiz=c.speed>=250?3:c.speed>=200?2:1;
+      const mzl=Math.max(...c.moves.p.map(m=>m.range),...c.moves.k.map(m=>m.range));
+      const men=mzl>=85?3:mzl>=78?2:1;
       g.font='700 14px Space Grotesk';
-      g.fillText('CAN: '+c.hp+'   GÜÇ: '+yildiz(guc)+'   HIZ: '+yildiz(hiz),VW/2,oy+42*s);
+      g.fillText('GÜÇ: '+yildiz(guc)+'   HIZ: '+yildiz(hiz)+'   MENZİL: '+yildiz(men),VW/2,oy+42*s);
       // hamle listeleri yükseklik etiketiyle: [ÜST]/[ORTA]/[ALÇAK]
       const yk={high:'ÜST',mid:'ORTA',low:'ALÇAK'};
       const etk=m=>m.name+' ['+(yk[m.height]||'ORTA')+']';
@@ -100,7 +133,7 @@ export function drawSelect(g,dt){
     }
   });
   g.font='500 12px Space Grotesk';g.fillStyle=INK;g.globalAlpha=.4;g.textAlign='center';
-  g.fillText('◀ ▶ seç · YUM ile başla',VW/2,VH*0.92);
+  g.fillText('◀ ▶ seç · YUM ile başla · TEK: ANTRENMAN',VW/2,VH*0.92);
   g.globalAlpha=1;
 }
 export function drawDifficulty(g,dt){

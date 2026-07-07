@@ -256,6 +256,16 @@ for(let ci=0; ci<ISIMLER.length; ci++){
       else FAIL('throw break başarısız', `hp ${d}→${p2.hp} p1=${p1.state}`);
     } else ATLA('throw break', 'fırlatma yakalanamadı: '+p2.state);
     sn(0.8);
+
+    // FIRLAT tuşu: tek dokunuşla fırlatma (dokunmatik ana yol)
+    pasifYap(p2,{block:1}); rakibiTopla(); p2.state='block'; yanYana(38); sn(0.3);
+    Dz.tbreak=0;
+    d=p2.hp; keys.throw=1; sn(0.05); keys.throw=0; sn(1.2);
+    Dz.tbreak=eskiTb;
+    d=+(d-p2.hp).toFixed(2);
+    if(d>0) OK('FIRLAT tuşu fırlattı', `${d} hasar`);
+    else FAIL('FIRLAT tuşu çalışmadı');
+    sn(0.8);
   }
 
   /* --- 4) COUNTER HIT --- */
@@ -420,6 +430,31 @@ for(let ci=0; ci<ISIMLER.length; ci++){
     else FAIL('rövanş çalışmadı', 'sahne='+game.scene);
     sifirla();
   }
+}
+
+/* --- 7b) BETON SÜPER ZIRH --- */
+BASLIK('════════════ BETON SÜPER ZIRH ════════════');
+{
+  dovuseGir(0); // oyuncu GÖLGE
+  game.eCh=CHARS[1]; game.newRound(); sn(0.4); // rakip BETON'a sabitle
+  const p1=game.p1, p2=game.p2; pasifYap(p2);
+  const balyoz=CHARS[1].moves.p[3];
+  // a) Balyoz hazırlığındaki BETON'a jab: hasar işler ama sarsılmaz, hamle sürer
+  rakibiTopla(); yanYana(55); sn(0.3);
+  p2.state='attack'; p2.st=0.1; p2.mv=balyoz; p2.chain=[balyoz]; p2.chainIdx=0; p2.hitDone=true;
+  let d=p2.hp; basVeBirak('punch',0.08); sn(0.12); d=+(d-p2.hp).toFixed(2);
+  if(d>0 && p2.state==='attack' && p2.armorT>0)
+    OK('zırh: hasar yedi ama sarsılmadı', `${d} hasar · hamle sürüyor · gövde kalın`);
+  else FAIL('zırh çalışmadı', `d=${d} durum=${p2.state} armorT=${(p2.armorT||0).toFixed(2)}`);
+  sn(1.0);
+  // b) knockdown zırhı DELER
+  rakibiTopla(); yanYana(60); sn(0.2);
+  p2.state='attack'; p2.st=0.1; p2.mv=balyoz; p2.chain=[balyoz]; p2.chainIdx=0; p2.hitDone=true;
+  const kd=CHARS[0].moves.ck; // Kayma Tekmesi (knockdown)
+  p1.startSingle(kd,'k',false); sn(kd.t1+0.12);
+  if(['down','getup'].includes(p2.state)) OK('knockdown zırhı DELDİ', `durum=${p2.state}`);
+  else FAIL('knockdown zırhı delemedi', `durum=${p2.state}`);
+  sn(1.5);
 }
 
 /* --- 8) ZORLUK FARKI: gerçek AI'ya karşı 12'şer sanal saniye --- */

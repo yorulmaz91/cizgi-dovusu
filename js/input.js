@@ -4,7 +4,7 @@
    ============================================================ */
 import {cvs,resize} from './render.js';
 
-export const keys={left:0,right:0,up:0,down:0,punch:0,kick:0,block:0,special:0,any:0};
+export const keys={left:0,right:0,up:0,down:0,punch:0,kick:0,block:0,special:0,throw:0,any:0};
 const KEYMAP={ArrowLeft:'left',ArrowRight:'right',ArrowUp:'up',ArrowDown:'down',a:'left',d:'right',w:'up',s:'down',z:'punch',x:'kick',c:'block',v:'special'};
 addEventListener('keydown',e=>{const k=KEYMAP[e.key];if(k)keys[k]=1;keys.any=1;});
 addEventListener('keyup',e=>{const k=KEYMAP[e.key];if(k)keys[k]=0;});

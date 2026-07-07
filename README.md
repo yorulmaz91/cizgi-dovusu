@@ -49,10 +49,16 @@ Ardından tarayıcıda açılan adresi (genelde `http://localhost:3000`) ziyaret
 | Tekme   | X | TEK |
 | Blok    | C | BLK |
 | Çömelik blok | ▼ + C | ▼ + BLK |
-| Fırlatma | Z + X birlikte | YUM + TEK birlikte |
+| Fırlatma | Z + X birlikte | **FIRLAT tuşu** (veya YUM+TEK) |
 | Skil    | V | SKİL |
 
 - Karakter seçiminden sonra zorluk seçilir (KOLAY/NORMAL/ZOR); tercih hatırlanır.
+- Seçim ekranında **TEK** ile ANTRENMAN moduna girilir: kukla saldırmaz,
+  düğmeyle duruş değiştirir (blok/çömelik blok/çömelme), canlar kendini
+  tazeler, hamle listesi panelde görünür.
+- Bütün karakterlerin canı 100'dür. BETON'un Balyoz ve Omuz Şarjı'nda
+  **süper zırh** vardır: hazırlıkta vurulsa da sarsılmaz, hamleyi tamamlar
+  (yıkan/fırlatan/çökerten vuruşlar zırhı deler).
 - Yumruk/tekmeye art arda basınca vuruş zinciri (kombo) çıkar.
 - Vuruşların yüksekliği vardır: ayakta blok ÜST+ORTA'yı keser ama ALÇAK yer;
   çömelmek ÜST vuruşları ıskalatır; çömelik blok ALÇAK'ı keser ama ORTA yer.

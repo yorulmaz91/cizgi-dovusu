@@ -10,7 +10,7 @@ import {CHARS} from './characters.js';
 import {Fighter} from './fighter.js';
 import {PAPER,screenFx,setInverted,burst,drawGhosts,drawBursts,drawParticles} from './effects.js';
 import {updateFatality,drawFatalityFx} from './fatality.js';
-import {drawHUD,centerText,drawSelect,drawDifficulty,drawVS,drawResult,armResultLock,resetResultLock} from './ui.js';
+import {drawHUD,centerText,drawSelect,drawDifficulty,drawVS,drawResult,drawTrainPanel,armResultLock,resetResultLock} from './ui.js';
 import * as sfx from './audio.js';
 
 /* ---------------- oyun akışı ---------------- */
@@ -58,6 +58,23 @@ export const game={
     this.fatalLoser.setState('ko');this.finishing=false;
     this.endRound();
   },
+  /* ---------------- antrenman modu ---------------- */
+  startTraining(chIdx){
+    this.pCh=CHARS[chIdx];this.eCh=CHARS[(chIdx+1)%CHARS.length];
+    this.wins=[0,0];
+    this.p1=new Fighter(this.pCh,VW*0.32,1,false);
+    this.p2=new Fighter(this.eCh,VW*0.64,-1,true);
+    this.finishing=false;this.fatal=null;
+    this.trainState='serbest';this.trainIdx=0;this.trainPanel=true;this.trainT=0;
+    const self=this;
+    this.p2.ai=()=>{ // kukla: AI kapalı, yalnız seçili duruşu tutar
+      const s=self.trainState;
+      return {left:0,right:0,up:0,down:(s==='crouch'||s==='crouchblock')?1:0,
+              punch:0,kick:0,block:(s==='block'||s==='crouchblock')?1:0,special:0};
+    };
+    const b=document.getElementById('trnDummy');if(b)b.textContent='KUKLA: SERBEST';
+    this.scene='training';this.splash='ANTRENMAN';this.splashT=0;
+  },
   endRound(){
     const pWon=this.fatalLoser===this.p2;
     this.wins[pWon?0:1]++;
@@ -70,6 +87,20 @@ export const game={
 };
 /* kayıtlı zorluk tercihini yükle */
 try{const z=localStorage.getItem('cd-zorluk');if(['kolay','normal','zor'].includes(z))game.difficulty=z;}catch(e){}
+
+/* ---------------- antrenman düğmeleri (test sayfalarında olmayabilir) ---------------- */
+const DUMMY_DURUM=[['serbest','SERBEST'],['block','AYAKTA BLOK'],['crouchblock','ÇÖMELİK BLOK'],['crouch','ÇÖMELME']];
+const trnUI=document.getElementById('trainUI');
+const trnDummy=document.getElementById('trnDummy');
+if(trnDummy)trnDummy.addEventListener('click',()=>{
+  game.trainIdx=((game.trainIdx||0)+1)%DUMMY_DURUM.length;
+  game.trainState=DUMMY_DURUM[game.trainIdx][0];
+  trnDummy.textContent='KUKLA: '+DUMMY_DURUM[game.trainIdx][1];
+});
+const trnList=document.getElementById('trnList');
+if(trnList)trnList.addEventListener('click',()=>{game.trainPanel=!game.trainPanel;});
+const trnExit=document.getElementById('trnExit');
+if(trnExit)trnExit.addEventListener('click',()=>{game.scene='select';game.selCd=.3;});
 
 /* ---------------- ana döngü ---------------- */
 let last=performance.now();
@@ -84,8 +115,28 @@ function loop(now){
   g.save();
   if(screenFx.shake>0){screenFx.shake=Math.max(0,screenFx.shake-40*.016);g.translate(rnd(-screenFx.shake,screenFx.shake),rnd(-screenFx.shake,screenFx.shake));}
 
+  if(trnUI)trnUI.classList.toggle('on',game.scene==='training');
   if(game.scene==='select'){drawSelect(g,.016);document.getElementById('controls').classList.add('on');}
   else if(game.scene==='difficulty')drawDifficulty(g,.016);
+  else if(game.scene==='training'){
+    resetResultLock();keys.any=0;
+    drawBG(g);
+    game.p1.update(dt,game.p2);
+    game.p2.update(dt,game.p1);
+    // kukla canı: son vuruştan ~1 sn sonra ikisi de tazelenir (K.O. yok)
+    if(game.p2.hp<game.p2.maxHp||game.p1.hp<game.p1.maxHp)game.trainT+=dt;else game.trainT=0;
+    if(game.trainT>1&&!['hit','stagger','crumple','down','getup','thrown'].includes(game.p2.state)){
+      game.p2.hp=game.p2.maxHp;game.p1.hp=game.p1.maxHp;game.trainT=0;
+    }
+    drawGhosts(g,dt);
+    game.p1.draw(g);game.p2.draw(g);
+    drawHUD(g);
+    if(game.trainPanel)drawTrainPanel(g);
+    if(game.splash&&game.splashT<1.4){
+      game.splashT+=.016;
+      centerText(g,game.splash,44,VH*0.4,'kukla vurmaz · canlar kendini tazeler');
+    }
+  }
   else if(game.scene==='vs')drawVS(g,.016);
   else if(game.scene==='result'){drawResult(g);armResultLock();}
   else if(game.scene==='fight'){

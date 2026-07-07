@@ -27,9 +27,10 @@ export class Fighter{
     this.cd=0;this.blockHeld=false;this.walkPhase=0;
     this.dead=false;this.stun=0;this.combo=0;this.comboT=0;
     this.juggle=0;this.kvx=0;this.invuln=0;this.otg=0;this.whiffed=false;
-    this.pPrev=false;this.kPrev=false;this.pBuf=0;this.kBuf=0;this.pend=null; // YUM+TEK toleransı
+    this.pPrev=false;this.kPrev=false;this.tPrev=false;this.pBuf=0;this.kBuf=0;this.pend=null; // YUM+TEK toleransı + FIRLAT
     this.thrFoe=null;this.thrHit=false;this.thrEscape=false;this.thrEscT=0;
     this.erasedLimb=null;this.erasedT=0;this.hidden=false; // KALEM: silinen uzuv
+    this.armorT=0; // BETON süper zırh görsel ipucu
     this.aiT=0;this.fx={};this.aiPause=0;this.aiChainAt=-1;this.aiChainGo=false;this.aiBlockLow=false;
   }
   setState(s){this.state=s;this.st=0;}
@@ -53,6 +54,7 @@ export class Fighter{
     this.st+=dt;this.cd=Math.max(0,this.cd-dt);
     this.invuln=Math.max(0,this.invuln-dt);
     this.comboT-=dt;if(this.comboT<=0)this.combo=0;
+    this.armorT=Math.max(0,this.armorT-dt);
     // silinen uzuv 2 sn sonra geri belirir
     if(this.erasedT>0){
       this.erasedT-=dt;
@@ -83,11 +85,11 @@ export class Fighter{
     /* --- fırlatılıyorken: sadece kaçış girdisi dinlenir --- */
     if(this.state==='thrown'){
       if(!this.isAI){
-        const pE=!!keys.punch&&!this.pPrev, kE=!!keys.kick&&!this.kPrev;
-        this.pPrev=!!keys.punch;this.kPrev=!!keys.kick;
+        const pE=!!keys.punch&&!this.pPrev, kE=!!keys.kick&&!this.kPrev, tE=!!keys.throw&&!this.tPrev;
+        this.pPrev=!!keys.punch;this.kPrev=!!keys.kick;this.tPrev=!!keys.throw;
         this.pBuf=pE?.1:Math.max(0,this.pBuf-dt);
         this.kBuf=kE?.1:Math.max(0,this.kBuf-dt);
-        if(this.st<.2&&this.pBuf>0&&this.kBuf>0)this.thrEscape=true;
+        if(this.st<.2&&(tE||(this.pBuf>0&&this.kBuf>0)))this.thrEscape=true; // FIRLAT tuşu da kırar
       }else if(this.thrEscT&&this.st>=this.thrEscT)this.thrEscape=true;
       return;
     }
@@ -96,8 +98,8 @@ export class Fighter{
 
     const inp=this.isAI?this.ai(dt,foe):keys;
     /* tuş kenarları + 80ms tamponlar (YUM+TEK fırlatma toleransı) */
-    const pEdge=!!inp.punch&&!this.pPrev, kEdge=!!inp.kick&&!this.kPrev;
-    this.pPrev=!!inp.punch;this.kPrev=!!inp.kick;
+    const pEdge=!!inp.punch&&!this.pPrev, kEdge=!!inp.kick&&!this.kPrev, tEdge=!!inp.throw&&!this.tPrev;
+    this.pPrev=!!inp.punch;this.kPrev=!!inp.kick;this.tPrev=!!inp.throw;
     this.pBuf=pEdge?.1:Math.max(0,this.pBuf-dt);
     this.kBuf=kEdge?.1:Math.max(0,this.kBuf-dt);
 
@@ -184,7 +186,11 @@ export class Fighter{
           }
           else this.setStateIf('idle');
           const yakin=Math.abs(foe.x-this.x)<=THROW_RANGE;
-          if(this.pBuf>0&&this.kBuf>0){ // YUM+TEK (kısa tolerans içinde ikisi) = fırlatma
+          if(tEdge){ // FIRLAT tuşu: tek dokunuşla fırlatma dener (dokunmatik ana yol)
+            this.pend=null;this.pBuf=this.kBuf=0;
+            if(this.canUse('p')&&this.canUse('k'))this.tryThrow(foe);
+          }
+          else if(this.pBuf>0&&this.kBuf>0){ // YUM+TEK (kısa tolerans içinde ikisi) = fırlatma
             this.pBuf=this.kBuf=0;this.pend=null;
             if(this.canUse('p')&&this.canUse('k'))this.tryThrow(foe); // silinmiş uzuvla kavrama yok
           }
@@ -254,7 +260,15 @@ export class Fighter{
       }else{
         // counter bazı hamlelerde tepkiyi yükseltir (örn. Kanca → crumple)
         rc=foe.grounded()?((counter&&mv.counterReaction)||mv.reaction||'flinch'):'flinch';
-        if(rc==='stagger'){foe.setState('stagger');foe.stun=0;}
+        /* BETON süper zırhı: zırhlı hamlenin hazırlık+aktif karelerinde
+           flinch/stagger yemez, hamleyi tamamlar (launch/knockdown/crumple DELER) */
+        const zirh=foe.state==='attack'&&foe.mv&&foe.mv.armor&&foe.st<=foe.mv.t1
+          &&(rc==='flinch'||rc==='stagger');
+        if(zirh){
+          foe.armorT=.22;kb*=.3;rc=null; // durum değişmez, itiş çok azalır
+          floatText(foe.x,foe.y-150,'ZIRH!');
+        }
+        else if(rc==='stagger'){foe.setState('stagger');foe.stun=0;}
         else if(rc==='crumple'){foe.setState('crumple');foe.stun=0;}
         else if(rc==='knockdown'){foe.setState('down');foe.otg=0;foe.stun=0;}
         else{foe.setState('hit');foe.stun=mv.stun||.18;} // flinch + launch
@@ -277,7 +291,7 @@ export class Fighter{
     foe.hp=Math.max(0,foe.hp-dmg);
     foe.kvx=this.facing*kb*1.44; // eski anlık itmeyle aynı toplam mesafe, kayarak
     if(rc==='stagger')foe.kvx*=1.6; // sendeleme: 2-3 adım geriye
-    if(foe.hp<=0&&!game.finishing)game.finishHim(this,foe);
+    if(foe.hp<=0&&!game.finishing&&game.scene==='fight')game.finishHim(this,foe); // antrenmanda K.O. yok
     return blocked?'blocked':(foe.state==='down'&&!rc?'otg':'hit'); // KALEM skili temiz isabeti ayırt eder
   }
   /* ---------- fırlatma (belge 2.2): blok işlemez, kaçış YUM+TEK ---------- */
@@ -374,7 +388,7 @@ export class Fighter{
     sfx.hit(dmg,'k');
     screenFx.hitstop=clamp(.03+dmg*.004,.04,.11);
     screenFx.shake=Math.min(10,4+dmg*.4);
-    if(v.hp<=0&&!game.finishing)game.finishHim(this,v);
+    if(v.hp<=0&&!game.finishing&&game.scene==='fight')game.finishHim(this,v); // antrenmanda K.O. yok
   }
   endThrow(v){
     this.thrFoe=null;if(v)v.thrBy=null;

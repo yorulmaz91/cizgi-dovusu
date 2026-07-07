@@ -4,7 +4,7 @@
 export const CHARS=[
   {
     id:'golge',name:'GÖLGE',lw:2.2,
-    speed:270,hp:88,punch:6,kick:9,
+    speed:270,hp:100,punch:6,kick:9,
     specName:'Gölge Geçişi',specDesc:'Rakibin içinden geçer, arkasından vurur',
     specCd:3.5,tagline:'Hızlı · kırılgan · acımasız',
     fatalName:'GÖLGE SÖKÜMÜ',
@@ -29,7 +29,7 @@ export const CHARS=[
   },
   {
     id:'beton',name:'BETON',lw:3,
-    speed:150,hp:130,punch:12,kick:16,
+    speed:150,hp:100,punch:12,kick:16,
     specName:'Deprem Yumruğu',specDesc:'Yere vurur, şok dalgası yayar',
     specCd:5,tagline:'Yavaş · dayanıklı · ezici',
     fatalName:'BETON MEZARI',
@@ -40,11 +40,11 @@ export const CHARS=[
         {name:'Dürtme',anim:'jab',dur:.22,t0:.07,t1:.14,range:62,dmg:5,kb:70,ky:-58,height:'high',reaction:'flinch'}, // Beton'un tek hızlısı (poke)
         {name:'Kanca',anim:'hook',dur:.38,t0:.14,t1:.24,range:64,dmg:10,kb:150,ky:-60,height:'high',reaction:'flinch',counterReaction:'crumple'},
         {name:'Gövde Çengeli',anim:'bodyhook',dur:.36,t0:.14,t1:.22,range:56,dmg:12,kb:80,ky:-40,lunge:150,height:'mid',reaction:'crumple'}, // karaciğere kanca, içeri adımla — zinciri burada kes, rakip çöker
-        {name:'Balyoz',anim:'hay',dur:.6,t0:.3,t1:.42,range:72,dmg:15,kb:300,ky:-70,lunge:60,height:'mid',reaction:'stagger'}
+        {name:'Balyoz',anim:'hay',dur:.6,t0:.3,t1:.42,range:72,dmg:15,kb:300,ky:-70,lunge:60,height:'mid',reaction:'stagger',armor:true} // SÜPER ZIRH: hazırlıkta flinch/stagger yemez
       ],
       k:[
         {name:'Diz',anim:'knee',dur:.3,t0:.1,t1:.18,range:52,dmg:11,kb:120,ky:-40,height:'mid',reaction:'flinch'},
-        {name:'Omuz Şarjı',anim:'shoulder',dur:.55,t0:.2,t1:.4,range:70,dmg:16,kb:340,ky:-30,lunge:280,height:'mid',reaction:'knockdown'}
+        {name:'Omuz Şarjı',anim:'shoulder',dur:.55,t0:.2,t1:.4,range:70,dmg:16,kb:340,ky:-30,lunge:280,height:'mid',reaction:'knockdown',armor:true} // SÜPER ZIRH
       ],
       cp:{name:'Yer Kancası',anim:'upper',dur:.5,t0:.2,t1:.32,range:58,dmg:13,kb:80,ky:-80,launch:600,height:'mid',reaction:'launch'},
       ck:{name:'Bacak Ezici',anim:'lowkick',dur:.4,t0:.14,t1:.24,range:72,dmg:10,kb:130,ky:-12,height:'low',reaction:'flinch'},
@@ -80,7 +80,7 @@ export const CHARS=[
   },
   {
     id:'kalem',name:'KALEM',lw:2.1,
-    speed:230,hp:96,punch:7,kick:9,
+    speed:230,hp:100,punch:7,kick:9,
     specName:'Silgi Darbesi',specDesc:'Rakibin bir uzvunu 2 saniyeliğine siler',
     specCd:6,tagline:'Stil dışı · sivri uçlu · öngörülemez',
     fatalName:'TEMİZ SAYFA',

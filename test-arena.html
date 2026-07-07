@@ -34,6 +34,11 @@
 <div id="rotate"></div>
 <button id="fsBtn">⛶</button>
 <button id="sndBtn">🔊</button>
+<div id="trainUI">
+  <button id="trnDummy">KUKLA: SERBEST</button>
+  <button id="trnList">LİSTE</button>
+  <button id="trnExit">ÇIKIŞ</button>
+</div>
 <div id="rapor"><span class="baslik">TEST ARENASI başlıyor...</span>
 </div>
 <div id="ozet">hazırlanıyor…</div>
@@ -226,6 +231,14 @@ async function testFirlatma(ad){
     if(d>0&&solda!==sonraSolda)OK('Gölge fırlatması yön değiştirdi');
     else if(d>0)FAIL('Gölge fırlatması yön değiştirmedi');
   }
+  /* UYARLAMA (Claude): FIRLAT tuşu — tek dokunuşla fırlatma */
+  dondur(p2,'block');yanYanaGetir(40);p2.hp=p2.maxHp;
+  D.tbreak=0;
+  const dF=await canDususuOlc(p2,async()=>{await bas('throw');},1800);
+  D.tbreak=eskiTbreak;
+  if(dF>0)OK('FIRLAT tuşu fırlattı',`${dF} hasar`);
+  else FAIL('FIRLAT tuşu çalışmadı');
+  await bekle(700);
   serbest(p2);tumTuslariBirak();
 }
 
@@ -341,7 +354,7 @@ async function testFatalityVeRovans(ad){
   const t0=performance.now();
   while(!game.finishing&&!game.fatal&&performance.now()-t0<3000)await bekle(60);
   if(game.finishing||game.fatal)OK('BİTİR ONU aşamasına geçildi');
-  else{FAIL('bitirme aşaması gelmedi');return;}
+  else{FAIL('bitirme aşaması gelmedi',`p2hp=${p2.hp.toFixed(1)} p1=${p1.state} p2=${p2.state} inv=${p2.invuln.toFixed(2)}`);return;}
   await bekle(200);await bas('special');
   const t1=performance.now();
   while(!game.fatal&&performance.now()-t1<2000)await bekle(60);
@@ -366,9 +379,10 @@ async function testSilgi(){
   dondur(p2,'idle');yanYanaGetir(70);p2.hp=p2.maxHp;
   tumTuslariBirak();p1.pend=null; // askıda tuş kalmasın
   {const tb=performance.now();while(performance.now()-tb<900&&p1.busy())await bekle(30);}
+  const silgiOnceHp=p2.hp;
   await bas('special');await bekle(900);
   if(p2.erasedLimb&&p2.erasedT>0)OK('uzuv silindi',`${p2.erasedLimb} (${p2.erasedT.toFixed(1)}sn kaldı)`);
-  else{FAIL('uzuv silinmedi',`erasedLimb=${p2.erasedLimb}`);serbest(p2);return;}
+  else{FAIL('uzuv silinmedi',`hasar=${(silgiOnceHp-p2.hp).toFixed(1)} p1=${p1.state} cd=${p1.cd.toFixed(1)} p2=${p2.state} inv=${p2.invuln.toFixed(2)}`);serbest(p2);return;}
   const kol=p2.erasedLimb[0]==='a';
   if(typeof p2.canUse==='function'&&p2.canUse(kol?'p':'k')===false)
     OK('silinen uzuvla saldırı kilitli',kol?'yumruklar':'tekmeler');
@@ -377,6 +391,50 @@ async function testSilgi(){
   if(!p2.erasedLimb)OK('uzuv 2 sn sonra geri geldi');
   else FAIL('uzuv geri gelmedi',`kalan ${p2.erasedT?.toFixed(2)}`);
   serbest(p2);
+}
+
+/* UYARLAMA (Claude): ANTRENMAN modu akışı (Görev 8) */
+async function testAntrenman(){
+  BASLIK('[GENEL] ANTRENMAN MODU');
+  game.scene='select';await bekle(400);tumTuslariBirak();
+  await bas('kick');await bekle(450);
+  if(game.scene==='training')OK('seçimde TEK ile antrenmana girildi',`${game.p1.ch.name} vs kukla ${game.p2.ch.name}`);
+  else{FAIL('antrenmana girilemedi',`sahne=${game.scene}`);return;}
+  const p1=game.p1,p2=game.p2;
+  // kukla vurulur, canı ~1 sn sonra tazelenir
+  p1.x=Math.max(80,p2.x-58);p1.facing=1;
+  await bas('punch');await bekle(400);
+  if(p2.hp<p2.maxHp)OK('kukla vuruş yedi',`hp ${p2.hp.toFixed(1)}/${p2.maxHp}`);
+  else BILGI('vuruş oturmadı (konum?)');
+  await bekle(1700);
+  if(p2.hp===p2.maxHp)OK('kukla canı kendini tazeledi');
+  else FAIL('kukla canı tazelenmedi',`hp ${p2.hp.toFixed(1)}`);
+  // kukla duruş düğmesi: SERBEST → AYAKTA BLOK → ÇÖMELİK BLOK
+  const bD=document.getElementById('trnDummy');
+  if(bD){
+    bD.click();await bekle(350);
+    if(p2.state==='block')OK('kukla düğmesi: AYAKTA BLOK');
+    else FAIL('kukla bloğa geçmedi',p2.state);
+    bD.click();await bekle(350);
+    if(p2.state==='crouchblock')OK('kukla düğmesi: ÇÖMELİK BLOK');
+    else FAIL('kukla çömelik bloğa geçmedi',p2.state);
+    bD.click();await bekle(300);bD.click();await bekle(300); // ÇÖMELME → SERBEST
+  }else ATLA('kukla düğmesi','trainUI yok');
+  // K.O./fatality tetiklenmemeli, boşalan can dolmalı
+  p2.hp=1;p1.x=Math.max(80,p2.x-58);
+  await bas('punch');await bekle(500);
+  if(!game.finishing&&!game.fatal&&game.scene==='training')OK('antrenmanda K.O./fatality yok');
+  else FAIL('antrenmanda bitirme tetiklendi',`fin=${game.finishing}`);
+  await bekle(1500);
+  if(p2.hp===p2.maxHp)OK('sıfırlanan can 1 sn sonra doldu');
+  else FAIL('sıfırlanan can dolmadı',`hp ${p2.hp.toFixed(1)}`);
+  // çıkış
+  const bE=document.getElementById('trnExit');
+  if(bE){
+    bE.click();await bekle(350);
+    if(game.scene==='select')OK('ÇIKIŞ karakter seçimine döndü');
+    else FAIL('çıkış çalışmadı',`sahne=${game.scene}`);
+  }else ATLA('çıkış düğmesi','trainUI yok');
 }
 
 async function testZorluk(){
@@ -429,6 +487,7 @@ async function testZorluk(){
   // zorluk testi son maçın içinde
   if(game.scene==='fight')await testZorluk();
   else BILGI('zorluk testi için dövüş sahnesi yok, atlandı');
+  await testAntrenman();
 
   BASLIK('════════ SONUÇ ════════');
   yaz(`GEÇEN: ${pas}   KALAN: ${kal}   ATLANAN: ${atla}   JS HATASI: ${jsHata}`,

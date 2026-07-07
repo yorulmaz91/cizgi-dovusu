@@ -139,8 +139,9 @@ export function drawFighter(g,ftr){
     g.lineWidth=1;
     g.beginPath();g.moveTo(fx-f*7,fy+3.4);g.lineTo(fx+f*12,fy+3);g.stroke();
   }
-  // gövde
-  tstroke(g,[hip,[lerp(hip[0],nk[0],.5)-f,lerp(hip[1],nk[1],.5)],nk],w1+0.4,w2+0.4);
+  // gövde (süper zırh anında çizgi belirgin kalınlaşır)
+  const zir=ftr.armorT>0?1.7:0;
+  tstroke(g,[hip,[lerp(hip[0],nk[0],.5)-f,lerp(hip[1],nk[1],.5)],nk],w1+0.4+zir,w2+0.4+zir);
 
   // kollar + eller (silinen uzuv çizilmez — KALEM skili)
   const fist=(ftr.state==='attack'&&ftr.mv&&ftr.mv.anim!=='palm'&&ftr.mv.anim!=='shuto')||(ftr.state==='special'&&ftr.ch.id!=='volt');

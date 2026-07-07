@@ -46,7 +46,22 @@ Sıra önemli: sistem önce, içerik sonra, animasyon cilası en sona.
   o uzuvla saldırı/fırlatma kilitli — canUse()); fatality TEMİZ SAYFA rakibi
   tepeden aşağı siler (clip ile çizim + hidden bayrağı). Yükseklik/tepki/
   fırlatma sistemlerine tam uyumlu.
+- **Görev 8 — TAMAMLANDI:** kontrol elması (YUM/TEK büyük altta, BLK/SKİL
+  küçük üstte, solda FIRLAT tuşu: tek dokunuş fırlatma + fırlatılırken kırma;
+  klavyede Z+X toleransı aynen), ANTRENMAN modu (seçim ekranında TEK ile;
+  kukla AI'sız, duruş düğmesi SERBEST/AYAKTA BLOK/ÇÖMELİK BLOK/ÇÖMELME,
+  canlar ~1 sn'de tazelenir, K.O./fatality yok, hamle listesi paneli, ÇIKIŞ),
+  denge: tüm canlar 100 + BETON süper zırhı.
 - Araya serpiştirilebilir: arena sistemi (farklı zeminler) hâlâ boşta.
+
+## Karakter tablosu (hepsi 100 can)
+
+| Karakter | Stil | Öne çıkan | Özel |
+|---|---|---|---|
+| GÖLGE | JKD/Ninjutsu | HIZ ★★★, 4'lü yumruk zinciri, yön değiştiren fırlatma | Gölge Geçişi |
+| BETON | Boks+Judo | GÜÇ ★★★, **SÜPER ZIRH**: Balyoz/Omuz Şarjı hazırlık+aktifte flinch/stagger yemez (launch/knockdown/crumple DELER) | Deprem Yumruğu (ALÇAK) |
+| VOLT | Taekwondo | MENZİL ★★★, 4'lü tekme zinciri, Dönen Topuk (vitrin) | Yıldırım Zinciri |
+| KALEM | Stil dışı | MENZİL ★★★, kural dışı zincir açılışları (ORTA yumruk / ALÇAK tekme) | Silgi Darbesi (uzuv siler) |
 
 ## Kalıcı regresyon testleri — HER FAZIN SONUNDA İKİSİ DE KOŞULUR
 
