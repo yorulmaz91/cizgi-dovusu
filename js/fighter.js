@@ -31,7 +31,7 @@ export class Fighter{
     this.thrFoe=null;this.thrHit=false;this.thrEscape=false;this.thrEscT=0;
     this.erasedLimb=null;this.erasedT=0;this.hidden=false; // KALEM: silinen uzuv
     this.armorT=0; // BETON süper zırh görsel ipucu
-    this.poseS=null;this.poseClk=0;this.turnT=0; // poz eritme (insansı geçiş) + dönüş esnemesi
+    this.poseS=null;this.poseClk=0;this.turnT=0;this.ileriGeri=1; // poz eritme (insansı geçiş) + dönüş esnemesi
     this.aiT=0;this.fx={};this.aiPause=0;this.aiChainAt=-1;this.aiChainGo=false;this.aiBlockLow=false;
   }
   setState(s){this.state=s;this.st=0;}
@@ -185,7 +185,9 @@ export class Fighter{
         else{
           this.vx=(inp.right-inp.left)*this.ch.speed;
           if(this.vx!==0){
-            this.setStateIf('walk');this.walkPhase+=dt*9;
+            this.setStateIf('walk');
+            this.walkPhase+=dt*(4+this.ch.speed/32); // adım ritmi karakter hızına bağlı (ayak kayması azalır)
+            this.ileriGeri=(this.vx*this.facing>0)?1:-1; // 1 ileri · -1 geri çekilme
             if(Math.random()<dt*8)dust(this.x-this.facing*12,this.y-2,this.facing);
           }
           else this.setStateIf('idle');

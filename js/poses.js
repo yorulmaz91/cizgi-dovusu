@@ -22,9 +22,23 @@ export function computePose(f){
   const t=f.st,s=f.state;
   if(s==='idle'){const b=Math.sin(t*3)*.05;P.aL=[.5+b,.4];P.aR=[-.45-b,.45];P.dip=Math.sin(t*3)*1.5;}
   if(s==='walk'){
+    const ig=f.ileriGeri||1;                       // 1 ileri · -1 geri çekilme
     const w=Math.sin(f.walkPhase);
-    P.lL=[w*.55,.3+Math.max(0,-w)*.5];P.lR=[-w*.55,.3+Math.max(0,w)*.5];
-    P.aL=[-w*.5+.2,.4];P.aR=[w*.5-.2,.4];P.dip=Math.abs(w)*2;
+    const genlik=ig>0?.5:.36;                      // geri adımlar daha kısa ve temkinli
+    P.lL=[w*genlik,.26+Math.max(0,-w)*.55];
+    P.lR=[-w*genlik,.26+Math.max(0,w)*.55];
+    if(ig>0){                                      // ileri yürüyüş: gövde önde, kollar adımla salınır
+      P.lean=.09;
+      P.aL=[-w*.42+.28,.45+Math.max(0,w)*.2];
+      P.aR=[w*.42-.32,.45+Math.max(0,-w)*.2];
+    }else{                                         // geri çekilme: gard önde, gövde geride
+      P.lean=-.08;
+      P.aL=[.85-w*.08,1.3];
+      P.aR=[.55+w*.08,1.6];
+    }
+    P.dip=1+Math.abs(w)*2.2;                       // her basışta minik çöküş
+    P.hipShift=w*1.5*ig;                           // ağırlık basan ayağa akar
+    P.head=-.03*ig+Math.sin(f.walkPhase*2)*.025;   // adım ritminde minik baş salınımı
   }
   if(s==='attack'){
     const mv=f.mv, tt=Math.min(1,t/mv.dur);
