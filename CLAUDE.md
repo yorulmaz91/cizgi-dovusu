@@ -60,7 +60,9 @@ Sıra önemli: sistem önce, içerik sonra, animasyon cilası en sona.
   pose(): çizilen poz hedefe üstel hızla erir, vuruş anları keskin kalır),
   dönüş esnemesi (turnT), hıza bağlı adım ritmi + yön eğilmesi + geri çekilme
   gardı (ileriGeri), karaktere özel canlı idle (nefes/kişilik/yorgunluk/bakis),
-  hıza bağlı havada duruş + inişte diz yaylanması (landT/landK). Salt görsel;
+  hıza bağlı havada duruş + inişte diz yaylanması (landT/landK), vuruş
+  insanlaştırma (omuz uzanımı P.reach + render.js desteği, gard çekişi,
+  arka bacak itişi, tekmelerde diz şambrı → patlama → toplanma). Salt görsel;
   hamle süreleri/hasarlar değişmedi.
 - Araya serpiştirilebilir: arena sistemi (farklı zeminler) hâlâ boşta.
 

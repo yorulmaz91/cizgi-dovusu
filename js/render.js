@@ -118,7 +118,7 @@ export function drawFighter(g,ftr){
     g.beginPath();g.ellipse(ftr.x,GROUND+4,Math.max(12,30-alt*0.07),5,0,0,7);g.fill();
   }
 
-  const nk=[hip[0]+Math.sin(p.lean)*26*f,hip[1]-Math.cos(p.lean)*26];
+  const nk=[hip[0]+(Math.sin(p.lean)*26+(p.reach||0))*f,hip[1]-Math.cos(p.lean)*26]; // reach: vuruşta omuz hedefe uzanır
   const w1=c.lw+0.6,w2=c.lw-0.2;
 
   // bacaklar + ayakkabılar (silinen uzuv çizilmez — KALEM skili)
