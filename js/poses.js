@@ -85,10 +85,16 @@ export function computePose(f){
       :1-(r=>r*r*(3-2*r))(Math.min(1,(tt-kilit2)/Math.max(.06,1-kilit2)));
     const kk2=Math.max(0,k2);
     /* tekme şambrı: duruş → diz katlı kalkar → uyluk hedefe döner (kk) →
-       kaval kamçı gibi açılır (kk2) → geri toplanır */
-    const bacak=(dur,sam,uzat)=>tt<a
-      ?[lerp(dur[0],sam[0],ww),lerp(dur[1],sam[1],ww)]
-      :[lerp(sam[0],uzat[0],kk),lerp(sam[1],uzat[1],kk2)];
+       kaval kamçı gibi açılır (kk2) → geri toplanır.
+       FLAMİNGO (Hwoarang): tekme zincirinin 2.+ halkasında bacak yere İNMEZ —
+       hazırlık duruştan değil şambrdan başlar, tekmeden tekmeye havada akar. */
+    const flamingo=(f.chainIdx||0)>0&&f.mvKind==='k';
+    const bacak=(dur,sam,uzat)=>{
+      const bas=flamingo?[lerp(sam[0],uzat[0],.25),lerp(sam[1],uzat[1],.2)]:dur; // zincirde: yarı toplanmış şambrdan
+      return tt<a
+        ?[lerp(bas[0],sam[0],ww),lerp(bas[1],sam[1],ww)]
+        :[lerp(sam[0],uzat[0],kk),lerp(sam[1],uzat[1],kk2)];
+    };
     switch(mv.anim){
       case 'jab': // boksör jabı: omuz döner, dirsek son anda kilitlenir
         P.lean=.16*k;P.omur=.08*kk;P.head=-.14*kk;P.reach=6*kk;P.twist=.55*kk;P.hipTw=.25*kk;
@@ -152,7 +158,8 @@ export function computePose(f){
       case 'axe':{ // balta: bacak gergin yükselir, topuk kamçı gibi iner
         const up=Math.min(1,tt/.5), down=Math.max(0,(tt-.5)/.5);
         P.hipTw=.6*Math.max(up,down);
-        P.lR=down>0?[lerp(2.3,.9,down),lerp(.05,.3,down)]:[lerp(-.15,2.3,up),lerp(.5,.05,up)];
+        P.lR=down>0?[lerp(2.3,.9,down),lerp(.05,.3,down)]
+          :[lerp(flamingo?.5:-.15,2.3,up),lerp(flamingo?.9:.5,.05,up)]; // zincirde şambrdan yükselir
         P.lean=down>0?.15:-.2;P.lL=[.15,.3];
         P.aL=[1.0,.6];P.aR=[-1.0,.6];P.dip=down*5;break;}
       case 'sweep': // süpürme: bacak koltuktan kamçılanır, kalça döner
