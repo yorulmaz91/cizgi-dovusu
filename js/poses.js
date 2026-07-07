@@ -20,7 +20,33 @@ function vurusEgrisi(tt,a,b){
 export function computePose(f){
   const P={lean:0,head:0,aL:[.5,.35],aR:[-.4,.4],lL:[.15,.1],lR:[-.15,.15],dip:0,hipShift:0};
   const t=f.st,s=f.state;
-  if(s==='idle'){const b=Math.sin(t*3)*.05;P.aL=[.5+b,.4];P.aR=[-.45-b,.45];P.dip=Math.sin(t*3)*1.5;}
+  if(s==='idle'){ // karaktere özel canlı bekleme: ritim + nefes + kişilik
+    const yor=1-(f.hp!=null&&f.maxHp?f.hp/f.maxHp:1);        // 0 dinç → 1 bitkin
+    const hz=(f.ch.id==='beton'?1.7:f.ch.id==='volt'?4.4:f.ch.id==='kalem'?2.4:3)*(1+yor*.5);
+    const b=Math.sin(t*hz), n=Math.sin(t*hz*.5);             // b: duruş ritmi · n: nefes
+    if(f.ch.id==='golge'){        // akışkan, kedi gibi süzülen alçak gard
+      P.lean=.06+b*.02;P.aL=[.55+b*.06,.5];P.aR=[-.5-b*.06,.55];
+      P.dip=1.5+b*1.2;P.hipShift=b*1.2;
+    }else if(f.ch.id==='beton'){  // ağır kaya: omuzdan derin nefes
+      P.lean=.03;P.aL=[.55+n*.05,.42+Math.max(0,n)*.1];P.aR=[-.5-n*.05,.47+Math.max(0,n)*.1];
+      P.dip=1+Math.max(0,n)*2.4;P.head=n*.03;
+    }else if(f.ch.id==='volt'){   // parmak ucunda seken, elektrikli
+      const z=Math.abs(Math.sin(t*hz));
+      P.dip=2.5-z*3;P.lean=.04;
+      P.aL=[.6+b*.08,.55+z*.1];P.aR=[-.55-b*.08,.6+z*.1];
+      P.hipShift=b*.8;
+    }else if(f.ch.id==='kalem'){  // rahat ve meraklı; kalem tutan el sakin
+      P.lean=-.02+b*.015;P.head=b*.05;
+      P.aL=[.5+b*.07,.45];P.aR=[-.35,.5];
+      P.dip=1+b*1.2;
+    }else{const bb=Math.sin(t*3)*.05;P.aL=[.5+bb,.4];P.aR=[-.45-bb,.45];P.dip=Math.sin(t*3)*1.5;}
+    if(yor>.6){                   // bitkin: omuzlar düşer, gard iner, baş öne eğilir
+      const k=(yor-.6)/.4;
+      P.dip+=3*k;P.head+=.12*k;P.lean+=.05*k;
+      P.aL[0]-=.18*k;P.aR[0]+=.14*k;
+    }
+    P.head+=(f.bakis||0);         // rakip havadaysa göz ucuyla takip
+  }
   if(s==='walk'){
     const ig=f.ileriGeri||1;                       // 1 ileri · -1 geri çekilme
     const w=Math.sin(f.walkPhase);
@@ -38,7 +64,7 @@ export function computePose(f){
     }
     P.dip=1+Math.abs(w)*2.2;                       // her basışta minik çöküş
     P.hipShift=w*1.5*ig;                           // ağırlık basan ayağa akar
-    P.head=-.03*ig+Math.sin(f.walkPhase*2)*.025;   // adım ritminde minik baş salınımı
+    P.head=-.03*ig+Math.sin(f.walkPhase*2)*.025+(f.bakis||0)*.7; // adım ritmi + bakış
   }
   if(s==='attack'){
     const mv=f.mv, tt=Math.min(1,t/mv.dur);

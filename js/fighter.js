@@ -31,7 +31,7 @@ export class Fighter{
     this.thrFoe=null;this.thrHit=false;this.thrEscape=false;this.thrEscT=0;
     this.erasedLimb=null;this.erasedT=0;this.hidden=false; // KALEM: silinen uzuv
     this.armorT=0; // BETON süper zırh görsel ipucu
-    this.poseS=null;this.poseClk=0;this.turnT=0;this.ileriGeri=1; // poz eritme (insansı geçiş) + dönüş esnemesi
+    this.poseS=null;this.poseClk=0;this.turnT=0;this.ileriGeri=1;this.bakis=0; // poz eritme (insansı geçiş) + dönüş esnemesi
     this.aiT=0;this.fx={};this.aiPause=0;this.aiChainAt=-1;this.aiChainGo=false;this.aiBlockLow=false;
   }
   setState(s){this.state=s;this.st=0;}
@@ -55,6 +55,9 @@ export class Fighter{
     this.st+=dt;this.cd=Math.max(0,this.cd-dt);
     this.invuln=Math.max(0,this.invuln-dt);
     this.turnT=Math.max(0,this.turnT-dt); // dönüş esnemesi sayacı
+    // bakış: rakip havadaysa baş onu göz ucuyla izler (yalnız sakin durumlarda, görsel)
+    const bakisHedef=(this.state==='idle'||this.state==='walk')?-Math.min(.3,Math.max(0,this.y-foe.y)/500):0;
+    this.bakis=(this.bakis||0)+(bakisHedef-(this.bakis||0))*Math.min(1,dt*8);
     this.comboT-=dt;if(this.comboT<=0)this.combo=0;
     this.armorT=Math.max(0,this.armorT-dt);
     // silinen uzuv 2 sn sonra geri belirir
