@@ -31,7 +31,7 @@ export class Fighter{
     this.thrFoe=null;this.thrHit=false;this.thrEscape=false;this.thrEscT=0;
     this.erasedLimb=null;this.erasedT=0;this.hidden=false; // KALEM: silinen uzuv
     this.armorT=0; // BETON süper zırh görsel ipucu
-    this.poseS=null;this.poseClk=0;this.turnT=0;this.ileriGeri=1;this.bakis=0; // poz eritme (insansı geçiş) + dönüş esnemesi
+    this.poseS=null;this.poseClk=0;this.turnT=0;this.ileriGeri=1;this.bakis=0;this.landT=0;this.landK=0; // poz eritme (insansı geçiş) + dönüş esnemesi
     this.aiT=0;this.fx={};this.aiPause=0;this.aiChainAt=-1;this.aiChainGo=false;this.aiBlockLow=false;
   }
   setState(s){this.state=s;this.st=0;}
@@ -55,6 +55,7 @@ export class Fighter{
     this.st+=dt;this.cd=Math.max(0,this.cd-dt);
     this.invuln=Math.max(0,this.invuln-dt);
     this.turnT=Math.max(0,this.turnT-dt); // dönüş esnemesi sayacı
+    this.landT=Math.max(0,this.landT-dt);  // iniş yaylanması sayacı
     // bakış: rakip havadaysa baş onu göz ucuyla izler (yalnız sakin durumlarda, görsel)
     const bakisHedef=(this.state==='idle'||this.state==='walk')?-Math.min(.3,Math.max(0,this.y-foe.y)/500):0;
     this.bakis=(this.bakis||0)+(bakisHedef-(this.bakis||0))*Math.min(1,dt*8);
@@ -70,7 +71,9 @@ export class Fighter{
     if(this.state!=='thrown'&&(!this.grounded()||this.vy<0)){
       this.vy+=1600*dt;this.y+=this.vy*dt;
       if(this.y>=GROUND){
+        const inisVy=this.vy; // iniş şiddeti → görsel diz yaylanması
         this.y=GROUND;this.vy=0;this.juggle=0;
+        this.landT=.2;this.landK=Math.min(1,Math.max(0,inisVy)/950);
         for(let i=0;i<4;i++)dust(this.x+rnd(-12,12),GROUND-2,Math.sign(rnd(-1,1)));
         if(this.state==='jump')this.setState('idle');
         if(this.state==='attack'&&this.airMove){this.airMove=false;this.setState('idle');}

@@ -177,11 +177,13 @@ export function computePose(f){
         P.aL=[1.5,.4];P.aR=[-1.3,.5];break;
     }
   }
-  if(s==='jump'){
-    const rising=f.vy<0;
-    P.lL=[.6,rising?1.1:.5];P.lR=[-.5,rising?1.2:.6];
-    P.aL=[rising?1.6:.9,.4];P.aR=[rising?-1.5:-.8,.5];
-    P.head=-.08;
+  if(s==='jump'){ // yükseliş→tepe→düşüş: hıza bağlı akıcı geçiş (kasılma→açılma)
+    const k=Math.min(1,Math.max(0,.5+f.vy/1100)); // 0 tam yükseliş · 1 tam düşüş
+    P.lL=[lerp(.7,.35,k),lerp(1.15,.5,k)];
+    P.lR=[lerp(-.55,-.3,k),lerp(1.25,.6,k)];
+    P.aL=[lerp(1.7,.85,k),.4];P.aR=[lerp(-1.6,-.75,k),.5];
+    P.head=-.1+.05*k;
+    P.lean=((f.vx||0)/(f.ch.speed||220))*.12*f.facing; // sürüklenme yönüne eğilme
   }
   if(s==='crouch'){
     P.dip=22;P.lean=.12;P.head=-.05;
@@ -253,6 +255,15 @@ export function computePose(f){
     P.lL=[.3,.5];P.lR=[-.3,.6];P.dip=6;
   }
   if(s==='ko'){P.dip=44;P.lean=f.facing*-1.4;P.head=.8;P.aL=[1.4,.2];P.aR=[-1.5,.2];P.lL=[1.2,.3];P.lR=[-1.1,.2];}
+  /* iniş yaylanması: yere değince dizler düşüş şiddetine orantılı çöküp
+     toparlanır (fighter.js landT/landK kurar — salt görsel, kontrolü kilitlemez) */
+  if(f.landT>0&&(s==='idle'||s==='walk')){
+    const k=Math.sin((f.landT/.2)*Math.PI)*(f.landK||0);
+    P.dip+=10*k;P.lean+=.07*k;P.head+=.09*k;
+    P.aL[0]+=.3*k;P.aR[0]-=.3*k;         // kollar denge için hafif açılır
+    P.lL[0]+=.16*k;P.lL[1]+=.55*k;       // dizler bükülür, ayaklar hafif açılır
+    P.lR[0]-=.14*k;P.lR[1]+=.55*k;
+  }
   /* dönüş esnemesi: yön değiştirirken gövde bir an çöküp toparlanır (ayna
      çevrilmesini maskeler, ağırlık hissi verir) — fighter.js turnT kurar */
   if(f.turnT>0&&(s==='idle'||s==='walk'||s==='crouch')){
