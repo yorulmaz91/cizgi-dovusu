@@ -13,6 +13,10 @@ autoplay engeli nedeniyle ilk kullanıcı dokunuşunda başlatılır.
   `python -m http.server 8000` → http://localhost:8000
 - ES modülleri yüzünden `index.html` çift tıklayarak açılmaz, sunucu şart.
 - Kullanıcı programcı değildir: her adım Türkçe ve tek cümleyle açıklanır.
+- Cowork sanal ortamı GitHub'a ERİŞEMEZ: Claude commit'leri yerelde hazırlar,
+  kullanıcı repo kökündeki `GONDER.bat`'a çift tıklayarak yayınlar (git push).
+- Cowork'te depo dosyaları sanal ortamda bash ile yazılır/doğrulanır
+  (dosya araçlarının eşitlemesinde gecikme görüldü; bash → Windows anlıktır).
 
 ## Yol haritası — dövüş sistemi (detaylar: docs/dovus-sistemi.md)
 
@@ -52,6 +56,12 @@ Sıra önemli: sistem önce, içerik sonra, animasyon cilası en sona.
   kukla AI'sız, duruş düğmesi SERBEST/AYAKTA BLOK/ÇÖMELİK BLOK/ÇÖMELME,
   canlar ~1 sn'de tazelenir, K.O./fatality yok, hamle listesi paneli, ÇIKIŞ),
   denge: tüm canlar 100 + BETON süper zırhı.
+- **İnsansı hareket cilası — TAMAMLANDI:** poz eritme katmanı (fighter.js
+  pose(): çizilen poz hedefe üstel hızla erir, vuruş anları keskin kalır),
+  dönüş esnemesi (turnT), hıza bağlı adım ritmi + yön eğilmesi + geri çekilme
+  gardı (ileriGeri), karaktere özel canlı idle (nefes/kişilik/yorgunluk/bakis),
+  hıza bağlı havada duruş + inişte diz yaylanması (landT/landK). Salt görsel;
+  hamle süreleri/hasarlar değişmedi.
 - Araya serpiştirilebilir: arena sistemi (farklı zeminler) hâlâ boşta.
 
 ## Karakter tablosu (hepsi 100 can)
