@@ -531,7 +531,7 @@ export class Fighter{
     if(screenFx.hitstop>0)pdt=0;else pdt*=(screenFx.timeScale||1); // vuruş donması pozu da dondurur
     if(!this.poseS||this.state==='fatalP'||this.state==='fatalV'){this.poseS=hedef;return hedef;}
     const S=this.poseS,a=1-Math.exp(-this.pozHizi()*pdt);
-    for(const k of ['lean','head','dip','hipShift','reach','twist','hipTw'])S[k]+=((hedef[k]||0)-(S[k]||0))*a,S[k]=S[k]||0;
+    for(const k of ['lean','head','dip','hipShift','reach','twist','hipTw','omur'])S[k]+=((hedef[k]||0)-(S[k]||0))*a,S[k]=S[k]||0;
     for(const k of ['aL','aR','lL','lR']){
       S[k][0]+=(hedef[k][0]-S[k][0])*a;
       S[k][1]+=(hedef[k][1]-S[k][1])*a;

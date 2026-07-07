@@ -133,7 +133,10 @@ export function drawFighter(g,ftr){
     g.beginPath();g.ellipse(ftr.x,GROUND+4,Math.max(12,30-alt*0.07),5,0,0,7);g.fill();
   }
 
-  const nk=[hip[0]+(Math.sin(p.lean)*26+(p.reach||0))*f,hip[1]-Math.cos(p.lean)*26]; // reach: vuruşta omuz hedefe uzanır
+  // iki parçalı omurga: kalça→bel (lean) → boyun (lean+omur). omur=0 → eski düz gövde
+  const omur=p.omur||0;
+  const bel=[hip[0]+Math.sin(p.lean)*13*f,hip[1]-Math.cos(p.lean)*13];
+  const nk=[bel[0]+(Math.sin(p.lean+omur)*13+(p.reach||0))*f,bel[1]-Math.cos(p.lean+omur)*13];
   const w1=c.lw+0.6,w2=c.lw-0.2;
 
   // bacaklar + ayakkabılar (silinen uzuv çizilmez — KALEM skili)
@@ -147,14 +150,15 @@ export function drawFighter(g,ftr){
     const kn=seg(anc[0],anc[1],leg[0],22);
     const ft=seg(kn[0],kn[1],leg[0]-leg[1]*side,20);
     tstroke(g,[anc,kn,ft],w1,w2);
-    // ayakkabı: yer teması varsa düz; havadaysa burun kavalı izler (kamçı ucu)
+    // ayakkabı: havada burun kavalı izler; yerde kalça dönüyorsa topuk kalkar (pivot)
     const havada=Math.max(0,Math.min(1,(GROUND-4-ft[1])/26));
     const kaval=Math.atan2(ft[1]-kn[1],(ft[0]-kn[0])*f);
-    drawShoe(g,ft[0],ft[1],f,kaval*.8*havada); // burun kaval çizgisini uzatır (gergin ayak)
+    const pivot=(1-havada)*htw*(adL==='lR'?.5:.28); // arka ayak belirgin, destek hafif
+    drawShoe(g,ft[0],ft[1],f,kaval*.8*havada+pivot);
   }
   // gövde (süper zırh anında çizgi belirgin kalınlaşır)
   const zir=ftr.armorT>0?1.7:0;
-  tstroke(g,[hip,[lerp(hip[0],nk[0],.5)-f,lerp(hip[1],nk[1],.5)],nk],w1+0.4+zir,w2+0.4+zir);
+  tstroke(g,[hip,[bel[0]-f,bel[1]],nk],w1+0.4+zir,w2+0.4+zir);
 
   // kollar + eller (silinen uzuv çizilmez — KALEM skili)
   const fist=(ftr.state==='attack'&&ftr.mv&&ftr.mv.anim!=='palm'&&ftr.mv.anim!=='shuto')||(ftr.state==='special'&&ftr.ch.id!=='volt');
@@ -196,7 +200,7 @@ export function drawFighter(g,ftr){
 
   // koca kafa + yüz
   const R=22;
-  const hd=[nk[0]+Math.sin(p.lean+p.head)*(R-2)*f,nk[1]-Math.cos(p.lean+p.head)*(R-2)];
+  const hd=[nk[0]+Math.sin(p.lean+omur+p.head)*(R-2)*f,nk[1]-Math.cos(p.lean+omur+p.head)*(R-2)];
   drawHead(g,ftr,hd[0],hd[1],R,f);
 
   // skil efektleri

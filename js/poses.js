@@ -91,13 +91,13 @@ export function computePose(f){
       :[lerp(sam[0],uzat[0],kk),lerp(sam[1],uzat[1],kk2)];
     switch(mv.anim){
       case 'jab': // boksör jabı: omuz döner, dirsek son anda kilitlenir
-        P.lean=.16*k;P.head=-.04*kk;P.reach=6*kk;P.twist=.55*kk;P.hipTw=.25*kk;
+        P.lean=.16*k;P.omur=.08*kk;P.head=-.14*kk;P.reach=6*kk;P.twist=.55*kk;P.hipTw=.25*kk;
         P.aR=[lerp(-.4,1.32,k),lerp(.5,.03,kk2)];
         P.aL=[lerp(.55,.95,kk),lerp(.9,1.3,kk)];
         P.lL=[lerp(.28,.38,kk),lerp(.12,.3,kk)];
         P.lR=[lerp(-.22,-.48,kk),lerp(.28,.06,kk)];break;
       case 'cross': // boksör düz vuruşu: kalça→omuz→yumruk zinciri sırayla
-        P.lean=.3*k;P.head=-.06*kk;P.reach=9*kk;P.twist=kk;P.hipTw=.5*kk;
+        P.lean=.3*k;P.omur=.14*kk;P.head=-.22*kk;P.reach=9*kk;P.twist=kk;P.hipTw=.5*kk;
         P.aR=[lerp(-.5,1.48,k),lerp(.6,.02,kk2)];
         P.aL=[lerp(.6,1.0,kk),lerp(1.0,1.35,kk)];
         P.lL=[lerp(.32,.44,kk),lerp(.15,.34,kk)];
@@ -107,7 +107,7 @@ export function computePose(f){
         P.aR=[lerp(-2.2,1.7,k),lerp(.45,.1,kk2)];P.aL=[lerp(.8,-1,k),.5];
         P.lL=[lerp(.45,.55,kk),.2];P.lR=[lerp(-.45,-.62,kk),lerp(.4,.14,kk)];P.dip=-2*k;break;
       case 'hook': // kanca: gövde tam döner, dirsek bükülü kalır (kanca budur)
-        P.lean=.3*k;P.head=.08*kk;P.reach=7*kk;P.twist=.85*kk;P.hipTw=.5*kk;
+        P.lean=.3*k;P.omur=.12*kk;P.head=-.12*kk;P.reach=7*kk;P.twist=.85*kk;P.hipTw=.5*kk;
         P.aR=[lerp(-1.6,1.2,k),lerp(.9,.4,kk2)];
         P.aL=[lerp(.6,1.0,kk),lerp(1.0,1.3,kk)];
         P.lL=[lerp(.3,.42,kk),lerp(.15,.3,kk)];
@@ -115,7 +115,7 @@ export function computePose(f){
       case 'hay':{ // balyoz: tüm beden savruluşa katılır
         const wind=Math.min(1,tt/.45), swing=Math.max(0,(tt-.45)/.55);
         P.aR=swing>0?[lerp(-2.4,1.5,swing),.1]:[lerp(-.4,-2.4,wind),.2];
-        P.lean=lerp(-.18,.42,swing);P.reach=9*swing;P.head=-.05*swing;P.twist=swing;P.hipTw=.5*swing;
+        P.lean=lerp(-.18,.42,swing);P.omur=swing>0?lerp(-.25,.3,swing):-.25*wind;P.reach=9*swing;P.head=-.15*swing;P.twist=swing;P.hipTw=.5*swing;
         P.aL=[lerp(.7,1.0,swing),lerp(.9,1.2,swing)];
         P.lL=[lerp(.4,.5,swing),lerp(.25,.35,swing)];
         P.lR=[lerp(-.35,-.62,swing),lerp(.4,.1,swing)];P.dip=5*swing;break;}
@@ -125,26 +125,30 @@ export function computePose(f){
         P.aL=[lerp(.6,.95,kk),lerp(.9,1.3,kk)];
         P.lL=[lerp(.28,.36,kk),lerp(.13,.28,kk)];
         P.lR=[lerp(-.22,-.45,kk),lerp(.28,.08,kk)];break;
-      case 'front': // ön tekme: şambr → gövde geriye yaslanır, kalça öne fırlar, taban şaklar
-        P.lean=-.42*k;P.head=.16*kk;P.hipTw=.85*kk;P.twist=.35*kk;
-        P.hipShift+=5*kk;                          // kalça itişi: gövde geride, kalça önde
-        P.lR=bacak([-.15,.15],[.8,1.6],[1.9,.04]); // taban GÖĞÜS hizasına fırlar
-        P.lL=[lerp(.1,.2,kk),lerp(.25,.08,kk)];    // destek bacağı dikleşir
-        P.aL=[lerp(.9,.5,kk),lerp(.5,.8,kk)];P.aR=[lerp(-.9,-1.15,kk),lerp(.5,.35,kk)]; // kollar geriye denge
-        P.dip=-3*(tt<a?ww:1)-3*kk;break;           // gövde tekmeyle yükselir
-      case 'side': // yan tekme: şambr + gövde ters yatar, baş rakipte kalır
-        P.lean=-.52*k;P.head=.24*kk;P.hipTw=.9*kk;P.twist=.5*kk;
+      case 'front': // ön tekme: omurga geriye kavisli, gard çenede, baş rakibe kilitli
+        P.lean=-.42*k;P.omur=-.22*kk;P.head=.6*kk;P.hipTw=.85*kk;P.twist=.35*kk;
+        P.hipShift+=5*kk;                           // kalça itişi: gövde geride, kalça önde
+        P.lR=bacak([-.15,.15],[.8,1.6],[1.9,.04]);  // taban GÖĞÜS hizasına fırlar
+        P.lL=[lerp(.1,.2,kk),lerp(.25,.08,kk)];     // destek bacağı dikleşir
+        P.aL=[lerp(.9,.8,kk),lerp(.5,1.35,kk)];     // ön el ÇENE GARDINDA kalır
+        P.aR=[lerp(-.9,-1.05,kk),lerp(.5,.45,kk)];  // arka kol alçak denge
+        P.dip=-3*(tt<a?ww:1)-3*kk;break;            // gövde tekmeyle yükselir
+      case 'side': // yan tekme: omurga kavisli, NİŞAN KOLU bacak hizasında hedefi gösterir
+        P.lean=-.52*k;P.omur=-.28*kk;P.head=.75*kk;P.hipTw=.9*kk;P.twist=.5*kk;
         P.hipShift+=4*kk;
         P.lR=bacak([-.15,.15],[.7,1.5],[1.95,.03]); // topuk GÖĞÜS hizasına
         P.lL=[lerp(.15,.22,kk),lerp(.3,.08,kk)];
-        P.aL=[lerp(1.1,.8,kk),.6];P.aR=[lerp(-1.1,-.8,kk),.6];
+        P.aL=[lerp(1.1,1.5,kk),lerp(.6,.12,kk)];    // nişan kolu: tekmeyle aynı çizgide uzanır
+        P.aR=[lerp(-1.1,-1.3,kk),lerp(.6,.35,kk)];  // arka kol karşı denge
         P.dip=-3*(tt<a?ww:1)-3*kk;break;
-      case 'round': // dönen tekme (tekvando roundhouse): kalça tam döner ve öne akar
-        P.lean=-.5*k;P.head=-.18*k;P.hipTw=kk;P.twist=.6*kk;
+      case 'round': // dönen tekme (tekvando): omurga yatar, kol aşağı süpürülür, gard çenede
+        P.lean=-.5*k;P.omur=-.32*kk;P.head=.75*kk;P.hipTw=kk;P.twist=.6*kk;
         P.hipShift+=4*kk;
         P.lR=bacak([-.3,.15],[.55,1.45],[2.3,.05]); // ayak KAFA hizasına savrulur
         P.lL=[lerp(.2,.28,kk),lerp(.35,.1,kk)];
-        P.aL=[lerp(.9,-.6,k),.5];P.aR=[lerp(-.9,.6,k),.5];P.dip=-8*k;break;
+        P.aL=[lerp(.9,.6,kk),lerp(.5,1.45,kk)];     // ön el çene gardında
+        P.aR=[lerp(-.9,-1.4,k),lerp(.5,.3,kk)];     // tekme tarafı kol aşağı-geri süpürülür (denge)
+        P.dip=-8*k;break;
       case 'axe':{ // balta: bacak gergin yükselir, topuk kamçı gibi iner
         const up=Math.min(1,tt/.5), down=Math.max(0,(tt-.5)/.5);
         P.hipTw=.6*Math.max(up,down);
@@ -166,12 +170,12 @@ export function computePose(f){
         P.lL=[.55,.3];P.lR=[-.55,.4];P.dip=3*k;break;
       case 'upper':{ // aparkat: bacaklardan gelen güç gövdeyi taşır
         const rise=Math.min(1,tt/((mv.t1)/mv.dur));
-        P.dip=lerp(14,-5,rise);P.lean=lerp(.15,-.1,rise);P.head=-.15*rise;P.reach=4*rise;
+        P.dip=lerp(14,-5,rise);P.lean=lerp(.15,-.1,rise);P.omur=lerp(.25,-.15,rise);P.head=-.15*rise;P.reach=4*rise;
         P.twist=.7*rise;P.hipTw=.5*rise;
         P.aR=[lerp(.3,2.35,rise),lerp(1.2,.15,rise)];P.aL=[lerp(.9,1.05,rise),lerp(1.1,1.3,rise)];
         P.lL=[lerp(.8,.3,rise),lerp(1.1,.2,rise)];P.lR=[lerp(-.6,-.2,rise),lerp(1.2,.3,rise)];break;}
-      case 'lowkick': // alçak tekme: kısa şambr, bacak zemine paralel fırlar
-        P.dip=18;P.lean=.15;P.hipTw=.6*kk;P.twist=.3*kk;
+      case 'lowkick': // alçak tekme: gövde tekmenin üstüne kavislenir
+        P.dip=18;P.lean=.15;P.omur=.14*kk;P.head=-.1*kk;P.hipTw=.6*kk;P.twist=.3*kk;
         P.lR=bacak([-.2,.1],[.45,1.25],[1.38,.05]);
         P.lL=[.7,1.3];
         P.aL=[1.0,1.0];P.aR=[lerp(.5,.2,kk),1.2];break;
@@ -194,16 +198,18 @@ export function computePose(f){
         P.lR=[lerp(.2,1.5,Math.min(1,tt*1.8)),.06];P.lL=[-.7,1.2];
         P.aL=[-1.2,.5];P.aR=[-1.6,.4];break;
       case 'bodyhook': // gövde çengeli: içeri adım + bele saplanan kanca
-        P.lean=.32*k;P.dip=8*k;P.head=.15*k;P.reach=7*kk;P.twist=.8*kk;P.hipTw=.45*kk;
+        P.lean=.32*k;P.dip=8*k;P.omur=.22*kk;P.head=-.15*kk;P.reach=7*kk;P.twist=.8*kk;P.hipTw=.45*kk;
         P.aR=[lerp(-1.2,1.05,k),lerp(.9,.45,kk2)];
         P.aL=[lerp(.65,1.0,kk),lerp(1.0,1.25,kk)];
         P.lL=[lerp(.35,.5,kk),lerp(.2,.4,kk)];
         P.lR=[lerp(-.28,-.5,kk),lerp(.32,.1,kk)];break;
       case 'teep':{ // itme tekmesi: diz kalkar, taban göbeğe iter
         const up=Math.min(1,tt/.45), push=Math.max(0,(tt-.45)/.55);
-        P.lean=-.28*k;P.head=-.05;
+        P.lean=-.28*k;P.omur=-.16*kk;P.head=.4*kk;
         P.lR=push>0?[lerp(.9,1.7,push),lerp(1.2,.08,push)]:[lerp(-.15,.9,up),lerp(.15,1.2,up)];
-        P.lL=[.12,.28];P.aL=[1.0,.55];P.aR=[-1.0,.55];P.dip=-2*k;break;}
+        P.lL=[.12,.28];
+        P.aL=[lerp(1.0,.85,kk),lerp(.55,1.25,kk)];  // gard bozulmaz (teep formu)
+        P.aR=[lerp(-1.0,-.95,kk),.5];P.dip=-2*k;break;}
       case 'spinhook':{ // dönen topuk: gövde ters yöne burulur, topuk tepeden süpürür
         const wind=Math.min(1,tt/.5), spin=Math.max(0,Math.min(1,(tt-.5)/.35));
         if(spin<=0){ // burulma: kafa arkaya döner, kollar gövdeye sarılır
@@ -217,10 +223,10 @@ export function computePose(f){
           P.dip=lerp(6,-6,spin);
         }
         break;}
-      case 'crescent': // ay tekmesi: havada yarım ay çizen bacak
-        P.lean=-.15;P.head=-.1;P.hipTw=.7*kk;
+      case 'crescent': // ay tekmesi: havada yarım ay — kol karşı süpürülür, baş hedefte
+        P.lean=-.15;P.omur=-.2*kk;P.head=.45*kk;P.hipTw=.7*kk;
         P.lR=[lerp(-.8,2.2,k),lerp(.7,.05,kk2)];P.lL=[.4,1.3];
-        P.aL=[1.5,.4];P.aR=[-1.3,.5];break;
+        P.aL=[lerp(1.5,1.1,kk),lerp(.4,1.1,kk)];P.aR=[lerp(-1.3,-1.5,kk),.4];break;
     }
   }
   if(s==='jump'){ // yükseliş→tepe→düşüş: hıza bağlı akıcı geçiş (kasılma→açılma)
@@ -245,7 +251,7 @@ export function computePose(f){
   if(s==='hit'){ // keskin geri savrulma + ilk anlarda baş sarsıntısı, sonra oturma
     const k=Math.pow(1-Math.min(1,t/.32),1.5);
     const w=Math.sin(t*34)*k*.12;
-    P.lean=-.32*k;P.head=-.5*k+w;
+    P.lean=-.32*k;P.omur=-.2*k;P.head=-.5*k+w;
     P.aL=[.2+.3*k,.8];P.aR=[-.6-.3*k,.8];P.dip=5*k;
   }
   if(s==='stagger'){ // geriye sendeleme: kollar savrulur, ayaklar karışır
@@ -259,7 +265,7 @@ export function computePose(f){
     const diz=Math.min(1,t/.16), gov=Math.max(0,Math.min(1,(t-.16)/.39));
     const g2=gov*gov*(3-2*gov);
     P.dip=8+16*diz+22*g2;
-    P.lean=.12+.38*g2;P.head=.12+.5*g2+.08*Math.sin(t*28)*(1-g2);
+    P.lean=.12+.38*g2;P.omur=.3*g2;P.head=.12+.5*g2+.08*Math.sin(t*28)*(1-g2);
     P.lL=[.7+.5*g2,1.2+.5*diz];P.lR=[-.6-.4*g2,1.3+.5*diz];
     P.aL=[.6-.4*g2,.9-.7*g2];P.aR=[-.5+.2*g2,.8-.6*g2];
   }
@@ -270,7 +276,7 @@ export function computePose(f){
   }
   if(s==='getup'){ // yerden doğrulma: yumuşak ivmeli kalkış (bu sırada dokunulmaz)
     const r=Math.min(1,t/.4), k=1-r*r*(3-2*r);
-    P.dip=10+36*k;P.lean=f.facing*-1.5*k+.15*(1-k);P.head=.5*k;
+    P.dip=10+36*k;P.lean=f.facing*-1.5*k+.15*(1-k);P.omur=.22*k;P.head=.5*k;
     P.lL=[.8,.3+1.2*k];P.lR=[-.7,.35+1.2*k];
     P.aL=[1.0,.3+1.0*k];P.aR=[.5,.3+1.1*k];
   }
