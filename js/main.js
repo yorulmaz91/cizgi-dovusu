@@ -104,7 +104,7 @@ if(trnList)trnList.addEventListener('click',()=>{game.trainPanel=!game.trainPane
 const trnDemo=document.getElementById('trnDemo');
 if(trnDemo)trnDemo.addEventListener('click',()=>{
   if(game.scene!=='training')return;
-  game.demo={sira:['k','p'],i:0,bekle:.2};
+  game.demo={sira:['k','p','ck','cp'],i:0,bekle:.2};
 });
 const trnExit=document.getElementById('trnExit');
 if(trnExit)trnExit.addEventListener('click',()=>{
@@ -141,7 +141,11 @@ function loop(now){
         if(d.bekle<=0){
           if(d.i<d.sira.length){
             p.x=Math.max(80,Math.min(VW-80,game.p2.x-p.facing*95)); // hep menzilde
-            p.startChain(d.sira[d.i++]);d.bekle=.55;
+            const kalem=d.sira[d.i++];
+            if(kalem==='ck')p.startSingle(p.ch.moves.ck,'k',false);      // çömelik tekme
+            else if(kalem==='cp')p.startSingle(p.ch.moves.cp,'p',false); // aparkat (fırlatır)
+            else p.startChain(kalem);
+            d.bekle=.6;
           }else{game.demo=null;screenFx.timeScale=1;}
         }
       }

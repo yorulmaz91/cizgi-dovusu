@@ -91,9 +91,13 @@ export function computePose(f){
     const flamingo=(f.chainIdx||0)>0&&f.mvKind==='k';
     const bacak=(dur,sam,uzat)=>{
       const bas=flamingo?[lerp(sam[0],uzat[0],.25),lerp(sam[1],uzat[1],.2)]:dur; // zincirde: yarı toplanmış şambrdan
+      /* kaval, uyluk yolun %45'indeyken TAM açılır: kalan yol düz bacakla
+         KALÇADAN yükseliş (tekvando "rising kick" formu). Katlı diz havada
+         gezmez, iniş de düz bacakla başlar, toplanma en altta olur. */
+      const snap=Math.min(1,kk*2.2);
       return tt<a
         ?[lerp(bas[0],sam[0],ww),lerp(bas[1],sam[1],ww)]
-        :[lerp(sam[0],uzat[0],kk),lerp(sam[1],uzat[1],kk2)];
+        :[lerp(sam[0],uzat[0],kk),lerp(sam[1],uzat[1],snap)];
     };
     switch(mv.anim){
       case 'jab': // boksör jabı: omuz döner, dirsek son anda kilitlenir
@@ -232,7 +236,7 @@ export function computePose(f){
         break;}
       case 'crescent': // ay tekmesi: havada yarım ay — kol karşı süpürülür, baş hedefte
         P.lean=-.15;P.omur=-.2*kk;P.head=.45*kk;P.hipTw=.7*kk;
-        P.lR=[lerp(-.8,2.2,k),lerp(.7,.05,kk2)];P.lL=[.4,1.3];
+        P.lR=[lerp(-.8,2.2,k),lerp(.7,.05,Math.min(1,kk*2.2))];P.lL=[.4,1.3];
         P.aL=[lerp(1.5,1.1,kk),lerp(.4,1.1,kk)];P.aR=[lerp(-1.3,-1.5,kk),.4];break;
     }
   }
