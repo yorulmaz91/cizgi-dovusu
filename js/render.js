@@ -102,6 +102,21 @@ function drawPencil(g,x,y,ang,flip){
   g.restore();
 }
 
+/* ayakkabı: rot=0 yere düz basar; tekmede/havada burun kaval kemiği yönünü izler */
+function drawShoe(g,fx,fy,f,rot){
+  g.save();g.translate(fx,fy);if(rot)g.rotate(rot*f);
+  g.fillStyle=PAPER;g.strokeStyle=INK;g.lineWidth=1.5;
+  g.beginPath();
+  g.moveTo(-f*7,5);
+  g.quadraticCurveTo(-f*8,-3,-f*1,-3.5);
+  g.quadraticCurveTo(f*8,-4,f*12,1);
+  g.quadraticCurveTo(f*13.5,5,f*9,5.5);
+  g.closePath();g.fill();g.stroke();
+  g.lineWidth=1;
+  g.beginPath();g.moveTo(-f*7,3.4);g.lineTo(f*12,3);g.stroke();
+  g.restore();
+}
+
 /* ---------------- dövüşçü çizimi ---------------- */
 export function drawFighter(g,ftr){
   if(ftr.hidden)return; // KALEM fatality'si tamamen silineni çizmez
@@ -122,22 +137,19 @@ export function drawFighter(g,ftr){
   const w1=c.lw+0.6,w2=c.lw-0.2;
 
   // bacaklar + ayakkabılar (silinen uzuv çizilmez — KALEM skili)
+  // hipTw 0→1: arka kalça öne yuvarlanır (tekmede kalça dönüşü)
+  const htw=p.hipTw||0;
   for(const[leg,side,adL]of[[p.lL,1,'lL'],[p.lR,-1,'lR']]){
     if(ftr.erasedLimb===adL&&ftr.erasedT>0)continue;
-    const kn=seg(hip[0],hip[1],leg[0],22);
+    const hx=adL==='lR'?(-2+5*htw):(2-3*htw);
+    const anc=[hip[0]+hx*f,hip[1]];
+    const kn=seg(anc[0],anc[1],leg[0],22);
     const ft=seg(kn[0],kn[1],leg[0]-leg[1]*side,20);
-    tstroke(g,[hip,kn,ft],w1,w2);
-    // ayakkabı
-    g.fillStyle=PAPER;g.strokeStyle=INK;g.lineWidth=1.5;
-    const fx=ft[0],fy=ft[1];
-    g.beginPath();
-    g.moveTo(fx-f*7,fy+5);
-    g.quadraticCurveTo(fx-f*8,fy-3,fx-f*1,fy-3.5);
-    g.quadraticCurveTo(fx+f*8,fy-4,fx+f*12,fy+1);
-    g.quadraticCurveTo(fx+f*13.5,fy+5,fx+f*9,fy+5.5);
-    g.closePath();g.fill();g.stroke();
-    g.lineWidth=1;
-    g.beginPath();g.moveTo(fx-f*7,fy+3.4);g.lineTo(fx+f*12,fy+3);g.stroke();
+    tstroke(g,[anc,kn,ft],w1,w2);
+    // ayakkabı: yer teması varsa düz; havadaysa burun kavalı izler (kamçı ucu)
+    const havada=Math.max(0,Math.min(1,(GROUND-4-ft[1])/26));
+    const kaval=Math.atan2(ft[1]-kn[1],(ft[0]-kn[0])*f);
+    drawShoe(g,ft[0],ft[1],f,kaval*.8*havada); // burun kaval çizgisini uzatır (gergin ayak)
   }
   // gövde (süper zırh anında çizgi belirgin kalınlaşır)
   const zir=ftr.armorT>0?1.7:0;
@@ -146,11 +158,14 @@ export function drawFighter(g,ftr){
   // kollar + eller (silinen uzuv çizilmez — KALEM skili)
   const fist=(ftr.state==='attack'&&ftr.mv&&ftr.mv.anim!=='palm'&&ftr.mv.anim!=='shuto')||(ftr.state==='special'&&ftr.ch.id!=='volt');
   let sagEl=null;
+  const tw=p.twist||0; // 0: omuzlar nötr · 1: arka omuz tam önde (gövde dönüşü)
   for(const[arm,side,adA]of[[p.aL,1,'aL'],[p.aR,-1,'aR']]){
     if(ftr.erasedLimb===adA&&ftr.erasedT>0)continue;
-    const el=seg(nk[0],nk[1],arm[0],18);
+    const sx=adA==='aR'?(-3+9*tw):(3-4*tw);
+    const om=[nk[0]+sx*f,nk[1]+3-(adA==='aR'?2.5*tw:0)];
+    const el=seg(om[0],om[1],arm[0],18);
     const hn=seg(el[0],el[1],arm[0]+arm[1]*side,17);
-    tstroke(g,[[nk[0],nk[1]],el,hn],w1,w2-0.3);
+    tstroke(g,[om,el,hn],w1,w2-0.3);
     const ang=Math.atan2(hn[1]-el[1],(hn[0]-el[0]));
     drawToonHand(g,hn[0],hn[1],ang,fist?'fist':'open',c.lw);
     if(adA==='aR')sagEl={x:hn[0],y:hn[1],ang};
