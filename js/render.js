@@ -141,8 +141,9 @@ export function drawFighter(g,ftr){
   const htw=p.hipTw||0;
   for(const[leg,side,adL]of[[p.lL,1,'lL'],[p.lR,-1,'lR']]){
     if(ftr.erasedLimb===adL&&ftr.erasedT>0)continue;
-    const hx=adL==='lR'?(-2+5*htw):(2-3*htw);
-    const anc=[hip[0]+hx*f,hip[1]];
+    const hx=adL==='lR'?(-2+7*htw):(2-3*htw);
+    const hy=adL==='lR'?-3*htw:1.5*htw;   // tekme kalçası yukarı kalkar (tekvando)
+    const anc=[hip[0]+hx*f,hip[1]+hy];
     const kn=seg(anc[0],anc[1],leg[0],22);
     const ft=seg(kn[0],kn[1],leg[0]-leg[1]*side,20);
     tstroke(g,[anc,kn,ft],w1,w2);
