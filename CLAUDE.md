@@ -35,8 +35,12 @@ Sıra önemli: sistem önce, içerik sonra, animasyon cilası en sona.
   çökertir), TEK: İtme Tekmesi(iten poke)→Yan→Dönen Tekme→Balta, havada YUM
   Ay Tekmesi (Şimşek Yumruk'un yerine). Poke'lar hızlı/güvenli; ZOR AI
   bloklanan ağır hamleyi cezalandırır (punish).
-- **FAZ D (Görev 7):** animasyon cilası — hazırlık→vuruş→geri çekme aşamaları,
-  ağırlık aktarımı, vuruş anında "tık" duruşu, tepki animasyonu inceltme.
+- **FAZ D (Görev 7) — TAMAMLANDI:** animasyon cilası — vuruşlara hamlenin
+  gerçek t0/t1 pencerelerinden türeyen kurulum→patlama→"tık" kilidi→geri
+  çekme eğrisi (poses.js vurusEgrisi; özel eğrili hamleler hariç k-tabanlı
+  tüm pozlara uygulanır), hasara ölçekli ağırlık aktarımı (P.hipShift),
+  tepki inceltmeleri (sarsıntılı flinch, iki aşamalı crumple, inişte sekme,
+  yumuşak kalkış). Hamle süreleri (dur/t0/t1) DEĞİŞMEDİ — salt görsel.
 - **KALEM karakteri — TAMAMLANDI:** stil dışı meta-karakter (bere + dev kalem);
   skili Silgi Darbesi rakibin rastgele bir uzvunu 2 sn siler (uzuv çizilmez,
   o uzuvla saldırı/fırlatma kilitli — canUse()); fatality TEMİZ SAYFA rakibi

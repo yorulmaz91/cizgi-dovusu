@@ -4,8 +4,21 @@
    ============================================================ */
 import {lerp} from './utils.js';
 
+/* Faz D — vuruş eğrisi: hazırlıkta geriye kurulum (negatif değer, uzuvlar
+   ters yöne gerilir), aktif pencerede patlayıcı uzanım + "tık" kilidi
+   (k=1'de asılı kalır), sonra yumuşak geri çekilme. a=t0/dur, b=t1/dur. */
+function vurusEgrisi(tt,a,b){
+  if(tt<a){const s=tt/a;return -.28*s*s;}                       // kurulum
+  if(tt<=b){                                                    // vuruş + kilit
+    const s=Math.min(1,((tt-a)/Math.max(.02,b-a))/.55);
+    return -.28+1.28*(1-Math.pow(1-s,3));
+  }
+  const r=Math.min(1,(tt-b)/Math.max(.05,1-b));                 // geri çekme
+  return 1-r*r*(3-2*r);
+}
+
 export function computePose(f){
-  const P={lean:0,head:0,aL:[.5,.35],aR:[-.4,.4],lL:[.15,.1],lR:[-.15,.15],dip:0};
+  const P={lean:0,head:0,aL:[.5,.35],aR:[-.4,.4],lL:[.15,.1],lR:[-.15,.15],dip:0,hipShift:0};
   const t=f.st,s=f.state;
   if(s==='idle'){const b=Math.sin(t*3)*.05;P.aL=[.5+b,.4];P.aR=[-.45-b,.45];P.dip=Math.sin(t*3)*1.5;}
   if(s==='walk'){
@@ -15,7 +28,13 @@ export function computePose(f){
   }
   if(s==='attack'){
     const mv=f.mv, tt=Math.min(1,t/mv.dur);
-    const k=Math.sin(tt*Math.PI);
+    // hamlenin GERÇEK pencerelerinden hazırlık→vuruş→geri çekme eğrisi
+    const a=Math.min(.45,Math.max(.04,mv.t0/mv.dur));
+    const b=Math.min(.98,Math.max(a+.08,mv.t1/mv.dur));
+    const k=vurusEgrisi(tt,a,b);
+    // ağırlık aktarımı: kurulumda arka ayağa, vuruşta öne (ağır hamlede belirgin)
+    const agr=Math.min(1,(mv.dmg||6)/15);
+    P.hipShift=(4+7*agr)*Math.max(-.6,k);
     switch(mv.anim){
       case 'jab':
         P.lean=.12*k;P.aR=[lerp(-.4,1.3,k),lerp(.4,.05,k)];P.aL=[.7,1.0];
@@ -135,7 +154,12 @@ export function computePose(f){
     P.lL=[.85,1.5];P.lR=[-.75,1.55];
     P.aL=[.95,1.55];P.aR=[.75,1.7];
   }
-  if(s==='hit'){const k=1-Math.min(1,t/.3);P.lean=-.3*k;P.head=-.45*k;P.aL=[.2,.8];P.aR=[-.6,.8];P.dip=4*k;}
+  if(s==='hit'){ // keskin geri savrulma + ilk anlarda baş sarsıntısı, sonra oturma
+    const k=Math.pow(1-Math.min(1,t/.32),1.5);
+    const w=Math.sin(t*34)*k*.12;
+    P.lean=-.32*k;P.head=-.5*k+w;
+    P.aL=[.2+.3*k,.8];P.aR=[-.6-.3*k,.8];P.dip=5*k;
+  }
   if(s==='stagger'){ // geriye sendeleme: kollar savrulur, ayaklar karışır
     const k=Math.min(1,t/.45), w=Math.sin(t*16);
     P.lean=-.38*(1-k*.4);P.head=-.3*(1-k);
@@ -143,18 +167,21 @@ export function computePose(f){
     P.lL=[w*.45-.1,.35];P.lR=[-w*.45-.1,.4];
     P.dip=3+Math.abs(w)*2;
   }
-  if(s==='crumple'){ // dizler çözülür, öne çöker
-    const k=Math.min(1,t/.55);
-    P.dip=8+k*30;P.lean=.15+k*.35;P.head=.2+k*.4;
-    P.lL=[.7+k*.5,1.3+k*.4];P.lR=[-.6-k*.4,1.4+k*.4];
-    P.aL=[.6-k*.4,.2+.7*(1-k)];P.aR=[-.5+k*.2,.2+.6*(1-k)];
+  if(s==='crumple'){ // önce dizler ANİDEN çözülür, sonra gövde süzülerek çöker
+    const diz=Math.min(1,t/.16), gov=Math.max(0,Math.min(1,(t-.16)/.39));
+    const g2=gov*gov*(3-2*gov);
+    P.dip=8+16*diz+22*g2;
+    P.lean=.12+.38*g2;P.head=.12+.5*g2+.08*Math.sin(t*28)*(1-g2);
+    P.lL=[.7+.5*g2,1.2+.5*diz];P.lR=[-.6-.4*g2,1.3+.5*diz];
+    P.aL=[.6-.4*g2,.9-.7*g2];P.aR=[-.5+.2*g2,.8-.6*g2];
   }
-  if(s==='down'){ // sırtüstü yerde
-    P.dip=46;P.lean=f.facing*-1.5;P.head=.7;
+  if(s==='down'){ // sırtüstü yerde (inişte sönümlenen küçük sekme)
+    const sek=Math.max(0,Math.sin(t*20))*3.5*Math.max(0,1-t/.3);
+    P.dip=46-sek;P.lean=f.facing*-1.5;P.head=.7-sek*.04;
     P.aL=[1.3,.25];P.aR=[-1.4,.2];P.lL=[1.1,.35];P.lR=[-1.0,.25];
   }
-  if(s==='getup'){ // yerden doğrulma (bu sırada dokunulmaz)
-    const k=1-Math.min(1,t/.4);
+  if(s==='getup'){ // yerden doğrulma: yumuşak ivmeli kalkış (bu sırada dokunulmaz)
+    const r=Math.min(1,t/.4), k=1-r*r*(3-2*r);
     P.dip=10+36*k;P.lean=f.facing*-1.5*k+.15*(1-k);P.head=.5*k;
     P.lL=[.8,.3+1.2*k];P.lR=[-.7,.35+1.2*k];
     P.aL=[1.0,.3+1.0*k];P.aR=[.5,.3+1.1*k];

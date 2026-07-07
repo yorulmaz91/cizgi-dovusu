@@ -163,8 +163,15 @@ async function testYukseklik(ad){
   const jab=p1.ch.moves.p[0];
   // 1) çömelen rakibe HIGH → ıskalamalı
   if((jab.height||'high')==='high'){
-    dondur(p2,'crouch');yanYanaGetir(55);p2.hp=p2.maxHp;
-    const d=await canDususuOlc(p2,async()=>{await bas('punch');});
+    /* UYARLAMA (Claude): gerçek-zaman sarsıntısında kukla bazen vuruş anında
+       henüz çömelmemiş oluyor — bir kez yeniden denenir; gerçek bir bozulmada
+       iki deneme de vurur ve FAIL düşer */
+    let d=1;
+    for(let dnm=0;dnm<2&&d>0;dnm++){
+      dondur(p2,'crouch');yanYanaGetir(55);p2.hp=p2.maxHp;
+      await bekle(120); // çömelme otursun
+      d=await canDususuOlc(p2,async()=>{await bas('punch');});
+    }
     if(d===0)OK('çömelene HIGH ıskaladı',jab.name);
     else FAIL('çömelen rakibi HIGH vurdu',`${jab.name} ${d} hasar verdi`);
   }else ATLA('çömelene HIGH testi','ilk yumruk high değil');

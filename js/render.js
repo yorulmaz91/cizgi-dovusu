@@ -106,7 +106,8 @@ function drawPencil(g,x,y,ang,flip){
 export function drawFighter(g,ftr){
   if(ftr.hidden)return; // KALEM fatality'si tamamen silineni çizmez
   const p=ftr.pose(),f=ftr.facing,c=ftr.ch;
-  const hipY=ftr.y-46+p.dip, hip=[ftr.x,hipY];
+  // ağırlık aktarımı: kalça (ve üst gövde) vuruş eğrisiyle öne/geriye kayar
+  const hipY=ftr.y-46+p.dip, hip=[ftr.x+(p.hipShift||0)*f,hipY];
   const seg=(x,y,a,len)=>[x+Math.sin(a)*len*f,y+Math.cos(a)*len];
   g.save();
 
