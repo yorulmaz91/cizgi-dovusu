@@ -3,7 +3,7 @@
    ============================================================ */
 import {CHARS} from './characters.js';
 import {Fighter} from './fighter.js';
-import {keys} from './input.js';
+import {keys,tap} from './input.js';
 import {INK,PAPER} from './effects.js';
 import {VW,VH,drawBG} from './render.js';
 import {game} from './main.js';
@@ -33,30 +33,50 @@ export function drawHUD(g){
   g.fillText(game.scene==='training'?'∞':Math.ceil(game.timer),VW/2,y+22);
 }
 
-/* antrenman: seçili karakterin tam hamle listesi paneli */
-export function drawTrainPanel(g){
-  const c=game.p1.ch;
+/* ortak hamle paneli: ÜSTTEN açılan ortalanmış kart — buton alanlarına girmez
+   (seçim ekranındaki HAMLELER ve antrenman LİSTE aynı bileşeni kullanır) */
+export function drawMovePanel(g,c){
   const yk={high:'ÜST',mid:'ORTA',low:'ALÇAK'};
   const et=m=>m.name+' ['+(yk[m.height]||'ORTA')+']';
   const L=[
-    ['700',c.name+' — HAMLE LİSTESİ'],
+    ['700',c.name+' — HAMLELER'],
     ['500','YUM: '+c.moves.p.map(et).join(' → ')],
     ['500','TEK: '+c.moves.k.map(et).join(' → ')],
     ['500','▼+YUM: '+et(c.moves.cp)+' (fırlatır)   ·   ▼+TEK: '+et(c.moves.ck)],
     ['500','havada YUM: '+et(c.moves.jp)+'   ·   havada TEK: '+et(c.moves.jk)],
-    ['500','FIRLAT tuşu (veya YUM+TEK): '+c.throwName+' — blok işlemez'],
+    ['500','FIRLAT (veya YUM+TEK): '+c.throwName+' — blok işlemez'],
     ['500','SKİL: '+c.specName+' — '+c.specDesc],
-    ['500','Blok tablosu: ayakta blok ÜST+ORTA keser · çömelik blok ALÇAK keser'],
+    ['500','FATALITY: '+c.fatalName],
+    ['500','Blok: ayakta ÜST+ORTA keser · çömelik ALÇAK keser · çömelene ÜST ıskalar'],
   ];
-  const yBas=VH*0.78, satir=15;
+  const satir=VH<500?14:16;
+  const w=Math.min(640,VW-32), h=L.length*satir+24;
+  const x0=(VW-w)/2, y0=56;
   g.save();
-  g.fillStyle=PAPER;g.globalAlpha=.82;
-  g.fillRect(0,yBas-20,VW,L.length*satir+30);
-  g.globalAlpha=1;g.strokeStyle=INK;g.lineWidth=1.5;
-  g.beginPath();g.moveTo(0,yBas-20);g.lineTo(VW,yBas-20);g.stroke();
+  g.fillStyle=INK;g.globalAlpha=.9;g.fillRect(x0+3,y0+3,w,h); // gölge
+  g.globalAlpha=.96;g.fillStyle=PAPER;g.fillRect(x0,y0,w,h);
+  g.globalAlpha=1;g.strokeStyle=INK;g.lineWidth=2;g.strokeRect(x0,y0,w,h);
   g.textAlign='center';g.fillStyle=INK;
-  L.forEach((s,i)=>{g.font=s[0]+' 11px Space Grotesk';g.fillText(s[1],VW/2,yBas+i*satir);});
+  L.forEach((s,i)=>{
+    g.font=s[0]+' '+(VH<500?10:11)+'px Space Grotesk';
+    g.fillText(s[1],VW/2,y0+20+i*satir);
+  });
   g.restore();
+}
+/* antrenman modu eski adıyla aynı paneli kullanır */
+export function drawTrainPanel(g){drawMovePanel(g,game.p1.ch);}
+
+/* çerçeveli tuval düğmesi; dokunulduysa true döner */
+function cizButon(g,x,y,w,h,label,kucuk){
+  g.save();
+  g.fillStyle=INK;g.fillRect(x+2.5,y+3,w,h); // alt gölge (cbtn stili)
+  g.fillStyle=PAPER;g.strokeStyle=INK;g.lineWidth=2;
+  g.fillRect(x,y,w,h);g.strokeRect(x,y,w,h);
+  g.fillStyle=INK;g.textAlign='center';
+  g.font='700 '+(kucuk?12:15)+'px Space Grotesk';
+  g.fillText(label,x+w/2,y+h/2+(kucuk?4:5));
+  g.restore();
+  return tap.on&&tap.x>=x&&tap.x<=x+w&&tap.y>=y&&tap.y<=y+h;
 }
 export function centerText(g,txt,size,y,sub){
   g.textAlign='center';
@@ -106,34 +126,43 @@ export function drawSelect(g,dt){
     dummy.draw(g);g.restore();
     if(sel){
       centerText(g,c.name,26,VH*0.66);
-      // basık ekranlarda satır aralığını sıkılaştır (dokunmatik butonlara taşmasın)
+      // sade kart: kimlik + yıldızlar; detaylar HAMLELER panelinde
       const oy=VH*0.66, s=VH<500?.8:1;
       g.font='500 13px Space Grotesk';g.fillStyle=INK;g.textAlign='center';
       g.globalAlpha=.55;
-      g.fillText(c.tagline,VW/2,oy+22*s);
+      g.fillText(c.tagline,VW/2,oy+20*s);
       g.globalAlpha=1;
-      // mini stat göstergesi (canlar eşit: 100 — gösterilmez)
       const yildiz=n=>'★★★'.slice(0,n)+'☆☆☆'.slice(0,3-n);
       const guc=c.punch+c.kick>=26?3:c.punch+c.kick>=18?2:1;
       const hiz=c.speed>=250?3:c.speed>=200?2:1;
       const mzl=Math.max(...c.moves.p.map(m=>m.range),...c.moves.k.map(m=>m.range));
       const men=mzl>=85?3:mzl>=78?2:1;
       g.font='700 14px Space Grotesk';
-      g.fillText('GÜÇ: '+yildiz(guc)+'   HIZ: '+yildiz(hiz)+'   MENZİL: '+yildiz(men),VW/2,oy+42*s);
-      // hamle listeleri yükseklik etiketiyle: [ÜST]/[ORTA]/[ALÇAK]
-      const yk={high:'ÜST',mid:'ORTA',low:'ALÇAK'};
-      const etk=m=>m.name+' ['+(yk[m.height]||'ORTA')+']';
-      g.font='500 13px Space Grotesk';
-      g.fillText('SKİL: '+c.specName+' — '+c.specDesc,VW/2,oy+60*s);
-      g.fillText('YUMRUK: '+c.moves.p.map(etk).join(' → '),VW/2,oy+77*s);
-      g.fillText('TEKME: '+c.moves.k.map(etk).join(' → '),VW/2,oy+94*s);
-      g.fillText('▼+YUM: '+c.moves.cp.name+' (fırlatır!)   ·   ▼+TEK: '+etk(c.moves.ck)+'   ·   ▲+TEK: '+c.moves.jk.name,VW/2,oy+111*s);
-      g.font='700 13px Space Grotesk';
-      g.fillText('FIRLATMA: '+c.throwName+' (yakında YUM+TEK)   ·   FATALITY: '+c.fatalName,VW/2,oy+127*s);
+      g.fillText('GÜÇ: '+yildiz(guc)+'   HIZ: '+yildiz(hiz)+'   MENZİL: '+yildiz(men),VW/2,oy+40*s);
+      // belirgin düğmeler: DÖVÜŞ · ANTRENMAN · (küçük) HAMLELER
+      const bw=132*s,bh=36*s,ara=14*s,by=oy+54*s;
+      const dovusTik=cizButon(g,VW/2-ara/2-bw,by,bw,bh,'DÖVÜŞ');
+      const antrTik=cizButon(g,VW/2+ara/2,by,bw,bh,'ANTRENMAN');
+      const hw=118*s,hh=27*s;
+      const hamleTik=cizButon(g,VW/2-hw/2,by+bh+10*s,hw,hh,'HAMLELER '+(game.movePanel?'▲':'▼'),true);
+      if(dovusTik){
+        tap.on=false;
+        game.selCharIdx=game.selIdx;
+        game.diffIdx=Math.max(0,ZORLUKLAR.findIndex(z=>z.key===game.difficulty));
+        game.scene='difficulty';game.selCd=.3;
+      }else if(antrTik){
+        tap.on=false;
+        game.selCharIdx=game.selIdx;
+        game.startTraining(game.selCharIdx);
+      }else if(hamleTik){
+        tap.on=false;
+        game.movePanel=!game.movePanel;
+      }
     }
   });
+  if(game.movePanel)drawMovePanel(g,CHARS[game.selIdx]); // detaylar üst panelde
   g.font='500 12px Space Grotesk';g.fillStyle=INK;g.globalAlpha=.4;g.textAlign='center';
-  g.fillText('◀ ▶ seç · YUM ile başla · TEK: ANTRENMAN',VW/2,VH*0.92);
+  g.fillText('◀ ▶ karakter seç',VW/2,VH*0.945);
   g.globalAlpha=1;
 }
 export function drawDifficulty(g,dt){

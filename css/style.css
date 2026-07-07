@@ -16,11 +16,11 @@ body{font-family:'Space Grotesk',sans-serif;color:#1A1A1A;touch-action:none}
 /* sağ el: başparmak yayına oturan elmas dizilim + solunda FIRLAT */
 .btns{position:absolute;bottom:10px;right:10px;width:240px;height:150px;pointer-events:auto}
 .btns .cbtn{position:absolute}
-.b-firlat{width:50px;height:50px;font-size:8.5px;left:0;bottom:36px}
-.b-yum{width:58px;height:58px;font-size:11px;left:62px;bottom:4px}
+.b-firlat{width:50px;height:50px;font-size:8.5px;left:0;bottom:40px}
+.b-yum{width:58px;height:58px;font-size:11px;left:60px;bottom:4px}
 .b-tek{width:58px;height:58px;font-size:11px;right:4px;bottom:20px}
-.b-blk{width:44px;height:44px;font-size:9px;left:78px;bottom:72px}
-.b-skil{width:44px;height:44px;font-size:8.5px;right:18px;bottom:86px}
+.b-blk{width:50px;height:50px;font-size:10px;left:72px;bottom:76px}
+.b-skil{width:50px;height:50px;font-size:9px;right:12px;bottom:92px}
 .cbtn{
   width:56px;height:56px;border-radius:50%;
   background:rgba(255,255,255,.75);border:2px solid #1A1A1A;
@@ -64,12 +64,12 @@ body{font-family:'Space Grotesk',sans-serif;color:#1A1A1A;touch-action:none}
 
 /* çok basık ekranlar (uygulama içi önizleme vb.) */
 @media (max-height:480px){
-  .btns{width:196px;height:118px;bottom:8px;right:8px}
-  .b-firlat{width:40px;height:40px;left:0;bottom:28px}
-  .b-yum{width:48px;height:48px;font-size:10px;left:52px;bottom:2px}
+  .btns{width:200px;height:126px;bottom:8px;right:8px}
+  .b-firlat{width:40px;height:40px;left:0;bottom:32px}
+  .b-yum{width:48px;height:48px;font-size:10px;left:50px;bottom:2px}
   .b-tek{width:48px;height:48px;font-size:10px;right:2px;bottom:16px}
-  .b-blk{width:36px;height:36px;font-size:8px;left:64px;bottom:58px}
-  .b-skil{width:36px;height:36px;font-size:8px;right:12px;bottom:70px}
+  .b-blk{width:41px;height:41px;font-size:8.5px;left:60px;bottom:62px}
+  .b-skil{width:41px;height:41px;font-size:8px;right:9px;bottom:76px}
   .pad{bottom:6px;left:6px;gap:4px;
     grid-template-columns:repeat(3,38px);grid-template-rows:repeat(3,38px)}
   .pad .cbtn{width:38px;height:38px;font-size:13px}

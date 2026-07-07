@@ -5,7 +5,7 @@
    ============================================================ */
 import {rnd} from './utils.js';
 import {ctx,VW,VH,drawBG} from './render.js';
-import {keys} from './input.js';
+import {keys,tap} from './input.js';
 import {CHARS} from './characters.js';
 import {Fighter} from './fighter.js';
 import {PAPER,screenFx,setInverted,burst,drawGhosts,drawBursts,drawParticles} from './effects.js';
@@ -15,7 +15,7 @@ import * as sfx from './audio.js';
 
 /* ---------------- oyun akışı ---------------- */
 export const game={
-  scene:'select',selIdx:0,selCd:0,
+  scene:'select',selIdx:0,selCd:0,movePanel:false,
   selCharIdx:0,diffIdx:1,difficulty:'normal',
   p1:null,p2:null,round:1,wins:[0,0],timer:60,
   splash:null,splashT:0,finishing:false,finishT:0,fatal:null,
@@ -182,5 +182,6 @@ function loop(now){
   drawParticles(g,dt);
   if(screenFx.flashT>0){screenFx.flashT-=dt||.016;g.fillStyle=PAPER;g.globalAlpha=screenFx.flashT*6;g.fillRect(0,0,VW,VH);g.globalAlpha=1;}
   g.restore();
+  tap.on=false; // tuval dokunuşu yalnız işlendiği karede geçerli
 }
 requestAnimationFrame(loop);

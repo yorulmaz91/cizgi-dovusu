@@ -15,7 +15,9 @@ document.querySelectorAll('.cbtn').forEach(b=>{
   b.addEventListener('pointercancel',()=>{keys[k]=0;b.classList.remove('held');});
   b.addEventListener('pointerleave',()=>{keys[k]=0;b.classList.remove('held');});
 });
-cvs.addEventListener('pointerdown',()=>{keys.any=1;});
+/* tuval üstü dokunuşlar (seçim ekranı düğmeleri için); her kare sonunda main.js temizler */
+export const tap={x:0,y:0,on:false};
+cvs.addEventListener('pointerdown',e=>{keys.any=1;tap.x=e.clientX;tap.y=e.clientY;tap.on=true;});
 
 /* ---------------- tam ekran ---------------- */
 const fsBtn=document.getElementById('fsBtn');
