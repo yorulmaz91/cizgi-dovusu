@@ -18,7 +18,7 @@ function vurusEgrisi(tt,a,b){
 }
 
 export function computePose(f){
-  const P={lean:0,head:0,aL:[.5,.35],aR:[-.4,.4],lL:[.15,.1],lR:[-.15,.15],dip:0,hipShift:0,reach:0,twist:0,hipTw:0};
+  const P={lean:0,head:0,aL:[.5,.35],aR:[-.4,.4],lL:[.15,.1],lR:[-.15,.15],dip:0,hipShift:0,reach:0,twist:0,hipTw:0,profil:0};
   const t=f.st,s=f.state;
   if(s==='idle'){ // karaktere özel canlı bekleme: ritim + nefes + kişilik
     const yor=1-(f.hp!=null&&f.maxHp?f.hp/f.maxHp:1);        // 0 dinç → 1 bitkin
@@ -172,7 +172,9 @@ export function computePose(f){
         P.lR=[th,sh];
         P.lL=[lerp(.15,.26,drive),lerp(.28,.04,drive)]; // destek bacağı yük altında dikleşir (pivot htw'den)
         P.lean=-.72*drive;P.omur=-.46*drive;P.head=1.0*drive; // eşek-tekmesi karşı yaslanma + baş hedefe kilitli
-        P.hipTw=.98*drive;P.twist=.55*drive;                  // kalça devrilir, omuzlar edge-on döner
+        P.hipTw=.98*drive;P.twist=.2*drive;                   // kalça devrilir (omuz dönüşünü çoğunlukla profil yapar)
+        // YÖN/PROFİL: chamber'da yana dönmeye başlar, uzanımda TAM profile döner, geri toplanınca cepheye
+        P.profil=tt<.42?.5*cham:tt<.64?lerp(.5,1,extP):tt<.86?lerp(1,0,recP):0;
         P.hipShift=tt<.42?lerp(0,-5,cham):tt<.64?lerp(-5,8,extP):lerp(8,0,tt<.86?recP:drop); // ağırlık arkaya→öne akar
         P.aL=[lerp(.95,1.18,drive),lerp(1.05,1.3,drive)];   // ön gard çene hizasında, hedefe dönük
         P.aR=[lerp(-.9,-1.45,drive),lerp(.5,.3,drive)];     // arka kol dengede geriye

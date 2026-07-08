@@ -153,7 +153,9 @@ export function drawFighter(g,ftr){
     // ayakkabı: havada burun kavalı izler; yerde kalça dönüyorsa topuk kalkar (pivot)
     const havada=Math.max(0,Math.min(1,(GROUND-4-ft[1])/26));
     const kaval=Math.atan2(ft[1]-kn[1],(ft[0]-kn[0])*f);
-    const pivot=(1-havada)*htw*(adL==='lR'?.5:.28); // arka ayak belirgin, destek hafif
+    // pivot: htw ile hafif topuk dönüşü + PROFİL ile destek ayağının gerçek yön dönüşü
+    // (profil varsayılan 0 → eski davranış birebir korunur; yalnız destek/ön bacak döner)
+    const pivot=(1-havada)*(htw*(adL==='lR'?.5:.28)+(adL==='lL'?(p.profil||0)*1.5:0));
     drawShoe(g,ft[0],ft[1],f,kaval*.8*havada+pivot);
   }
   // gövde (süper zırh anında çizgi belirgin kalınlaşır)
@@ -164,9 +166,11 @@ export function drawFighter(g,ftr){
   const fist=(ftr.state==='attack'&&ftr.mv&&ftr.mv.anim!=='palm'&&ftr.mv.anim!=='shuto')||(ftr.state==='special'&&ftr.ch.id!=='volt');
   let sagEl=null;
   const tw=p.twist||0; // 0: omuzlar nötr · 1: arka omuz tam önde (gövde dönüşü)
+  const prof=p.profil||0; // 0: cephe · 1: profil (omuz hattı hedefe dik, omuzlar üst üste biner)
   for(const[arm,side,adA]of[[p.aL,1,'aL'],[p.aR,-1,'aR']]){
     if(ftr.erasedLimb===adA&&ftr.erasedT>0)continue;
-    const sx=adA==='aR'?(-3+9*tw):(3-4*tw);
+    // profilde omuz genişliği daralır (üst üste biner) ve öne toplanır
+    const sx=(adA==='aR'?(-3+9*tw):(3-4*tw))*(1-.55*prof)+prof*3;
     const om=[nk[0]+sx*f,nk[1]+3-(adA==='aR'?2.5*tw:0)];
     const el=seg(om[0],om[1],arm[0],18);
     const hn=seg(el[0],el[1],arm[0]+arm[1]*side,17);
@@ -201,7 +205,7 @@ export function drawFighter(g,ftr){
   // koca kafa + yüz
   const R=22;
   const hd=[nk[0]+Math.sin(p.lean+omur+p.head)*(R-2)*f,nk[1]-Math.cos(p.lean+omur+p.head)*(R-2)];
-  drawHead(g,ftr,hd[0],hd[1],R,f);
+  drawHead(g,ftr,hd[0],hd[1],R,f,p.profil||0);
 
   // skil efektleri
   if(ftr.state==='special'&&ftr.ch.id==='volt'&&ftr.fx.boltT>0)drawBolt(g,ftr.fx.boltX,0,ftr.fx.boltX+rnd(-8,8),GROUND);
@@ -213,7 +217,8 @@ export function drawFighter(g,ftr){
   g.restore();
 }
 
-function drawHead(g,ftr,x,y,R,f){
+function drawHead(g,ftr,x,y,R,f,pr){
+  pr=pr||0; // 0: cephe · 1: profil (yan). pr=0 → çizim birebir eski hali.
   const c=ftr.ch,s=ftr.state;
   const expr=s==='ko'?'ko':(s==='hit'||s==='stagger'||s==='crumple'||s==='down'||s==='thrown')?'hit'
     :(s==='attack'||s==='special'||s==='throwing')?'angry'
@@ -224,12 +229,16 @@ function drawHead(g,ftr,x,y,R,f){
   if(expr==='hit'){const sq=1+Math.sin(ftr.st*40)*.06;g.scale(1/sq,sq);}
   g.fillStyle=PAPER;g.strokeStyle=INK;g.lineWidth=1.8/k;
   g.beginPath();g.arc(0,0,30,0,7);g.fill();g.stroke();
-  // kulaklar
+  // kulaklar — profilde ön (+x) kulak solar, arka (-x) kulak kalır
   g.beginPath();g.arc(-30,3,5.5,Math.PI*0.35,Math.PI*1.65);g.fill();g.stroke();
+  g.save();g.globalAlpha=1-pr;
   g.beginPath();g.arc(30,3,5.5,Math.PI*1.35,Math.PI*0.65);g.fill();g.stroke();
+  g.restore();
   g.lineWidth=1/k;
   g.beginPath();g.arc(-30.5,3,2.4,Math.PI*0.5,Math.PI*1.5);g.stroke();
+  g.save();g.globalAlpha=1-pr;
   g.beginPath();g.arc(30.5,3,2.4,Math.PI*1.5,Math.PI*0.5);g.stroke();
+  g.restore();
   // saç
   g.fillStyle=INK;g.strokeStyle=INK;g.lineWidth=1.6/k;
   if(c.hair==='long'){
@@ -278,7 +287,11 @@ function drawHead(g,ftr,x,y,R,f){
   // gözler
   const blink=(expr==='idle'&&Math.sin(performance.now()/770+ftr.x)>0.97)?0.12:1;
   for(const ox of[-9,9]){
-    g.save();g.translate(ox+2,-2);
+    g.save();
+    // profil: arka göz (-x) solar; ön göz (+x) yüzün önüne kayar + hafif daralır
+    if(ox<0)g.globalAlpha=1-pr;
+    g.translate(ox+2+(ox>0?pr*7:0),-2);
+    if(ox>0&&pr>0)g.scale(1-.32*pr,1);
     if(expr==='ko'){
       g.strokeStyle=INK;g.lineWidth=2.2/k;
       g.beginPath();g.moveTo(-4,-4);g.lineTo(4,4);g.moveTo(4,-4);g.lineTo(-4,4);g.stroke();
@@ -318,10 +331,21 @@ function drawHead(g,ftr,x,y,R,f){
       g.beginPath();g.moveTo(4,-15);g.lineTo(16,-13.5);g.stroke();
     }
   }
-  // burun
+  // burun — cephede küçük elips; profilde yüzün önünde ÇIKINTI (profil imzası), çapraz geçiş
   g.strokeStyle=INK;g.lineWidth=1.5/k;
-  g.beginPath();g.ellipse(4,7,5,4,0,Math.PI*1.6,Math.PI*1.1);g.stroke();
-  // ağız
+  if(pr<1){g.save();g.globalAlpha=1-pr;g.beginPath();g.ellipse(4,7,5,4,0,Math.PI*1.6,Math.PI*1.1);g.stroke();g.restore();}
+  if(pr>0){
+    g.save();g.globalAlpha=pr;g.fillStyle=PAPER;g.strokeStyle=INK;g.lineWidth=1.7/k;
+    g.beginPath();
+    g.moveTo(27,-5);                 // alından buruna
+    g.quadraticCurveTo(41,3,37.5,9); // burun ucu dışa çıkar
+    g.quadraticCurveTo(36,12.5,28,12);// burun altı içeri döner
+    g.closePath();g.fill();g.stroke();
+    g.restore();
+  }
+  // ağız (profilde öne kayar + kısalır)
+  g.save();
+  if(pr>0){g.translate(pr*5,0);g.scale(1-.38*pr,1);}
   g.lineWidth=1.8/k;
   if(expr==='hit'||expr==='ko'){
     g.fillStyle=PAPER;
@@ -344,5 +368,6 @@ function drawHead(g,ftr,x,y,R,f){
     g.beginPath();g.moveTo(-8,17);g.quadraticCurveTo(4,22,14,13);g.stroke();
     g.lineWidth=1.1/k;g.beginPath();g.moveTo(14,13);g.lineTo(12,16.5);g.stroke();
   }
-  g.restore();
+  g.restore(); // ağız profil transformu
+  g.restore(); // kafa
 }
