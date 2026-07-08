@@ -105,7 +105,7 @@ export class Fighter{
     if(this.state==='throwing'){this.updateThrow(dt);return;}
 
     const inp=this.isAI?this.ai(dt,foe):keys;
-    /* tuş kenarları + 80ms tamponlar (YUM+TEK fırlatma toleransı) */
+    /* tuş kenarları + 100ms tamponlar (YUM+TEK fırlatma toleransı) */
     const pEdge=!!inp.punch&&!this.pPrev, kEdge=!!inp.kick&&!this.kPrev, tEdge=!!inp.throw&&!this.tPrev;
     this.pPrev=!!inp.punch;this.kPrev=!!inp.kick;this.tPrev=!!inp.throw;
     this.pBuf=pEdge?.1:Math.max(0,this.pBuf-dt);

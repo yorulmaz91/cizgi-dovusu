@@ -1,8 +1,10 @@
 # ÇİZGİ DÖVÜŞÜ — Karikatür
 
 Siyah-beyaz karikatür stilinde, tuval (canvas) tabanlı çöp adam dövüş oyunu.
-3 karakter (GÖLGE / BETON / VOLT), Tekken tarzı vuruş zincirleri, zıplama/çömelme,
-launcher+juggle, AI rakip, fatality sahneleri ve çizgi roman efektleri içerir.
+4 karakter (GÖLGE / BETON / VOLT / KALEM), Tekken tarzı vuruş zincirleri,
+yükseklik sistemi (üst/orta/alçak), fırlatma, counter hit, zıplama/çömelme,
+launcher+juggle, AI rakip (3 zorluk), antrenman modu, fatality sahneleri ve
+çizgi roman efektleri içerir.
 
 ## Nasıl çalıştırılır?
 
@@ -25,8 +27,8 @@ npm start
 
 Ardından tarayıcıda açılan adresi (genelde `http://localhost:3000`) ziyaret et.
 
-> Not: `cizgi-dovusu.html` orijinal tek dosyalık sürümdür, yedek olarak duruyor;
-> oyunun güncel hali `index.html` + `css/` + `js/` klasörlerindedir.
+> Not: Oyunun tamamı `index.html` + `css/` + `js/` klasörlerindedir. (Eski
+> tek dosyalık sürüm `cizgi-dovusu.html` kaldırıldı; git geçmişinde duruyor.)
 
 ## Telefondan / uzaktan test
 
@@ -64,9 +66,10 @@ Ardından tarayıcıda açılan adresi (genelde `http://localhost:3000`) ziyaret
   çömelmek ÜST vuruşları ıskalatır; çömelik blok ALÇAK'ı keser ama ORTA yer.
 - Süpürme gibi hamleler yere yıkar; yerdeki rakip en fazla 1 vuruş yer ve
   kalkarken kısa süre dokunulmazdır.
-- Fırlatma (yakın mesafede YUM+TEK, iki tuşa 80ms içinde basmak yeterli):
-  blok İŞLEMEZ — blok yapan rakibe cevaptır. Fırlatılan taraf ilk anda
-  kendi YUM+TEK'ine basarsa fırlatmayı kırar. Her karakterin fırlatması farklı.
+- Fırlatma (yakın mesafede YUM+TEK, iki tuşa 100ms içinde basmak yeterli;
+  dokunmatikte FIRLAT tuşu): blok İŞLEMEZ — blok yapan rakibe cevaptır.
+  Fırlatılan taraf ilk anda kendi YUM+TEK'ine (veya FIRLAT'a) basarsa
+  fırlatmayı kırar. Dört karakterin de fırlatması farklı.
 - Counter hit: rakip saldırı animasyonundayken vurursan ×1.3 hasar + "KARŞI!"
   (bazı hamleler counter'da daha ağır tepki verir: Beton'un Kancası ve
   Gölge'nin Bıçak El'i çökertir).

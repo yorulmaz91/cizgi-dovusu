@@ -1,0 +1,13 @@
+# Bağımlılıklar (bu proje derleme adımı istemez; ama biri "npm start" çalıştırırsa oluşur)
+node_modules/
+
+# GitHub Pages yayın klasörü (pages.yml çalışırken CI'da üretilir, yerelde de olabilir)
+_site/
+
+# Günlükler / geçici dosyalar
+*.log
+*.tmp
+
+# İşletim sistemi / editör çöpü
+.DS_Store
+Thumbs.db

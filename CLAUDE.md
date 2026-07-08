@@ -5,11 +5,14 @@ Saf HTML/CSS/JS + ES modülleri; derleme adımı yok. Giriş noktası `index.htm
 kod `js/` altında modüllere bölünmüş (yapı listesi README.md'de). Sesler
 `js/audio.js` içinde Web Audio API ile prosedürel üretilir; AudioContext mobil
 autoplay engeli nedeniyle ilk kullanıcı dokunuşunda başlatılır.
-`cizgi-dovusu.html` eski tek dosyalık sürümdür, yedek olarak durur — düzenleme oraya değil modüllere yapılır.
+Eski tek dosyalık sürüm (`cizgi-dovusu.html`) 2026-07-08'de depodan kaldırıldı;
+gerekirse git geçmişinden (commit `df8efbd` öncesi) çıkarılabilir. Düzenleme
+her zaman `js/` modüllerine yapılır.
 
 ## Ortam notları
 
-- Bu makinede Node.js YOK; yerel sunucu için Python kullanılır:
+- Node.js KURULU (winget ile, v24) — `node claude-test.mjs` bununla koşar.
+  Yerel oyun sunucusu için Python da kullanılabilir:
   `python -m http.server 8000` → http://localhost:8000
 - ES modülleri yüzünden `index.html` çift tıklayarak açılmaz, sunucu şart.
 - Kullanıcı programcı değildir: her adım Türkçe ve tek cümleyle açıklanır.
@@ -27,7 +30,7 @@ Sıra önemli: sistem önce, içerik sonra, animasyon cilası en sona.
   launch), yerden kalkma + 0.4sn dokunulmazlık, yerdeki rakibe en fazla 1 vuruş,
   LOW iz çizgisi / HIGH ıskalama görsel dili, AI'ın çömelik blok + alçak tekme
   öğrenmesi, seçim ekranında yükseklik etiketleri.
-- **FAZ B (Görev 5) — TAMAMLANDI:** fırlatma (yakında YUM+TEK, 80ms tuş
+- **FAZ B (Görev 5) — TAMAMLANDI:** fırlatma (yakında YUM+TEK, 100ms tuş
   toleransı, throw break penceresi ~0.2sn, karaktere özel 3 fırlatma:
   Gölge arkaya savurur/yön değişir, Beton yere çakar, Volt şoklar+iter) +
   counter hit (saldırı hazırlık/aktif karesinde vurulan rakibe ×1.3 hasar,

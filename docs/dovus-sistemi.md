@@ -64,12 +64,14 @@ Görsel dil: LOW hamleler zeminde küçük bir çizgi izi bırakır, HIGH iskala
 gözle öğrenir.
 
 ### 2.2 Fırlatma (throw)
-- Yakın mesafede (≤48px) YUM+TEK aynı anda = fırlatma.
-- Blok İŞLEMEZ; kaçış: rakip ilk 10 karede kendi YUM+TEK'ine basarsa
-  fırlatma kırılır (throw break), iki karakter itişip ayrılır.
-- Karaktere özel: GÖLGE ensesinden kavrayıp arkasına savurur (yön değişir!),
-  BETON belden kapıp yere çakar (büyük hasar + yerde bırakır),
-  VOLT tutarken elektrik verir (hasar + kısa stun).
+- Yakın mesafede (≤48px) YUM+TEK (~100ms tolerans içinde ikisi); dokunmatikte
+  tek dokunuşluk FIRLAT tuşu = fırlatma.
+- Blok İŞLEMEZ; kaçış: rakip ilk ~0.2 sn içinde (≈12 kare) kendi YUM+TEK'ine
+  (veya FIRLAT'a) basarsa fırlatma kırılır (throw break), iki karakter itişip ayrılır.
+- Karaktere özel (dördü de farklı): GÖLGE ensesinden kavrayıp arkasına savurur
+  (yön değişir!), BETON belden kapıp yere çakar (en yüksek hasar + yerde bırakır),
+  VOLT tutarken elektrik verir (hasar + kısa stun), KALEM sayfa çevirir gibi
+  kaldırıp öne kapaklar (Sayfa Çevirme, yere bırakır).
 
 ### 2.3 Vuruş tepkisi çeşitliliği
 Hamleye `reaction` alanı: 
@@ -89,7 +91,7 @@ Rakip saldırı animasyonundayken (startup/aktif karelerinde) vurursan:
   counter'da crumple) → Tekken'in derinlik hilesi aynen bizde.
 
 ### 2.5 Poke / ağır hamle ayrımı
-Her karaktere 1-2 "poke" tanımlanır: çok hızlı (0.15-0.18sn), az hasarlı,
+Her karaktere 1-2 "poke" tanımlanır: hızlı (0.20-0.22sn), az hasarlı,
 bloklanınca bile güvenli. Ağır hamleler ise bloklanınca cezalandırılabilir
 (recovery uzun). AI zorluğu da buna bağlanır: ZOR AI bloklanan ağır hamleni
 cezalandırır.
@@ -114,6 +116,7 @@ Felsefe: en kısa yol, minimum hareket, vur-kaç.
 | Kayma Tekmesi | slide kick (zeminde kayarak) | LOW | knockdown | YENİ — çömelikten ileri |
 | Yükselen Gölge | rising uppercut | MID | launch | |
 | Fırlatma: Gölge Savurması | ense kavrama + arkaya atış | — | knockdown | Yön değiştirir |
+| SKİL: Gölge Geçişi | içinden geçip arkadan vuruş | MID | stagger | Rakibi delip arkasına ışınlanır, 17 hasar |
 
 ### BETON — Boks + Judo (ağırlık ve kavrama)
 Felsefe: yaklaş, ez, yere göm. Steve Fox + Paul Phoenix ruhu.
@@ -125,9 +128,11 @@ Felsefe: yaklaş, ez, yere göm. Steve Fox + Paul Phoenix ruhu.
 | Gövde Çengeli | body hook (karaciğer!) | MID | crumple | YENİ — boksun en acı vuruşu |
 | Diz | muay thai knee | MID | flinch | |
 | Omuz Şarjı | shoulder tackle | MID | knockdown | |
-| Bacak Ezici | low kick (calf kick) | LOW | flinch, 3.'de knockdown | |
+| Bacak Ezici | low kick (calf kick) | LOW | flinch | Tek atımlık çömelik tekme |
 | Yer Kancası | rising uppercut | MID | launch | |
 | Fırlatma: Beton Çakması | judo harai goshi (kalça atışı) | — | knockdown | En yüksek fırlatma hasarı |
+| SKİL: Deprem Yumruğu | yere vurur, şok dalgası | **LOW** | **knockdown** | Çömelik blok gerekir; 20 hasar |
+| **SÜPER ZIRH** | Balyoz + Omuz Şarjı hazırlık/aktif karesi | — | — | Flinch/stagger yemez, hamleyi tamamlar (launch/knockdown/crumple DELER) |
 
 ### VOLT — Taekwondo (bacak sanatı)
 Felsefe: mesafe kontrolü, gösterişli döner tekmeler. Hwoarang/Baek ruhu.
@@ -135,7 +140,7 @@ Volt'un yumrukları zayıf kalır (stil gereği!), tekme ağacı zenginleşir:
 | Teknik | Gerçek karşılığı | Yükseklik | Tepki | Not |
 |---|---|---|---|---|
 | Jab | — | HIGH | flinch | |
-| Şok Avucu | palm strike | MID | stun | |
+| Şok Avucu | palm strike | MID | flinch | Ek `stun` alanı taşır (tepki tipi değil) |
 | İtme Tekmesi | push kick (teep) | MID | stagger (uzağa iter) | YENİ — mesafe açıcı poke |
 | Yan Tekme | side kick | MID | stagger | Mevcut, tepkisi güçlendi |
 | Dönen Tekme | roundhouse | HIGH | flinch | |
@@ -143,11 +148,28 @@ Volt'un yumrukları zayıf kalır (stil gereği!), tekme ağacı zenginleşir:
 | Balta | axe kick | MID | knockdown | Çömelik bloğu kırar |
 | Süpürme | sweep | LOW | knockdown | |
 | Ay Tekmesi | crescent kick (havada) | HIGH | flinch | YENİ — hava hamlesi çeşidi |
-| Volt Yükselişi | rising kick | MID | launch+stun | |
-| Fırlatma: Şok Kavraması | yaka tutma + elektrik | — | stun+itme | En az hasarlı ama stun verir |
+| Volt Yükselişi | rising kick | MID | launch | Ek `stun` alanı taşır |
+| Fırlatma: Şok Kavraması | yaka tutma + elektrik | — | (hit+stun) | En az hasarlı ama stun+itme verir |
+| SKİL: Yıldırım Zinciri | üst üste 3 şimşek | MID | flinch | Her çarpış 6 hasar + kısa stun |
+
+### KALEM — stil dışı meta-karakter (TAMAMLANDI, oynanabilir 4. karakter)
+Felsefe: kural yok. Bere + dev kalem taşır; zincir açılışları "yanlış"
+yükseklikten gelir (rakip ezberle bloklayamaz). MENZİL ★★★.
+| Teknik | Gerçek karşılığı | Yükseklik | Tepki | Not |
+|---|---|---|---|---|
+| Kalem Saplama | uzun dürtme | **MID** | flinch | Kural dışı ORTA açılış, 86px poke |
+| Kıvrık Çizgi | kavisli yumruk | HIGH | flinch | |
+| Silgi Tokadı | avuç darbesi | MID | stagger / counter'da crumple | Zincir bitirici |
+| Cetvel Süpürmesi | alçak süpürme | **LOW** | flinch | Kural dışı ALÇAK tekme açılışı |
+| Pergel Tekmesi | dönen tekme | HIGH | stagger | |
+| Nokta Koyma | balta tekme | MID | knockdown | |
+| Kalem Ucu | yükselen vuruş | MID | launch | Launcher |
+| Çizik Atma | alçak tekme | LOW | flinch | ▼+TEK |
+| Fırlatma: Sayfa Çevirme | kaldırıp öne kapaklar | — | knockdown | Yere bırakır |
+| SKİL: Silgi Darbesi | rakibin bir uzvunu siler | MID | flinch | Uzuv 2 sn çizilmez + o uzuvla saldırı/kavrama kilitli |
+| FATALITY: TEMİZ SAYFA | rakibi tepeden aşağı siler | — | — | Silgiyle tamamen silinir |
 
 ### Gelecek karakterler için stil bankası (not olarak dursun)
-- **KALEM** → "stil dışı" meta-karakter (planlandığı gibi)
 - Capoeira karakteri → sürekli hareket, ters dönüşlü tekmeler (Eddy ruhu)
 - Lucha libre güreşçisi → fırlatma ustası, komutlu kapışlar (King ruhu)
 - Muay Thai → dirsek+diz, clinch (yeni mekanik fırsatı)
@@ -158,6 +180,10 @@ Volt'un yumrukları zayıf kalır (stil gereği!), tekme ağacı zenginleşir:
 ## BÖLÜM 4 — Uygulama fazları (her faz = bir Claude Code görevi)
 
 Sıra önemli: sistem önce, içerik sonra. Animasyon cilası en sona.
+
+> **Durum (2026-07-08): FAZ A–D + KALEM + Görev 8 + İnsansı hareket cilası
+> TAMAMLANDI.** Yalnız arena (farklı zeminler) sistemi boşta. Ayrıntılı güncel
+> durum: `docs/durum-raporu.md`.
 
 **FAZ A (Görev 4): Yükseklik sistemi + vuruş tepkileri**
 Hamlelere height/reaction alanları, blok tablosu, çömelik blok, knockdown +
@@ -178,8 +204,22 @@ yeniden düzenlenmesi.
 ağırlık aktarımı (kalça dönüşü), vuruş anında uzuv "tık" duruşu,
 tepki animasyonlarının inceltilmesi.
 
-> Arena sistemi ve KALEM, Faz B ile C arasına da alınabilir — moral için
-> araya "eğlenceli" görev serpiştirmek iyidir.
+**KALEM karakteri (Faz C sonrası eklendi):** stil dışı 4. karakter; Silgi
+Darbesi (uzuv siler), Sayfa Çevirme fırlatması (fırlatma sayısı 3→4), TEMİZ
+SAYFA fatality. Ayrıntı: Bölüm 3 KALEM tablosu.
+
+**İnsansı hareket cilası (Faz 1-12):** salt görsel katman — poz eritme (durum
+geçişleri yumuşar, vuruş anları keskin kalır), dönüş esnemesi, hıza bağlı adım
+ritmi + yön eğilmesi + geri çekilme gardı, karaktere özel canlı bekleme
+(nefes/kişilik/yorgunluk/bakış), hıza bağlı havada duruş + inişte diz
+yaylanması, tekmelerde diz şambrı → patlama → toplanma (Tekken/Hwoarang
+flamingo akışı: zincir tekmede bacak yere inmez). Hamle süreleri/hasarlar
+DEĞİŞMEDİ.
+
+**GÖSTERİ düğmesi (ANTRENMAN modunda):** seçili karakterin yumruk+tekme
+zincirlerini yavaş çekimde otomatik oynatır (hamleleri görsel öğrenme aracı).
+
+> Kalan: arena (farklı zeminler) sistemi hâlâ boşta.
 
 ---
 
@@ -222,14 +262,19 @@ jab → ıskalamalı" durumlarını nasıl test edeceğimi göster.
   "ZIRH!" yazısı; itilme de çok azalır. Toparlanma kareleri zırhsızdır —
   2.5'teki "bloklanan ağır hamle cezalandırılır" dengesi korunur.
 - **Dokunmatik kontrol (Tasarım A):** sağda başparmak yayına oturan elmas —
-  YUM/TEK büyük altta, BLK/SKİL küçük üstte; elmasın solunda orta boy
-  FIRLAT tuşu (tek dokunuş fırlatma; fırlatılırken basılırsa throw break).
-  Klavyede YUM+TEK (~100ms tolerans) aynen geçerli.
-- **ANTRENMAN modu:** karakter seçiminde TEK ile girilir. Kukla AI'sızdır;
-  düğmeyle SERBEST → AYAKTA BLOK → ÇÖMELİK BLOK → ÇÖMELME duruşlarına
-  sokulur (yükseklik sistemini öğrenme aracı). Canlar boşalınca ~1 sn sonra
-  tazelenir, K.O./fatality tetiklenmez; seçili karakterin tam hamle listesi
-  paneli açılıp kapanabilir.
+  YUM/TEK büyük altta (58px), BLK/SKİL üstte (50px = YUM/TEK'in %86'sı; blok
+  hayati tuş olduğu için sonradan büyütüldü); elmasın solunda orta boy FIRLAT
+  tuşu (tek dokunuş fırlatma; fırlatılırken basılırsa throw break). Klavyede
+  YUM+TEK (~100ms tolerans) aynen geçerli.
+- **Seçim ekranı:** karakter kartında yalnız GÜÇ/HIZ/MENZİL yıldızları + kimlik
+  yazısı; ayrıntılar (zincirler/skil/fırlatma/fatality) HAMLELER açılır paneline
+  taşındı. Çerçeveli DÖVÜŞ (klavye YUM) ve ANTRENMAN (klavye TEK) düğmeleri.
+- **ANTRENMAN modu:** karakter seçiminde TEK / ANTRENMAN düğmesiyle girilir.
+  Kukla AI'sızdır; düğmeyle SERBEST → AYAKTA BLOK → ÇÖMELİK BLOK → ÇÖMELME
+  duruşlarına sokulur (yükseklik sistemini öğrenme aracı). Canlar boşalınca
+  ~1 sn sonra tazelenir, K.O./fatality tetiklenmez; seçili karakterin tam hamle
+  listesi paneli (LİSTE) açılıp kapanabilir; **GÖSTERİ** düğmesi tüm yumruk+tekme
+  zincirlerini yavaş çekimde otomatik oynatır. ÇIKIŞ seçime döner.
 
 ## Kapanış notu
 "Gerçekçilik" hedefinde çıta şu: bir taekwondocu Volt'u izlediğinde

@@ -1,5 +1,9 @@
 # Her push'ta oyunu GitHub Pages'e otomatik yayınlar.
 # Yayın adresi: https://yorulmaz91.github.io/cizgi-dovusu/
+# GİZLİLİK: Yayına yalnız oyunun ÇALIŞMASI için gereken dosyalar girer
+# (index.html + css/ + js/). İç belgeler (CLAUDE.md, docs/, README, MEMORY),
+# test dosyaları (test-arena.html, claude-test.mjs) ve betikler (.bat/.ps1)
+# _site klasörüne KOPYALANMAZ, dolayısıyla kamuya açık serviste GÖRÜNMEZ.
 # NOT: Bir çalışma başarısız olursa "Re-run" YAPMA — eski artifact yapışıp
 # "Multiple artifacts named 'github-pages'" hatası verir. Bunun yerine yeni
 # push at veya Actions sekmesinden "Run workflow" ile YENİ çalışma başlat.
@@ -32,10 +36,16 @@ jobs:
         uses: actions/configure-pages@v6
         with:
           enablement: true
+      - name: Yayın klasörünü hazırla (yalnız oyunun çalıştığı dosyalar)
+        run: |
+          mkdir -p _site
+          cp index.html _site/
+          cp -r css _site/
+          cp -r js _site/
       - name: Oyun dosyalarini paketle
         uses: actions/upload-pages-artifact@v5
         with:
-          path: .
+          path: _site
       # GitHub'ın yayın servisi ara ara "Deployment failed, try again later"
       # veriyor (actions/deploy-pages#406). İlk deneme düşerse 30 sn bekleyip
       # AYNI çalışma içinde bir kez daha deniyoruz (artifact yeniden
