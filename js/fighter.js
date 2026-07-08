@@ -517,7 +517,12 @@ export class Fighter{
      Hamle süreleri/hasarlar DEĞİŞMEZ — salt görsel katman. */
   pozHizi(){ // erime hızı (1/sn): vuruş anı keskin kalır, geçişler yumuşar
     const s=this.state;
-    if(s==='attack')return this.mv&&this.st<this.mv.t0?26:55; // hazırlık akıcı, patlama anlık
+    if(s==='attack'){
+      // crisp hamleler (ör. yeop): erimeyi sıkı takip ettir — hızlı hamlenin
+      // authored 4 fazı (chamber/uzanım/profil) lag yüzünden sönmesin
+      const cr=this.mv&&this.mv.crisp;
+      return this.st<this.mv.t0?(cr?60:26):(cr?200:55); // hazırlık akıcı, patlama anlık
+    }
     if(s==='hit'||s==='stagger'||s==='crumple'||s==='thrown')return 32; // darbe kamçı gibi
     if(s==='down')return 20;
     if(s==='walk')return 19; // adım ritmi diri kalsın (sönmesin)
@@ -531,7 +536,7 @@ export class Fighter{
     if(screenFx.hitstop>0)pdt=0;else pdt*=(screenFx.timeScale||1); // vuruş donması pozu da dondurur
     if(!this.poseS||this.state==='fatalP'||this.state==='fatalV'){this.poseS=hedef;return hedef;}
     const S=this.poseS,a=1-Math.exp(-this.pozHizi()*pdt);
-    for(const k of ['lean','head','dip','hipShift','reach','twist','hipTw','omur'])S[k]+=((hedef[k]||0)-(S[k]||0))*a,S[k]=S[k]||0;
+    for(const k of ['lean','head','dip','hipShift','reach','twist','hipTw','omur','profil'])S[k]+=((hedef[k]||0)-(S[k]||0))*a,S[k]=S[k]||0;
     for(const k of ['aL','aR','lL','lR']){
       S[k][0]+=(hedef[k][0]-S[k][0])*a;
       S[k][1]+=(hedef[k][1]-S[k][1])*a;

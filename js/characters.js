@@ -18,7 +18,7 @@ export const CHARS=[
         {name:'Ters Yumruk',anim:'backfist',dur:.4,t0:.16,t1:.26,range:74,dmg:9,kb:230,ky:-60,lunge:130,height:'high',reaction:'stagger'}
       ],
       k:[
-        {name:'Yan Tekme',anim:'yeop',dur:.44,t0:.18,t1:.28,range:78,dmg:7,kb:150,ky:-40,height:'mid',reaction:'flinch'}, // yeop chagi: 4 fazlı gerçek tekvando yan tekmesi
+        {name:'Yan Tekme',anim:'yeop',dur:.44,t0:.18,t1:.28,range:78,dmg:7,kb:150,ky:-40,height:'mid',reaction:'flinch',crisp:true}, // yeop chagi: 4 fazlı gerçek tekvando yan tekmesi (crisp: erime lag'i sönmesin)
         {name:'Topuk Kesme',anim:'sweep',dur:.45,t0:.18,t1:.3,range:82,dmg:8,kb:140,ky:-10,height:'low',reaction:'knockdown'}
       ],
       cp:{name:'Yükselen Gölge',anim:'upper',dur:.38,t0:.12,t1:.22,range:56,dmg:9,kb:60,ky:-80,launch:520,height:'mid',reaction:'launch'},
