@@ -151,6 +151,32 @@ export function computePose(f){
         P.aL=[lerp(1.1,1.5,kk),lerp(.6,.12,kk)];    // nişan kolu: tekmeyle aynı çizgide uzanır
         P.aR=[lerp(-1.1,-1.3,kk),lerp(.6,.35,kk)];  // arka kol karşı denge
         P.dip=-3*(tt<a?ww:1)-3*kk;break;
+      case 'yeop':{ // YAN TEKME (yeop chagi) — Gölge'ye özel, gerçek 4 fazlı biyomekanik
+        // Fazlar (tt): 0-.42 HAZIRLIK+CHAMBER · .42-.64 UZANIM · .64-.86 GERİ · .86-1 GARDA İN
+        const cl=(e0,e1)=>Math.min(1,Math.max(0,(tt-e0)/(e1-e0)));
+        const ss=u=>u*u*(3-2*u);
+        const cham=ss(cl(0,.42));                       // diz YUKARI, kaval katlanır (topuk kalçaya)
+        const extP=(u=>u*u*u)(cl(.42,.64));             // KÜBİK ease-in: chamber'da bekler, sonra PATLAR (hız impact'te zirve)
+        const recP=(u=>1-(1-u)*(1-u))(cl(.64,.86));     // hızlı geri toplama (ease-out)
+        const drop=ss(cl(.86,1));
+        // "committed" açılım: hazırlıkta yarım, uzanımda tam, sonra geri toplanır
+        const drive=tt<.42?.3*cham:tt<.64?lerp(.3,1,extP):tt<.86?lerp(1,.12,recP):.12*(1-drop);
+        // TEKME BACAĞI (lR): duruş → SIKI chamber → DOĞRUSAL uzanım → chamber → duruş
+        // CH: uyluk yatayın üstü (diz yukarı-hedefte), kaval yatay-geri (topuk kalçaya) · EX: bacak düz, topuk önde
+        const ST=[-.15,.15], CH=[1.95,-3.5], EX=[1.5,.1];
+        let th,sh;
+        if(tt<.42){th=lerp(ST[0],CH[0],cham);sh=lerp(ST[1],CH[1],cham);}
+        else if(tt<.64){th=lerp(CH[0],EX[0],extP);sh=lerp(CH[1],EX[1],extP);}
+        else if(tt<.86){th=lerp(EX[0],CH[0],recP);sh=lerp(EX[1],CH[1],recP);}
+        else{th=lerp(CH[0],ST[0],drop);sh=lerp(CH[1],ST[1],drop);}
+        P.lR=[th,sh];
+        P.lL=[lerp(.15,.26,drive),lerp(.28,.04,drive)]; // destek bacağı yük altında dikleşir (pivot htw'den)
+        P.lean=-.72*drive;P.omur=-.46*drive;P.head=1.0*drive; // eşek-tekmesi karşı yaslanma + baş hedefe kilitli
+        P.hipTw=.98*drive;P.twist=.55*drive;                  // kalça devrilir, omuzlar edge-on döner
+        P.hipShift=tt<.42?lerp(0,-5,cham):tt<.64?lerp(-5,8,extP):lerp(8,0,tt<.86?recP:drop); // ağırlık arkaya→öne akar
+        P.aL=[lerp(.95,1.18,drive),lerp(1.05,1.3,drive)];   // ön gard çene hizasında, hedefe dönük
+        P.aR=[lerp(-.9,-1.45,drive),lerp(.5,.3,drive)];     // arka kol dengede geriye
+        P.dip=-3*drive;break;}                              // kalça itişiyle hafif yükseliş
       case 'round': // dönen tekme (tekvando): omurga yatar, kol aşağı süpürülür, gard çenede
         P.lean=-.58*k;P.omur=-.42*kk;P.head=.85*kk;P.hipTw=kk;P.twist=.6*kk;
         P.hipShift+=6*kk;
