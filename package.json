@@ -7,5 +7,8 @@
   "scripts": {
     "start": "npx serve .",
     "start:python": "python -m http.server 8000"
+  },
+  "devDependencies": {
+    "pngjs": "^7.0.0"
   }
 }

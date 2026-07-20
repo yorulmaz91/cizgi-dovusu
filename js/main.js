@@ -11,6 +11,7 @@ import {Fighter} from './fighter.js';
 import {PAPER,screenFx,setInverted,burst,drawGhosts,drawBursts,drawParticles} from './effects.js';
 import {updateFatality,drawFatalityFx} from './fatality.js';
 import {drawHUD,centerText,drawSelect,drawDifficulty,drawVS,drawResult,drawTrainPanel,armResultLock,resetResultLock} from './ui.js';
+import {loadSprites,spriteTick} from './sprites.js';
 import * as sfx from './audio.js';
 
 /* ---------------- oyun akışı ---------------- */
@@ -106,6 +107,13 @@ if(trnDemo)trnDemo.addEventListener('click',()=>{
   if(game.scene!=='training')return;
   game.demo={sira:['k','p','ck','cp'],i:0,bekle:.2};
 });
+/* SPRITE PİLOTU anahtarı: açıkken oyuncu sprite karelerle çizilir (salt görsel) */
+const trnSprite=document.getElementById('trnSprite');
+if(trnSprite)trnSprite.addEventListener('click',()=>{
+  game.spriteOn=!game.spriteOn;
+  if(game.spriteOn)loadSprites(); // kareler ilk açılışta bir kez yüklenir
+  trnSprite.textContent='SPRITE: '+(game.spriteOn?'AÇIK':'KAPALI');
+});
 const trnExit=document.getElementById('trnExit');
 if(trnExit)trnExit.addEventListener('click',()=>{
   game.scene='select';game.selCd=.3;
@@ -150,6 +158,8 @@ function loop(now){
         }
       }
     }
+    game.p1.spritePilot=!!game.spriteOn; // sprite pilotu yalnız antrenman oyuncusunda
+    spriteTick(dt); // sprite bekleme saati: ağır çekimde yavaşlar, hitstop'ta donar
     game.p1.update(dt,game.p2);
     game.p2.update(dt,game.p1);
     // kukla canı: son vuruştan ~1 sn sonra ikisi de tazelenir (K.O. yok)

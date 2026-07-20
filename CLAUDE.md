@@ -67,6 +67,15 @@ Sıra önemli: sistem önce, içerik sonra, animasyon cilası en sona.
   insanlaştırma (omuz uzanımı P.reach + render.js desteği, gard çekişi,
   arka bacak itişi, tekmelerde diz şambrı → patlama → toplanma). Salt görsel;
   hamle süreleri/hasarlar değişmedi.
+- **SPRITE pilotu — TAMAMLANDI:** antrenman modunda "SPRITE" anahtarı
+  (trainUI) oyuncuyu çizilmiş sprite karelerle gösterir (assets/sprites/k1:
+  3 bekleme + 4 yan tekme karesi; yalnız Gölge'nin yeop hamlesi eşlenmiş,
+  diğer hamleler bekleme karesi — pilot bilerek dar). Kesim aracı
+  tools/sprite-kes.mjs (pngjs, npm i -D ile kurulu): kenardan flood-fill
+  şeffaflık (iç beyazlar opak kalır), zemin çizgisi temizliği, kare bölme,
+  aynalama, taban hizalama. Anahtar kapalıyken oyun birebir vektör;
+  dövüş sistemi/hitbox değişmedi. Kareler önceden kesilip commit'lenir,
+  çalışma anında kesim yok.
 - Araya serpiştirilebilir: arena sistemi (farklı zeminler) hâlâ boşta.
 
 ## Karakter tablosu (hepsi 100 can)

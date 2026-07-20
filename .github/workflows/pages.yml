@@ -1,7 +1,7 @@
 # Her push'ta oyunu GitHub Pages'e otomatik yayınlar.
 # Yayın adresi: https://yorulmaz91.github.io/cizgi-dovusu/
 # GİZLİLİK: Yayına yalnız oyunun ÇALIŞMASI için gereken dosyalar girer
-# (index.html + css/ + js/). İç belgeler (CLAUDE.md, docs/, README, MEMORY),
+# (index.html + css/ + js/ + assets/). İç belgeler (CLAUDE.md, docs/, README),
 # test dosyaları (test-arena.html, claude-test.mjs) ve betikler (.bat/.ps1)
 # _site klasörüne KOPYALANMAZ, dolayısıyla kamuya açık serviste GÖRÜNMEZ.
 # NOT: Bir çalışma başarısız olursa "Re-run" YAPMA — eski artifact yapışıp
@@ -42,6 +42,7 @@ jobs:
           cp index.html _site/
           cp -r css _site/
           cp -r js _site/
+          cp -r assets _site/   # sprite kareleri (yoksa canlıda 404 olur)
       - name: Oyun dosyalarini paketle
         uses: actions/upload-pages-artifact@v5
         with:

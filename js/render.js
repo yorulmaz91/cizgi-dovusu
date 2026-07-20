@@ -4,6 +4,7 @@
    ============================================================ */
 import {lerp,rnd} from './utils.js';
 import {INK,PAPER,drawMiniBolt} from './effects.js';
+import {drawSprite,spriteHazir} from './sprites.js';
 
 export const cvs=document.getElementById('game'), ctx=cvs.getContext('2d');
 export let VW=0,VH=0,GROUND=0;
@@ -120,6 +121,11 @@ function drawShoe(g,fx,fy,f,rot){
 /* ---------------- dövüşçü çizimi ---------------- */
 export function drawFighter(g,ftr){
   if(ftr.hidden)return; // KALEM fatality'si tamamen silineni çizmez
+  // SPRITE PİLOTU (antrenman): bayrak açıksa ve kareler yüklüyse sprite çizer,
+  // aksi halde aynen vektör yoluna düşer — dövüş sistemi hiç etkilenmez.
+  // pose() yine çağrılır ki erime katmanı güncel kalsın: anahtar kapatılınca
+  // vektör figür bayat pozdan süzülmek yerine olduğu yerden devam eder
+  if(ftr.spritePilot&&spriteHazir()){ftr.pose();drawSprite(g,ftr,GROUND,INK);return;}
   const p=ftr.pose(),f=ftr.facing,c=ftr.ch;
   // ağırlık aktarımı: kalça (ve üst gövde) vuruş eğrisiyle öne/geriye kayar
   const hipY=ftr.y-46+p.dip, hip=[ftr.x+(p.hipShift||0)*f,hipY];

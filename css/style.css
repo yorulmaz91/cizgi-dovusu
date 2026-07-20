@@ -52,7 +52,7 @@ body{font-family:'Space Grotesk',sans-serif;color:#1A1A1A;touch-action:none}
 #fsBtn:active,#sndBtn:active{transform:translateY(2px);box-shadow:none}
 
 /* antrenman modu düğmeleri (sol üstte yatay sıra) */
-#trainUI{position:fixed;top:56px;left:10px;z-index:30;display:none;gap:8px}
+#trainUI{position:fixed;top:56px;left:10px;z-index:30;display:none;gap:8px;flex-wrap:wrap;max-width:62vw}
 #trainUI.on{display:flex}
 #trainUI button{
   height:34px;padding:0 12px;border-radius:9px;
