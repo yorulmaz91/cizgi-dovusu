@@ -50,7 +50,7 @@ export function spriteTick(dt){saat+=dt;}
    sola yürüyüşte scale(-1,1) ile kendiliğinden aynalanır. */
 const YURU_OFSET=[-89,14,75];   // tuval px; pivot_i + ofset_i ≈ 159.3 sabit
                                 // (kareler kırıntı temizliğiyle yeniden kesilince yeniden ölçüldü)
-const YURU_YOL_PER_KARE=38;     // kare başına kat edilen yol (ekran px) — tempo ayarı buradan
+const YURU_YOL_PER_KARE=32;     // kare başına kat edilen yol (ekran px) — tempo ayarı buradan (38→32: telefon denemesi)
 let yuruKay=0;                  // test/ayar kancası: faz kaydırma (ekran px)
 export function spriteYuruKaydir(px){yuruKay=px;}
 
