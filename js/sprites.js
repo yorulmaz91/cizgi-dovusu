@@ -9,7 +9,7 @@
 const YOL='assets/sprites/k1/';
 const GARD_H=240;    // gard figürünün kesimdeki boyu (px) — ölçek referansı
 const CIZIM_BOY=122; // oyundaki hedef boy (vektör çöp adam ~120px)
-const K={bekleme:[],tekme:[],yurume:[]};
+const K={bekleme:[],tekme:[],yurume:[],yumruk:[]};
 let baslatildi=false,hazir=0,toplam=0,hata=false,nesil=0;
 
 /* kareleri bir kez yükle (anahtar ilk açıldığında çağrılır);
@@ -31,6 +31,7 @@ export function loadSprites(){
   for(let i=0;i<3;i++)al(K.bekleme,i,'bekleme-'+i+'.png');
   for(let i=0;i<4;i++)al(K.tekme,i,'tekme-'+i+'.png');
   for(let i=0;i<3;i++)al(K.yurume,i,'walk_'+(i+1)+'.png');
+  for(let i=0;i<3;i++)al(K.yumruk,i,'punch_'+(i+1)+'.png');
 }
 export function spriteHazir(){return baslatildi&&toplam>0&&hazir===toplam;}
 
@@ -47,13 +48,23 @@ export function spriteTick(dt){saat+=dt;}
    üç karede AYNI x'e getirilir (referans: üç pivotun ortalaması 161.6).
    PNG'lere dokunulmaz: ofset çizim anında, yerel uzayda uygulanır —
    sola yürüyüşte scale(-1,1) ile kendiliğinden aynalanır. */
-const YURU_OFSET=[-87,10,76];   // tuval px; pivot_i + ofset_i ≈ 161.6 sabit
-const ADIM_EKRAN=83;            // bir çevrimde kat edilen yol (ekran px) = 163.2 tuval × ölçek
+const YURU_OFSET=[-89,14,75];   // tuval px; pivot_i + ofset_i ≈ 159.3 sabit
+                                // (kareler kırıntı temizliğiyle yeniden kesilince yeniden ölçüldü)
+const YURU_YOL_PER_KARE=38;     // kare başına kat edilen yol (ekran px) — tempo ayarı buradan
 let yuruKay=0;                  // test/ayar kancası: faz kaydırma (ekran px)
 export function spriteYuruKaydir(px){yuruKay=px;}
 
-/* kare seçimi: yeop (Gölge Yan Tekme) + yürüme sprite'lı — pilot bilerek dar.
+/* YUMRUK HİZALAMASI: bu şeritte pivot ARKA AYAK. Ölçüm (taban bandı,
+   alfa ağırlıklı): arka ayak hücrede 125.6 / 139.1 / 88.4 px'te.
+   Referans = punch_1 (gard) — ofseti 0 olduğu için idle→yumruk geçişinde
+   figür yerinden oynamaz; coil ve impact kareleri arka ayağı gard'ın
+   arka ayağına sabitler, kare 3'ün ileri hamlesi serbestçe öne taşar. */
+const YUMRUK_OFSET=[0,-13,37];  // tuval px; arka_ayak_i + ofset_i ≈ 125.6 sabit
+
+/* kare seçimi: yeop (Gölge Yan Tekme) + yumruk + yürüme sprite'lı — pilot dar.
    yeop: hazırlık → kare 1-2, aktif → kare 3 (uzanım), toparlanma → kare 4;
+   yumruk: 1→2→3→2→1 — hazırlık coil, AKTİF PENCERE impact (hitbox ile aynı an,
+   mevcut hamle verisi t0/t1 esas alınır), toparlanma coil→gard;
    yürüme: 3 kare döngü; diğer tüm durumlar → bekleme döngüsü (3 kare ~600ms) */
 function kareSec(f){
   if(f.state==='attack'&&f.mv&&f.mv.anim==='yeop'){
@@ -63,11 +74,21 @@ function kareSec(f){
     if(f.st<=mv.t1+0.02)return{im:K.tekme[2],bob:0};
     return{im:K.tekme[3],bob:0};
   }
+  if(f.state==='attack'&&f.mvKind==='p'&&!f.airMove&&f.mv&&f.mv.anim!=='upper'){
+    const mv=f.mv,st=f.st;
+    let i;
+    if(st<mv.t0*0.3)i=0;                      // gard → coil girişi
+    else if(st<mv.t0)i=1;                     // hazırlık: coil
+    else if(st<=mv.t1+0.02)i=2;               // AKTİF: impact — hitbox penceresi [t0,t1] tamamen burada
+    else if(st<mv.t1+(mv.dur-mv.t1)*0.6)i=1;  // toparlanma: coil
+    else i=0;                                 // gard
+    return{im:K.yumruk[i],bob:0,of:YUMRUK_OFSET[i]};
+  }
   if(f.state==='walk'){
     // kare = kat edilen yolun fonksiyonu: tempo hıza orantılı (kare başına
     // ADIM_EKRAN/3 px yol), geri çekilirken yol azaldığı için döngü
     // kendiliğinden tersine döner, hitstop/ağır çekimde donar, duvarda durur
-    const yol=((f.x+yuruKay)*f.facing)/(ADIM_EKRAN/3);
+    const yol=((f.x+yuruKay)*f.facing)/YURU_YOL_PER_KARE;
     const i=((Math.floor(yol)%3)+3)%3;
     return{im:K.yurume[i],bob:0,of:YURU_OFSET[i]};
   }

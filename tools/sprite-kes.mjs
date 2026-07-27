@@ -149,15 +149,36 @@ function bilesenBol(png,mask,beklenen){
   for(const f of figurler)if(boyut[f]<enB*0.05)
     throw new Error(`şüpheli bölme: bileşen boyutları ${figurler.map(f=>boyut[f]).join(', ')} — iki figür birleşmiş olabilir`);
   figurler.sort((a,b)=>ortX[a]-ortX[b]);
-  const grup=new Map(figurler.map(f=>[f,new Set([f])]));
-  for(const k of sirali.slice(beklenen)){
-    let enYakin=figurler[0],enKucuk=Infinity;
-    for(const f of figurler){
-      const d=Math.abs(ortX[k]-ortX[f]);
-      if(d<enKucuk){enKucuk=d;enYakin=f;}
+  /* kırıntı iliştirme: ağırlık merkezi yanıltır (hız çizgileri iki figürün
+     arasında kalabilir) — figür piksellerinden ızgara BFS ile her kırıntı,
+     mürekkebi kendine EN YAKIN figüre yapışır */
+  const figSet=new Set(figurler);
+  const sahip=new Int32Array(W*H).fill(-1);
+  const dist=new Int32Array(W*H).fill(-1);
+  let dalga=[];
+  for(let i=0;i<W*H;i++)if(et[i]>=0&&figSet.has(et[i])){sahip[i]=et[i];dist[i]=0;dalga.push(i);}
+  while(dalga.length){
+    const yeni=[];
+    for(const i of dalga){
+      const x=i%W,y=(i-x)/W;
+      for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){
+        const nx=x+dx,ny=y+dy;
+        if(nx<0||ny<0||nx>=W||ny>=H)continue;
+        const j=ny*W+nx;
+        if(dist[j]<0){dist[j]=dist[i]+1;sahip[j]=sahip[i];yeni.push(j);}
+      }
     }
-    grup.get(enYakin).add(k);
+    dalga=yeni;
   }
+  const grup=new Map(figurler.map(f=>[f,new Set([f])]));
+  const enIyi=new Map(); // kırıntı id → {d:en yakın mesafe, f:figür}
+  for(let i=0;i<W*H;i++){
+    const e=et[i];
+    if(e<0||figSet.has(e))continue;
+    const k=enIyi.get(e);
+    if(!k||dist[i]<k.d)enIyi.set(e,{d:dist[i],f:sahip[i]});
+  }
+  for(const [uydu,k] of enIyi)grup.get(k.f).add(uydu);
   return {et,figurler,grup};
 }
 
@@ -272,6 +293,12 @@ const isler=[
    bolme:'bilesen',  // kareler yatayda iç içe: sütun yerine bileşen bölme
    nester:[1116]},   // 3-4. karelerin ayak uçları x≈1104-1128'de birleşik (y 678-700,
                      // ölçüldü) — 2px'lik dikey kesik bileşenleri ayırır, kayıp görünmez
+  {dosya:'punch_raw.png',ad:'punch',beklenen:4,aynali:[],kullan:[0,1,2],
+   ustTemizle:140,hedef:240,adlar:['punch_1','punch_2','punch_3'],
+   bolme:'bilesen',  // 3. karedeki hız çizgileri gövdeden kopuk: en-yakın-mürekkep
+                     // kırıntı iliştirmesi onları F3'ün yumruğuna yapıştırır
+   nester:[362,654]},// F1-F2 ayak ucu köprüsü x≈354-378 (y 687-709) ve F2-F3
+                     // köprüsü x≈652-656 (y 635-699) — ikisi de yalnız ayak hizasında
 ];
 fs.mkdirSync(CIKTI,{recursive:true});
 const tum=[];
