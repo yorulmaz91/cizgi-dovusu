@@ -29,6 +29,16 @@ const BEYAZ=245;               // arka plan beyazı eşiği (pantolon grisi ~232
 
 function oku(p){return PNG.sync.read(fs.readFileSync(p));}
 
+/* 0) filigran temizliği: üst bandı (figürlerin üstünde kalan bölge) beyaza
+   boya — "AI-Generated" rozeti gibi arka plana bağlı OLMAYAN köşe damgaları
+   flood-fill'e takılmadan yok olur */
+function ustBandiBeyazla(png,yMax){
+  const {width:W,data:D}=png;
+  for(let y=0;y<Math.min(yMax,png.height);y++)for(let x=0;x<W;x++){
+    const i=(y*W+x)*4;D[i]=D[i+1]=D[i+2]=255;D[i+3]=255;
+  }
+}
+
 /* 1) kenardan flood-fill → arka plan maskesi (1=arka plan) */
 function arkaPlanMaskesi(png){
   const {width:W,height:H,data:D}=png;
@@ -104,6 +114,71 @@ function kareBol(png,mask,beklenen){
   return kareler;
 }
 
+/* 3b) bileşen bölme: figürler yatayda iç içe geçtiğinde (walk şeridinde
+   3. karenin öne uzanan ayağı 4. kareye değecek kadar yakın) sütun kesme
+   çalışmaz. Her figür tek bağlı mürekkep kütlesidir: 8-komşuluklu bileşen
+   etiketleme ile en büyük N bileşen figür sayılır, kırıntılar yatayda en
+   yakın figüre iliştirilir */
+function bilesenBol(png,mask,beklenen){
+  const {width:W,height:H}=png;
+  const et=new Int32Array(W*H).fill(-1);
+  const boyut=[],ortX=[];
+  let id=0;
+  for(let s=0;s<W*H;s++){
+    if(mask[s]||et[s]>=0)continue;
+    const kuyruk=[s];et[s]=id;let n=0,topX=0;
+    while(kuyruk.length){
+      const i=kuyruk.pop(),x=i%W,y=(i-x)/W;
+      n++;topX+=x;
+      for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+        if(!dx&&!dy)continue;
+        const nx=x+dx,ny=y+dy;
+        if(nx<0||ny<0||nx>=W||ny>=H)continue;
+        const j=ny*W+nx;
+        if(!mask[j]&&et[j]<0){et[j]=id;kuyruk.push(j);}
+      }
+    }
+    boyut.push(n);ortX.push(topX/n);id++;
+  }
+  const sirali=[...boyut.keys()].sort((a,b)=>boyut[b]-boyut[a]);
+  if(sirali.length<beklenen)
+    throw new Error(`bileşen sayısı ${sirali.length} < beklenen ${beklenen} (figürler birbirine değiyor olabilir)`);
+  const figurler=sirali.slice(0,beklenen);
+  // güvenlik: "figür" seçilen bileşenlerden biri cüceyse iki figür birleşmiş demektir
+  const enB=boyut[figurler[0]];
+  for(const f of figurler)if(boyut[f]<enB*0.05)
+    throw new Error(`şüpheli bölme: bileşen boyutları ${figurler.map(f=>boyut[f]).join(', ')} — iki figür birleşmiş olabilir`);
+  figurler.sort((a,b)=>ortX[a]-ortX[b]);
+  const grup=new Map(figurler.map(f=>[f,new Set([f])]));
+  for(const k of sirali.slice(beklenen)){
+    let enYakin=figurler[0],enKucuk=Infinity;
+    for(const f of figurler){
+      const d=Math.abs(ortX[k]-ortX[f]);
+      if(d<enKucuk){enKucuk=d;enYakin=f;}
+    }
+    grup.get(enYakin).add(k);
+  }
+  return {et,figurler,grup};
+}
+
+/* bileşen kümesini kırpıp RGBA + alfa üret (küme dışı → şeffaf) */
+function kirpBilesen(png,et,ids){
+  const {width:W,height:H,data:D}=png;
+  let minY=H,maxY=-1,minX=W,maxX=-1;
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(ids.has(et[y*W+x])){
+    if(y<minY)minY=y;if(y>maxY)maxY=y;if(x<minX)minX=x;if(x>maxX)maxX=x;
+  }
+  const w=maxX-minX+1,h=maxY-minY+1;
+  const out=new PNG({width:w,height:h});
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+    const s=((y+minY)*W+(x+minX)),di=(y*w+x)*4;
+    if(ids.has(et[s])){
+      out.data[di]=D[s*4];out.data[di+1]=D[s*4+1];out.data[di+2]=D[s*4+2];out.data[di+3]=255;
+    }
+  }
+  return out;
+}
+
 /* bbox içinde kırpıp RGBA + alfa üret (arka plan → şeffaf) */
 function kirp(png,mask,x0,x1){
   const {width:W,height:H,data:D}=png;
@@ -169,29 +244,64 @@ function ayakMerkezi(png){
   return say?top/say:W/2;
 }
 
-/* ---- akış ---- */
+/* kafa genişliği tahmini: üst %12'lik banttaki en uzun yatay opak dizi —
+   kareler arası çizim ölçeği tutarlılığını denetlemek için (tanı çıktısı) */
+function kafaGenisligi(png){
+  const {width:W,height:H,data:D}=png;
+  let enUzun=0;
+  for(let y=0;y<H*0.12;y++){
+    let su=0;
+    for(let x=0;x<W;x++){
+      if(D[(y*W+x)*4+3]>60){su++;if(su>enUzun)enUzun=su;}else su=0;
+    }
+  }
+  return enUzun;
+}
+
+/* ---- akış ----
+   kullan: şeritten yalnız bu kareler alınır (walk 4. kare = 3.'nün kopyası)
+   ustTemizle: bu satıra kadar üst bant beyazlanır (filigran)
+   esitle: bu karelerin KENDİ kutusu hedefe ölçeklenir (aynı poz ailesi,
+           kaynakta farklı büyüklükte çizilmişler); diğerleri 0. karenin oranını alır
+   adlar: çıktı dosya adları (varsayılan: ad-indeks) */
 const isler=[
   {dosya:'bekleme-serit.png',ad:'bekleme',beklenen:3,aynali:[]},
   {dosya:'yan-tekme-serit.png',ad:'tekme',beklenen:4,aynali:[2]}, // 3. kare sola bakıyor
+  {dosya:'walk_raw.png',ad:'walk',beklenen:4,aynali:[],kullan:[0,1,2],
+   ustTemizle:140,hedef:238,esitle:[0,2],adlar:['walk_1','walk_2','walk_3'],
+   bolme:'bilesen',  // kareler yatayda iç içe: sütun yerine bileşen bölme
+   nester:[1116]},   // 3-4. karelerin ayak uçları x≈1104-1128'de birleşik (y 678-700,
+                     // ölçüldü) — 2px'lik dikey kesik bileşenleri ayırır, kayıp görünmez
 ];
 fs.mkdirSync(CIKTI,{recursive:true});
 const tum=[];
 for(const is_ of isler){
   const png=oku(path.join(KOK,is_.dosya));
+  if(is_.ustTemizle)ustBandiBeyazla(png,is_.ustTemizle);
   const mask=arkaPlanMaskesi(png);
   const silinen=zeminCizgisiTemizle(png,mask);
-  const kareler=kareBol(png,mask,is_.beklenen);
-  console.log(`${is_.dosya}: ${png.width}x${png.height}, zemin çizgisi ${silinen}px silindi, ${kareler.length} kare`);
-  is_.parcalar=kareler.map(([x0,x1],i)=>{
-    let k=kirp(png,mask,x0,x1);
-    if(is_.aynali.includes(i))k=aynala(k);
-    return k;
-  });
-  // şerit ölçeği: gard karesi (0. kare) HEDEF_GARD boyuna
-  const oran=HEDEF_GARD/is_.parcalar[0].height;
-  is_.parcalar=is_.parcalar.map(p=>olcekle(p,oran));
-  is_.parcalar.forEach((p,i)=>tum.push({ad:`${is_.ad}-${i}`,png:p,ayak:ayakMerkezi(p)}));
-  console.log(`  ölçek ×${oran.toFixed(3)} → kareler: ${is_.parcalar.map(p=>p.width+'x'+p.height).join(', ')}`);
+  // neşter: birbirine değen figürleri ayıran 2px'lik dikey kesikler
+  if(is_.nester)for(const nx of is_.nester)
+    for(let y=0;y<png.height;y++){mask[y*png.width+nx]=1;if(nx+1<png.width)mask[y*png.width+nx+1]=1;}
+  let parcalar;
+  if(is_.bolme==='bilesen'){
+    const {et,figurler,grup}=bilesenBol(png,mask,is_.beklenen);
+    parcalar=figurler.map(f=>kirpBilesen(png,et,grup.get(f)));
+  }else{
+    const kareler=kareBol(png,mask,is_.beklenen);
+    parcalar=kareler.map(([x0,x1])=>kirp(png,mask,x0,x1));
+  }
+  console.log(`${is_.dosya}: ${png.width}x${png.height}, zemin çizgisi ${silinen}px silindi, ${parcalar.length} kare (${is_.bolme==='bilesen'?'bileşen':'sütun'} bölme)`);
+  parcalar=parcalar.map((k,i)=>is_.aynali.includes(i)?aynala(k):k);
+  if(is_.kullan)parcalar=is_.kullan.map(i=>parcalar[i]);
+  // şerit ölçeği: 0. kare hedef boya; esitle'dekiler kendi kutusundan hedefe
+  const hedef=is_.hedef||HEDEF_GARD;
+  const oranTemel=hedef/parcalar[0].height;
+  parcalar=parcalar.map((p,j)=>
+    olcekle(p,(is_.esitle&&is_.esitle.includes(j))?hedef/p.height:oranTemel));
+  parcalar.forEach((p,j)=>tum.push({ad:(is_.adlar&&is_.adlar[j])||`${is_.ad}-${j}`,png:p,ayak:ayakMerkezi(p)}));
+  console.log(`  temel ölçek ×${oranTemel.toFixed(3)} → kareler: ${parcalar.map(p=>p.width+'x'+p.height).join(', ')}`);
+  console.log(`  kafa genişlikleri (ölçek tutarlılık tanısı): ${parcalar.map(p=>kafaGenisligi(p)).join(', ')}`);
 }
 
 /* ortak tuval: ayak merkezi ortada, taban altta (2px pay) */

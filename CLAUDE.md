@@ -69,13 +69,16 @@ Sıra önemli: sistem önce, içerik sonra, animasyon cilası en sona.
   hamle süreleri/hasarlar değişmedi.
 - **SPRITE pilotu — TAMAMLANDI:** antrenman modunda "SPRITE" anahtarı
   (trainUI) oyuncuyu çizilmiş sprite karelerle gösterir (assets/sprites/k1:
-  3 bekleme + 4 yan tekme karesi; yalnız Gölge'nin yeop hamlesi eşlenmiş,
-  diğer hamleler bekleme karesi — pilot bilerek dar). Kesim aracı
+  3 bekleme + 4 yan tekme + 3 yürüme karesi; Gölge'nin yeop hamlesi ve
+  yürüme eşlenmiş — yürüme 200ms/kare döngü, geri çekilirken ters oynar —
+  diğer hamleler bekleme karesi, pilot bilerek dar). Kesim aracı
   tools/sprite-kes.mjs (pngjs, npm i -D ile kurulu): kenardan flood-fill
-  şeffaflık (iç beyazlar opak kalır), zemin çizgisi temizliği, kare bölme,
-  aynalama, taban hizalama. Anahtar kapalıyken oyun birebir vektör;
-  dövüş sistemi/hitbox değişmedi. Kareler önceden kesilip commit'lenir,
-  çalışma anında kesim yok.
+  şeffaflık (iç beyazlar opak kalır), zemin çizgisi temizliği, kare bölme
+  (sütun VEYA bağlı-bileşen: kareler yatayda iç içeyse bileşen + gerekirse
+  "neşter" kesiği), filigran üst-bant temizliği, aynalama, ölçek eşitleme,
+  taban hizalama. Anahtar kapalıyken oyun birebir vektör; dövüş sistemi/
+  hitbox değişmedi. Kareler önceden kesilip commit'lenir, çalışma anında
+  kesim yok. Ham şeritler depo kökünde (Pages'e girmez).
 - Araya serpiştirilebilir: arena sistemi (farklı zeminler) hâlâ boşta.
 
 ## Karakter tablosu (hepsi 100 can)

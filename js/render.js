@@ -125,7 +125,7 @@ export function drawFighter(g,ftr){
   // aksi halde aynen vektör yoluna düşer — dövüş sistemi hiç etkilenmez.
   // pose() yine çağrılır ki erime katmanı güncel kalsın: anahtar kapatılınca
   // vektör figür bayat pozdan süzülmek yerine olduğu yerden devam eder
-  if(ftr.spritePilot&&spriteHazir()){ftr.pose();drawSprite(g,ftr,GROUND,INK);return;}
+  if(ftr.spritePilot&&spriteHazir()){ftr.pose();if(drawSprite(g,ftr,GROUND,INK))return;}
   const p=ftr.pose(),f=ftr.facing,c=ftr.ch;
   // ağırlık aktarımı: kalça (ve üst gövde) vuruş eğrisiyle öne/geriye kayar
   const hipY=ftr.y-46+p.dip, hip=[ftr.x+(p.hipShift||0)*f,hipY];
