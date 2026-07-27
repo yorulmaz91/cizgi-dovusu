@@ -50,17 +50,8 @@ export function spriteTick(dt){saat+=dt;}
    sola yürüyüşte scale(-1,1) ile kendiliğinden aynalanır. */
 const YURU_OFSET=[-89,14,75];   // tuval px; pivot_i + ofset_i ≈ 159.3 sabit
                                 // (kareler kırıntı temizliğiyle yeniden kesilince yeniden ölçüldü)
-/* GEÇİCİ tempo ayar aracı: kare başına kat edilen yol (ekran px) canlı
-   ayarlanabilir — sayı BÜYÜDÜKÇE tempo YAVAŞLAR. Kullanıcı telefonda son
-   değeri bildirince bu araç kaldırılıp değer sabitlenecek. */
-let yuruYolPerKare=44;          // başlangıç 44 (32 hâlâ hızlı bulundu, yukarıdan başlıyoruz)
-try{const k=parseInt(localStorage.getItem('cd-sprite-tempo'));if(k>=24&&k<=72)yuruYolPerKare=k;}catch(e){}
-export function spriteTempo(){return yuruYolPerKare;}
-export function spriteTempoAyarla(fark){ // ±4 adım, 24–72 aralığı; anında etkili
-  yuruYolPerKare=Math.max(24,Math.min(72,yuruYolPerKare+fark));
-  try{localStorage.setItem('cd-sprite-tempo',yuruYolPerKare);}catch(e){}
-  return yuruYolPerKare;
-}
+const YURU_YOL_PER_KARE=72;     // kare başına kat edilen yol (ekran px) — sayı büyüdükçe
+                                // tempo yavaşlar; telefon denemesiyle seçildi (2026-07)
 let yuruKay=0;                  // test/ayar kancası: faz kaydırma (ekran px)
 export function spriteYuruKaydir(px){yuruKay=px;}
 
@@ -98,7 +89,7 @@ function kareSec(f){
     // kare = kat edilen yolun fonksiyonu: tempo hıza orantılı (kare başına
     // ADIM_EKRAN/3 px yol), geri çekilirken yol azaldığı için döngü
     // kendiliğinden tersine döner, hitstop/ağır çekimde donar, duvarda durur
-    const yol=((f.x+yuruKay)*f.facing)/yuruYolPerKare;
+    const yol=((f.x+yuruKay)*f.facing)/YURU_YOL_PER_KARE;
     const i=((Math.floor(yol)%3)+3)%3;
     return{im:K.yurume[i],bob:0,of:YURU_OFSET[i]};
   }

@@ -11,7 +11,7 @@ import {Fighter} from './fighter.js';
 import {PAPER,screenFx,setInverted,burst,drawGhosts,drawBursts,drawParticles} from './effects.js';
 import {updateFatality,drawFatalityFx} from './fatality.js';
 import {drawHUD,centerText,drawSelect,drawDifficulty,drawVS,drawResult,drawTrainPanel,armResultLock,resetResultLock} from './ui.js';
-import {loadSprites,spriteTick,spriteTempo,spriteTempoAyarla} from './sprites.js';
+import {loadSprites,spriteTick} from './sprites.js';
 import * as sfx from './audio.js';
 
 /* ---------------- oyun akışı ---------------- */
@@ -114,15 +114,6 @@ if(trnSprite)trnSprite.addEventListener('click',()=>{
   if(game.spriteOn)loadSprites(); // kareler ilk açılışta bir kez yüklenir
   trnSprite.textContent='SPRITE: '+(game.spriteOn?'AÇIK':'KAPALI');
 });
-/* GEÇİCİ tempo ayar aracı: sprite yürüme temposu canlı ayarlanır (±4, 24–72,
-   localStorage'da kalır) — kullanıcı son değeri bildirince kaldırılıp sabitlenecek */
-const tEksi=document.getElementById('trnTempoEksi');
-const tArti=document.getElementById('trnTempoArti');
-const tDeger=document.getElementById('trnTempoDeger');
-const tempoYaz=()=>{if(tDeger)tDeger.textContent='TEMPO '+spriteTempo();};
-if(tEksi)tEksi.addEventListener('click',()=>{spriteTempoAyarla(-4);tempoYaz();});
-if(tArti)tArti.addEventListener('click',()=>{spriteTempoAyarla(4);tempoYaz();});
-tempoYaz();
 const trnExit=document.getElementById('trnExit');
 if(trnExit)trnExit.addEventListener('click',()=>{
   game.scene='select';game.selCd=.3;
