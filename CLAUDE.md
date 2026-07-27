@@ -70,8 +70,10 @@ Sıra önemli: sistem önce, içerik sonra, animasyon cilası en sona.
 - **SPRITE pilotu — TAMAMLANDI:** antrenman modunda "SPRITE" anahtarı
   (trainUI) oyuncuyu çizilmiş sprite karelerle gösterir (assets/sprites/k1:
   3 bekleme + 4 yan tekme + 3 yürüme karesi; Gölge'nin yeop hamlesi ve
-  yürüme eşlenmiş — yürüme 200ms/kare döngü, geri çekilirken ters oynar —
-  diğer hamleler bekleme karesi, pilot bilerek dar). Kesim aracı
+  yürüme eşlenmiş — yürüme yol-senkron: kare kat edilen yoldan seçilir
+  (tempo hıza orantılı, geri çekilirken ters, duvarda/hitstop'ta durur),
+  pivot ayak hücre ofsetleriyle üç karede aynı x'te (sprites.js
+  YURU_OFSET) — diğer hamleler bekleme karesi, pilot bilerek dar). Kesim aracı
   tools/sprite-kes.mjs (pngjs, npm i -D ile kurulu): kenardan flood-fill
   şeffaflık (iç beyazlar opak kalır), zemin çizgisi temizliği, kare bölme
   (sütun VEYA bağlı-bileşen: kareler yatayda iç içeyse bileşen + gerekirse

@@ -39,6 +39,19 @@ export function spriteHazir(){return baslatildi&&toplam>0&&hazir===toplam;}
 let saat=0;
 export function spriteTick(dt){saat+=dt;}
 
+/* YÜRÜME HİZALAMASI (pivot ayak sabitleme):
+   Kareler ayak ağırlık-merkezine ortalanınca fazlar arası göreli ayak
+   kayması siliniyordu (basılı ayak "yapışık" okunuyordu). Ölçüm: basılı
+   (pivot) ayak üç karenin hücresinde 248.3 → 151.4 → 85.1 px'te
+   (gövdeye göre geriye süpürülür — doğru mekanik). Hücre ofsetiyle pivot
+   üç karede AYNI x'e getirilir (referans: üç pivotun ortalaması 161.6).
+   PNG'lere dokunulmaz: ofset çizim anında, yerel uzayda uygulanır —
+   sola yürüyüşte scale(-1,1) ile kendiliğinden aynalanır. */
+const YURU_OFSET=[-87,10,76];   // tuval px; pivot_i + ofset_i ≈ 161.6 sabit
+const ADIM_EKRAN=83;            // bir çevrimde kat edilen yol (ekran px) = 163.2 tuval × ölçek
+let yuruKay=0;                  // test/ayar kancası: faz kaydırma (ekran px)
+export function spriteYuruKaydir(px){yuruKay=px;}
+
 /* kare seçimi: yeop (Gölge Yan Tekme) + yürüme sprite'lı — pilot bilerek dar.
    yeop: hazırlık → kare 1-2, aktif → kare 3 (uzanım), toparlanma → kare 4;
    yürüme: 3 kare döngü; diğer tüm durumlar → bekleme döngüsü (3 kare ~600ms) */
@@ -51,8 +64,12 @@ function kareSec(f){
     return{im:K.tekme[3],bob:0};
   }
   if(f.state==='walk'){
-    const i=Math.floor(saat/0.2)%3; // 200ms/kare, bekleme ile aynı tempo
-    return{im:K.yurume[f.ileriGeri<0?2-i:i],bob:0}; // geri çekilirken döngü tersine (ay yürüyüşü olmasın)
+    // kare = kat edilen yolun fonksiyonu: tempo hıza orantılı (kare başına
+    // ADIM_EKRAN/3 px yol), geri çekilirken yol azaldığı için döngü
+    // kendiliğinden tersine döner, hitstop/ağır çekimde donar, duvarda durur
+    const yol=((f.x+yuruKay)*f.facing)/(ADIM_EKRAN/3);
+    const i=((Math.floor(yol)%3)+3)%3;
+    return{im:K.yurume[i],bob:0,of:YURU_OFSET[i]};
   }
   return{im:K.bekleme[Math.floor(saat/0.2)%3],bob:Math.sin(saat*2*Math.PI/1.2)*1.5}; // hafif nefes
 }
@@ -60,7 +77,7 @@ function kareSec(f){
 /* true dönerse çizim yapıldı; yüklenmediyse false → vektör çizim devam eder */
 export function drawSprite(g,ftr,ground,ink){
   if(!spriteHazir())return false;
-  const {im,bob}=kareSec(ftr);
+  const {im,bob,of}=kareSec(ftr);
   if(!im||!im.naturalWidth)return false;
   const s=CIZIM_BOY/GARD_H,w=im.naturalWidth*s,h=im.naturalHeight*s;
   // zemin gölgesi (vektörle aynı dil; havada küçülür)
@@ -72,7 +89,7 @@ export function drawSprite(g,ftr,ground,ink){
   g.save();
   g.translate(ftr.x,ftr.y+6+bob);   // taban: vektör ayakkabı hizası (~y+5)
   if(ftr.facing===-1)g.scale(-1,1); // kareler SAĞA bakar; sola dönükte aynala
-  g.drawImage(im,-w/2,-h+2*s,w,h);  // kesimdeki 2px alt payı düş
+  g.drawImage(im,-w/2+(of||0)*s,-h+2*s,w,h); // hücre ofseti yerel uzayda: yönle birlikte aynalanır; 2px alt payı düş
   g.restore();
   return true;
 }
