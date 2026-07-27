@@ -11,7 +11,7 @@ import {Fighter} from './fighter.js';
 import {PAPER,screenFx,setInverted,burst,drawGhosts,drawBursts,drawParticles} from './effects.js';
 import {updateFatality,drawFatalityFx} from './fatality.js';
 import {drawHUD,centerText,drawSelect,drawDifficulty,drawVS,drawResult,drawTrainPanel,armResultLock,resetResultLock} from './ui.js';
-import {loadSprites,spriteTick} from './sprites.js';
+import {loadSprites,spriteTick,spriteAcik,spriteAyarla} from './sprites.js';
 import * as sfx from './audio.js';
 
 /* ---------------- oyun akışı ---------------- */
@@ -107,13 +107,13 @@ if(trnDemo)trnDemo.addEventListener('click',()=>{
   if(game.scene!=='training')return;
   game.demo={sira:['k','p','ck','cp'],i:0,bekle:.2};
 });
-/* SPRITE PİLOTU anahtarı: açıkken oyuncu sprite karelerle çizilir (salt görsel) */
+/* SPRITE görünümü anahtarı: GLOBAL (dövüş dahil), localStorage'da kalıcı,
+   varsayılan AÇIK — GÖLGE sprite ile çizilir, diğer karakterler vektör */
+if(spriteAcik())loadSprites(); // varsayılan açık: kareler baştan yüklenir
 const trnSprite=document.getElementById('trnSprite');
-if(trnSprite)trnSprite.addEventListener('click',()=>{
-  game.spriteOn=!game.spriteOn;
-  if(game.spriteOn)loadSprites(); // kareler ilk açılışta bir kez yüklenir
-  trnSprite.textContent='SPRITE: '+(game.spriteOn?'AÇIK':'KAPALI');
-});
+const spriteEtiket=()=>{if(trnSprite)trnSprite.textContent='SPRITE: '+(spriteAcik()?'AÇIK':'KAPALI');};
+if(trnSprite)trnSprite.addEventListener('click',()=>{spriteAyarla(!spriteAcik());spriteEtiket();});
+spriteEtiket();
 const trnExit=document.getElementById('trnExit');
 if(trnExit)trnExit.addEventListener('click',()=>{
   game.scene='select';game.selCd=.3;
@@ -128,6 +128,7 @@ function loop(now){
 
   if(screenFx.hitstop>0){screenFx.hitstop-=dt;dt=0;}
   dt*=screenFx.timeScale;
+  spriteTick(dt); // sprite bekleme saati (global): ağır çekimde yavaşlar, hitstop'ta donar
 
   const g=ctx;
   g.save();
@@ -158,8 +159,6 @@ function loop(now){
         }
       }
     }
-    game.p1.spritePilot=!!game.spriteOn; // sprite pilotu yalnız antrenman oyuncusunda
-    spriteTick(dt); // sprite bekleme saati: ağır çekimde yavaşlar, hitstop'ta donar
     game.p1.update(dt,game.p2);
     game.p2.update(dt,game.p1);
     // kukla canı: son vuruştan ~1 sn sonra ikisi de tazelenir (K.O. yok)

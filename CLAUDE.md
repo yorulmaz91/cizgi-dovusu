@@ -67,8 +67,11 @@ Sıra önemli: sistem önce, içerik sonra, animasyon cilası en sona.
   insanlaştırma (omuz uzanımı P.reach + render.js desteği, gard çekişi,
   arka bacak itişi, tekmelerde diz şambrı → patlama → toplanma). Salt görsel;
   hamle süreleri/hasarlar değişmedi.
-- **SPRITE pilotu — TAMAMLANDI:** antrenman modunda "SPRITE" anahtarı
-  (trainUI) oyuncuyu çizilmiş sprite karelerle gösterir (assets/sprites/k1:
+- **SPRITE görünümü — TAMAMLANDI:** GÖLGE tüm modlarda (DÖVÜŞ dahil)
+  sprite karelerle çizilir, diğer karakterler vektör. Anahtar globaldir
+  (antrenmandaki "SPRITE" düğmesi), localStorage 'cd-sprite' ile kalıcı,
+  varsayılan AÇIK. Eşlenmemiş durumlar (çömelme, hava, fırlatma, özel,
+  fatality, crouchblock...) vektör çizime düşer (assets/sprites/k1:
   3 bekleme + 4 yan tekme + 3 yürüme + 3 yumruk + 2 hit + 2 blok karesi;
   Gölge'nin yeop hamlesi, yer yumruk zinciri (upper hariç), yürüme, yerde
   darbe tepkisi (hitstun %60 impact→stagger; stagger da stagger karesi;

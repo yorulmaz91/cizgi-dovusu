@@ -1,12 +1,26 @@
 /* ============================================================
-   SPRITE PİLOTU — antrenman modunda oyuncuyu önceden kesilmiş
-   sprite kareleriyle çizer (Karakter 1 / tekvando kesimi).
-   Vektör yolu, hamle süreleri, hitbox'lar DEĞİŞMEZ — salt çizim
-   katmanı: anahtar kapalıyken oyun bugünkü haliyle birebir aynı.
+   SPRITE GÖRÜNÜMÜ — GÖLGE karakteri önceden kesilmiş sprite
+   kareleriyle çizilir (TÜM modlarda: dövüş + antrenman); diğer
+   karakterler vektör kalır. Anahtar globaldir, localStorage'da
+   kalıcıdır, varsayılanı AÇIK. Sprite'ı olmayan durumlar (çömelme,
+   hava, fırlatma, özel, fatality...) vektör çizime düşer.
+   Vektör yolu, hamle süreleri, hitbox'lar DEĞİŞMEZ — salt çizim.
    Kareler tools/sprite-kes.mjs ile kesilir → assets/sprites/k1/
    (tüm kareler SAĞA bakar, taban alttan 2px, ayak merkezi ortada).
    ============================================================ */
 const YOL='assets/sprites/k1/';
+
+/* global anahtar: varsayılan AÇIK; yalnız '0' kaydı kapatır */
+let acik=true;
+try{if(localStorage.getItem('cd-sprite')==='0')acik=false;}catch(e){}
+export function spriteAcik(){return acik;}
+export function spriteAyarla(v){
+  acik=!!v;
+  try{localStorage.setItem('cd-sprite',acik?'1':'0');}catch(e){}
+  if(acik)loadSprites();
+}
+/* bu dövüşçü sprite ile mi çizilmeli? (karakter bazlı: yalnız GÖLGE) */
+export function spriteUygun(f){return acik&&f.ch&&f.ch.id==='golge';}
 const GARD_H=240;    // gard figürünün kesimdeki boyu (px) — ölçek referansı
 const CIZIM_BOY=122; // oyundaki hedef boy (vektör çöp adam ~120px)
 const K={bekleme:[],tekme:[],yurume:[],yumruk:[],hit:[],blok:[]};
@@ -18,6 +32,7 @@ let baslatildi=false,hazir=0,toplam=0,hata=false,nesil=0;
    nesil sayacı: yeniden denemede ESKİ denemenin gecikmiş onload'ları
    sayaçları bozmasın (aksi halde hazir taşar ve anahtar kalıcı ölür) */
 export function loadSprites(){
+  if(typeof Image==='undefined')return; // Node test iskeleti: Image yok → vektör yolu
   if(baslatildi&&!hata)return;
   baslatildi=true;hata=false;hazir=0;toplam=0;
   const bu=++nesil;
@@ -120,13 +135,17 @@ function kareSec(f){
     const i=((Math.floor(yol)%3)+3)%3;
     return{im:K.yurume[i],bob:0,of:YURU_OFSET[i]};
   }
-  return{im:K.bekleme[Math.floor(saat/0.2)%3],bob:Math.sin(saat*2*Math.PI/1.2)*1.5}; // hafif nefes
+  if(f.state==='idle')
+    return{im:K.bekleme[Math.floor(saat/0.2)%3],bob:Math.sin(saat*2*Math.PI/1.2)*1.5}; // hafif nefes
+  return null; // sprite'ı olmayan durum (çömelme, hava, fırlatma...) → vektör çizim
 }
 
-/* true dönerse çizim yapıldı; yüklenmediyse false → vektör çizim devam eder */
+/* true dönerse çizim yapıldı; yüklenmediyse/eşlenmemiş durumdaysa false → vektör */
 export function drawSprite(g,ftr,ground,ink){
   if(!spriteHazir())return false;
-  const {im,bob,of}=kareSec(ftr);
+  const sec=kareSec(ftr);
+  if(!sec)return false;
+  const {im,bob,of}=sec;
   if(!im||!im.naturalWidth)return false;
   const s=CIZIM_BOY/GARD_H,w=im.naturalWidth*s,h=im.naturalHeight*s;
   // zemin gölgesi (vektörle aynı dil; havada küçülür)
