@@ -69,8 +69,12 @@ Sıra önemli: sistem önce, içerik sonra, animasyon cilası en sona.
   hamle süreleri/hasarlar değişmedi.
 - **SPRITE pilotu — TAMAMLANDI:** antrenman modunda "SPRITE" anahtarı
   (trainUI) oyuncuyu çizilmiş sprite karelerle gösterir (assets/sprites/k1:
-  3 bekleme + 4 yan tekme + 3 yürüme + 3 yumruk karesi; Gölge'nin yeop
-  hamlesi, yer yumruk zinciri (upper hariç) ve yürüme eşlenmiş — yürüme
+  3 bekleme + 4 yan tekme + 3 yürüme + 3 yumruk + 2 hit + 2 blok karesi;
+  Gölge'nin yeop hamlesi, yer yumruk zinciri (upper hariç), yürüme, yerde
+  darbe tepkisi (hitstun %60 impact→stagger; stagger da stagger karesi;
+  hava/juggle seti YOK — bekleme düşer) ve ayakta blok (gard sabit,
+  emilimde kvx sönene dek emilim karesi — ayrı blockstun verisi yoktur,
+  geri itiş penceresi kullanılır) eşlenmiş — yürüme
   yol-senkron: kare kat edilen yoldan seçilir (tempo YURU_YOL_PER_KARE=72
   ekran px/kare — telefon denemesiyle sabitlendi; geri çekilirken ters,
   duvarda/hitstop'ta durur), pivot

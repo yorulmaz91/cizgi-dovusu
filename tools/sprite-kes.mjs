@@ -119,17 +119,17 @@ function kareBol(png,mask,beklenen){
    çalışmaz. Her figür tek bağlı mürekkep kütlesidir: 8-komşuluklu bileşen
    etiketleme ile en büyük N bileşen figür sayılır, kırıntılar yatayda en
    yakın figüre iliştirilir */
-function bilesenBol(png,mask,beklenen){
+function bilesenBol(png,mask,beklenen,altiAt){
   const {width:W,height:H}=png;
   const et=new Int32Array(W*H).fill(-1);
-  const boyut=[],ortX=[];
+  const boyut=[],ortX=[],ustY=[];
   let id=0;
   for(let s=0;s<W*H;s++){
     if(mask[s]||et[s]>=0)continue;
-    const kuyruk=[s];et[s]=id;let n=0,topX=0;
+    const kuyruk=[s];et[s]=id;let n=0,topX=0,minY=H;
     while(kuyruk.length){
       const i=kuyruk.pop(),x=i%W,y=(i-x)/W;
-      n++;topX+=x;
+      n++;topX+=x;if(y<minY)minY=y;
       for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
         if(!dx&&!dy)continue;
         const nx=x+dx,ny=y+dy;
@@ -138,7 +138,7 @@ function bilesenBol(png,mask,beklenen){
         if(!mask[j]&&et[j]<0){et[j]=id;kuyruk.push(j);}
       }
     }
-    boyut.push(n);ortX.push(topX/n);id++;
+    boyut.push(n);ortX.push(topX/n);ustY.push(minY);id++;
   }
   const sirali=[...boyut.keys()].sort((a,b)=>boyut[b]-boyut[a]);
   if(sirali.length<beklenen)
@@ -175,6 +175,7 @@ function bilesenBol(png,mask,beklenen){
   for(let i=0;i<W*H;i++){
     const e=et[i];
     if(e<0||figSet.has(e))continue;
+    if(altiAt!=null&&ustY[e]>=altiAt)continue; // yatay neşterin altında kalan zemin çizgisi artığı: AT
     const k=enIyi.get(e);
     if(!k||dist[i]<k.d)enIyi.set(e,{d:dist[i],f:sahip[i]});
   }
@@ -299,6 +300,16 @@ const isler=[
                      // kırıntı iliştirmesi onları F3'ün yumruğuna yapıştırır
    nester:[362,654]},// F1-F2 ayak ucu köprüsü x≈354-378 (y 687-709) ve F2-F3
                      // köprüsü x≈652-656 (y 635-699) — ikisi de yalnız ayak hizasında
+  // NOT: hit/block ham dosyaları TAKAS EDİLDİ (indirilen adlar ters gelmişti:
+  // eski hit_raw blok pozlarıydı, eski block_raw darbe pozları — görsel teşhis)
+  {dosya:'hit_raw.png',ad:'hit',beklenen:2,aynali:[],
+   hedef:240,adlar:['hit_1','hit_2'],bolme:'bilesen',
+   yatayNester:716,altiAt:718, // ayaklara değen kısa zemin çizgisi y=717-721
+   esitle:[1]},                // 2. figür kaynakta ~%9 büyük çizilmiş
+  {dosya:'block_raw.png',ad:'block',beklenen:2,aynali:[],
+   hedef:240,adlar:['block_1','block_2'],bolme:'bilesen',
+   yatayNester:716,altiAt:718,
+   esitle:[1]},
 ];
 fs.mkdirSync(CIKTI,{recursive:true});
 const tum=[];
@@ -310,9 +321,15 @@ for(const is_ of isler){
   // neşter: birbirine değen figürleri ayıran 2px'lik dikey kesikler
   if(is_.nester)for(const nx of is_.nester)
     for(let y=0;y<png.height;y++){mask[y*png.width+nx]=1;if(nx+1<png.width)mask[y*png.width+nx+1]=1;}
+  // yatay neşter: ayak tabanına DEĞEN kısa zemin çizgisini koparır (2px satır);
+  // altiAt ile birlikte kullanılır — kesiğin altında kalan çizgi artığı atılır
+  if(is_.yatayNester!=null)for(let x=0;x<png.width;x++){
+    mask[is_.yatayNester*png.width+x]=1;
+    if(is_.yatayNester+1<png.height)mask[(is_.yatayNester+1)*png.width+x]=1;
+  }
   let parcalar;
   if(is_.bolme==='bilesen'){
-    const {et,figurler,grup}=bilesenBol(png,mask,is_.beklenen);
+    const {et,figurler,grup}=bilesenBol(png,mask,is_.beklenen,is_.altiAt);
     parcalar=figurler.map(f=>kirpBilesen(png,et,grup.get(f)));
   }else{
     const kareler=kareBol(png,mask,is_.beklenen);

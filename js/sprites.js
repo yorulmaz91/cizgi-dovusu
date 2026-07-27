@@ -9,7 +9,7 @@
 const YOL='assets/sprites/k1/';
 const GARD_H=240;    // gard figürünün kesimdeki boyu (px) — ölçek referansı
 const CIZIM_BOY=122; // oyundaki hedef boy (vektör çöp adam ~120px)
-const K={bekleme:[],tekme:[],yurume:[],yumruk:[]};
+const K={bekleme:[],tekme:[],yurume:[],yumruk:[],hit:[],blok:[]};
 let baslatildi=false,hazir=0,toplam=0,hata=false,nesil=0;
 
 /* kareleri bir kez yükle (anahtar ilk açıldığında çağrılır);
@@ -32,6 +32,8 @@ export function loadSprites(){
   for(let i=0;i<4;i++)al(K.tekme,i,'tekme-'+i+'.png');
   for(let i=0;i<3;i++)al(K.yurume,i,'walk_'+(i+1)+'.png');
   for(let i=0;i<3;i++)al(K.yumruk,i,'punch_'+(i+1)+'.png');
+  for(let i=0;i<2;i++)al(K.hit,i,'hit_'+(i+1)+'.png');
+  for(let i=0;i<2;i++)al(K.blok,i,'block_'+(i+1)+'.png');
 }
 export function spriteHazir(){return baslatildi&&toplam>0&&hazir===toplam;}
 
@@ -62,10 +64,19 @@ export function spriteYuruKaydir(px){yuruKay=px;}
    arka ayağına sabitler, kare 3'ün ileri hamlesi serbestçe öne taşar. */
 const YUMRUK_OFSET=[0,-13,37];  // tuval px; arka_ayak_i + ofset_i ≈ 125.6 sabit
 
-/* kare seçimi: yeop (Gölge Yan Tekme) + yumruk + yürüme sprite'lı — pilot dar.
+/* HIT/BLOK HİZALAMASI (gard-referans standardı, 1. kare = 0):
+   ölçüm — dört karede arka topuk 123.0-123.9 px (≤1px oynama): bu şeritler
+   ayak-merkezi yerleşimiyle zaten pivot-hizalı gelmiş; ofsetler ölçülen
+   kalan farkı sabitler */
+const HIT_OFSET=[0,0];
+const BLOK_OFSET=[0,1];
+
+/* kare seçimi: yeop (Gölge Yan Tekme) + yumruk + yürüme + hit/blok sprite'lı.
    yeop: hazırlık → kare 1-2, aktif → kare 3 (uzanım), toparlanma → kare 4;
    yumruk: 1→2→3→2→1 — hazırlık coil, AKTİF PENCERE impact (hitbox ile aynı an,
    mevcut hamle verisi t0/t1 esas alınır), toparlanma coil→gard;
+   hit (yerde): hitstun %60 impact → stagger; stagger durumu → stagger karesi;
+   blok: gard sabit, emilimde (kvx sönene dek) emilim karesi;
    yürüme: 3 kare döngü; diğer tüm durumlar → bekleme döngüsü (3 kare ~600ms) */
 function kareSec(f){
   if(f.state==='attack'&&f.mv&&f.mv.anim==='yeop'){
@@ -85,6 +96,22 @@ function kareSec(f){
     else i=0;                                 // gard
     return{im:K.yumruk[i],bob:0,of:YUMRUK_OFSET[i]};
   }
+  // darbe tepkisi (yalnız yerde — hava/juggle seti ileride, şimdilik bekleme düşer):
+  // hitstun'un ilk %60'ı impact, kalanı stagger karesi. Toplam süre mevcut
+  // veriden türetilir: st ileri sayar, stun geri sayar → toplam ≈ st+stun
+  // (görsel taban 0.32 sn — fighter.js'teki hit çıkış eşiği), veri DEĞİŞMEDİ
+  if(f.state==='hit'&&f.grounded()){
+    const toplam=Math.max(.32,f.st+Math.max(0,f.stun||0));
+    const i=f.st<toplam*0.6?0:1;
+    return{im:K.hit[i],bob:0,of:HIT_OFSET[i]};
+  }
+  if(f.state==='stagger'&&f.grounded())return{im:K.hit[1],bob:0,of:HIT_OFSET[1]}; // sendeleme = stagger karesi
+  // blok: gard sabit; darbe emilince geri itiş (kvx) sönene dek emilim karesi
+  // (~0.2 sn, bloklanan hamlenin itişiyle ölçeklenir — ayrı blockstun verisi yok)
+  if(f.state==='block')
+    return Math.abs(f.kvx||0)>=2
+      ?{im:K.blok[1],bob:0,of:BLOK_OFSET[1]}
+      :{im:K.blok[0],bob:0,of:BLOK_OFSET[0]};
   if(f.state==='walk'){
     // kare = kat edilen yolun fonksiyonu: tempo hıza orantılı (kare başına
     // ADIM_EKRAN/3 px yol), geri çekilirken yol azaldığı için döngü
