@@ -71,8 +71,10 @@ Sıra önemli: sistem önce, içerik sonra, animasyon cilası en sona.
   (trainUI) oyuncuyu çizilmiş sprite karelerle gösterir (assets/sprites/k1:
   3 bekleme + 4 yan tekme + 3 yürüme + 3 yumruk karesi; Gölge'nin yeop
   hamlesi, yer yumruk zinciri (upper hariç) ve yürüme eşlenmiş — yürüme
-  yol-senkron: kare kat edilen yoldan seçilir (tempo YURU_YOL_PER_KARE=38
-  ekran px/kare, geri çekilirken ters, duvarda/hitstop'ta durur), pivot
+  yol-senkron: kare kat edilen yoldan seçilir (tempo: antrenmandaki GEÇİCİ
+  "TEMPO −/+" aracıyla canlı ayarlanır, vars. 44, kalıcı localStorage;
+  son değer bildirilince sabitlenecek; geri çekilirken ters,
+  duvarda/hitstop'ta durur), pivot
   ayak hücre ofsetleriyle sabit (YURU_OFSET); yumruk 1→2→3→2→1, aktif
   pencere [t0,t1] impact karesiyle eşzamanlı, pivot ARKA ayak
   (YUMRUK_OFSET) — diğer hamleler bekleme karesi, pilot bilerek dar). Kesim aracı
