@@ -4,7 +4,8 @@
    ============================================================ */
 import {lerp,rnd} from './utils.js';
 import {INK,PAPER,drawMiniBolt} from './effects.js';
-import {drawSprite,spriteHazir,spriteUygun} from './sprites.js';
+import {drawSprite,spriteHazir,spriteUygun,iskeletUygun} from './sprites.js';
+import {drawIskelet} from './iskelet.js';
 
 export const cvs=document.getElementById('game'), ctx=cvs.getContext('2d');
 export let VW=0,VH=0,GROUND=0;
@@ -126,6 +127,8 @@ export function drawFighter(g,ftr){
   // pose() yine çağrılır ki erime katmanı güncel kalsın: sprite→vektör geçişinde
   // figür bayat pozdan süzülmek yerine olduğu yerden devam eder
   if(spriteUygun(ftr)&&spriteHazir()){ftr.pose();if(drawSprite(g,ftr,GROUND,INK))return;}
+  // İSKELET görünümü (prototip): kapsam içindeyse hacimli kukla, değilse vektör
+  if(iskeletUygun(ftr)&&drawIskelet(g,ftr,GROUND))return;
   const p=ftr.pose(),f=ftr.facing,c=ftr.ch;
   // ağırlık aktarımı: kalça (ve üst gövde) vuruş eğrisiyle öne/geriye kayar
   const hipY=ftr.y-46+p.dip, hip=[ftr.x+(p.hipShift||0)*f,hipY];
@@ -223,7 +226,7 @@ export function drawFighter(g,ftr){
   g.restore();
 }
 
-function drawHead(g,ftr,x,y,R,f,pr){
+export function drawHead(g,ftr,x,y,R,f,pr){
   pr=pr||0; // 0: cephe · 1: profil (yan). pr=0 → çizim birebir eski hali.
   const c=ftr.ch,s=ftr.state;
   const expr=s==='ko'?'ko':(s==='hit'||s==='stagger'||s==='crumple'||s==='down'||s==='thrown')?'hit'

@@ -11,7 +11,7 @@ import {Fighter} from './fighter.js';
 import {PAPER,screenFx,setInverted,burst,drawGhosts,drawBursts,drawParticles} from './effects.js';
 import {updateFatality,drawFatalityFx} from './fatality.js';
 import {drawHUD,centerText,drawSelect,drawDifficulty,drawVS,drawResult,drawTrainPanel,armResultLock,resetResultLock} from './ui.js';
-import {loadSprites,spriteTick,spriteAcik,spriteAyarla} from './sprites.js';
+import {loadSprites,spriteTick,gorunum,gorunumAyarla} from './sprites.js';
 import * as sfx from './audio.js';
 
 /* ---------------- oyun akışı ---------------- */
@@ -107,12 +107,16 @@ if(trnDemo)trnDemo.addEventListener('click',()=>{
   if(game.scene!=='training')return;
   game.demo={sira:['k','p','ck','cp'],i:0,bekle:.2};
 });
-/* SPRITE görünümü anahtarı: GLOBAL (dövüş dahil), localStorage'da kalıcı,
-   varsayılan AÇIK — GÖLGE sprite ile çizilir, diğer karakterler vektör */
-if(spriteAcik())loadSprites(); // varsayılan açık: kareler baştan yüklenir
+/* GÖRÜNÜM anahtarı: GLOBAL (dövüş dahil), localStorage'da kalıcı — üçlü
+   döngü: SPRITE (varsayılan) → İSKELET (hacimli kukla prototipi) → VEKTÖR */
+if(gorunum()==='sprite')loadSprites(); // varsayılan sprite: kareler baştan yüklenir
 const trnSprite=document.getElementById('trnSprite');
-const spriteEtiket=()=>{if(trnSprite)trnSprite.textContent='SPRITE: '+(spriteAcik()?'AÇIK':'KAPALI');};
-if(trnSprite)trnSprite.addEventListener('click',()=>{spriteAyarla(!spriteAcik());spriteEtiket();});
+const gorunumAd={sprite:'SPRITE',iskelet:'İSKELET',vektor:'VEKTÖR'};
+const spriteEtiket=()=>{if(trnSprite)trnSprite.textContent='GÖRÜNÜM: '+gorunumAd[gorunum()];};
+if(trnSprite)trnSprite.addEventListener('click',()=>{
+  gorunumAyarla(gorunum()==='sprite'?'iskelet':gorunum()==='iskelet'?'vektor':'sprite');
+  spriteEtiket();
+});
 spriteEtiket();
 const trnExit=document.getElementById('trnExit');
 if(trnExit)trnExit.addEventListener('click',()=>{

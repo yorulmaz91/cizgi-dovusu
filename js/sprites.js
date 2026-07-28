@@ -10,17 +10,23 @@
    ============================================================ */
 const YOL='assets/sprites/k1/';
 
-/* global anahtar: varsayılan AÇIK; yalnız '0' kaydı kapatır */
-let acik=true;
-try{if(localStorage.getItem('cd-sprite')==='0')acik=false;}catch(e){}
-export function spriteAcik(){return acik;}
-export function spriteAyarla(v){
-  acik=!!v;
-  try{localStorage.setItem('cd-sprite',acik?'1':'0');}catch(e){}
-  if(acik)loadSprites();
+/* global görünüm modu: 'sprite' (varsayılan) · 'iskelet' (prototip) ·
+   'vektor'. localStorage 'cd-sprite': '1'=sprite, '2'=iskelet, '0'=vektör
+   (eski kayıtlarla geriye uyumlu) */
+let mod='sprite';
+try{
+  const k=localStorage.getItem('cd-sprite');
+  if(k==='0')mod='vektor';else if(k==='2')mod='iskelet';
+}catch(e){}
+export function gorunum(){return mod;}
+export function gorunumAyarla(m){
+  mod=(m==='iskelet'||m==='vektor')?m:'sprite';
+  try{localStorage.setItem('cd-sprite',mod==='sprite'?'1':mod==='iskelet'?'2':'0');}catch(e){}
+  if(mod==='sprite')loadSprites();
 }
-/* bu dövüşçü sprite ile mi çizilmeli? (karakter bazlı: yalnız GÖLGE) */
-export function spriteUygun(f){return acik&&f.ch&&f.ch.id==='golge';}
+/* bu dövüşçü hangi görünümle çizilmeli? (karakter bazlı: yalnız GÖLGE) */
+export function spriteUygun(f){return mod==='sprite'&&f.ch&&f.ch.id==='golge';}
+export function iskeletUygun(f){return mod==='iskelet'&&f.ch&&f.ch.id==='golge';}
 const GARD_H=240;    // gard figürünün kesimdeki boyu (px) — ölçek referansı
 const CIZIM_BOY=122; // oyundaki hedef boy (vektör çöp adam ~120px)
 const K={bekleme:[],tekme:[],yurume:[],yumruk:[],hit:[],blok:[]};
