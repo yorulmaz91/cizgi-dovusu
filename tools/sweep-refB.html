@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<!-- SWEEP POZ REFERANSI (Görsel B) ÜRETİCİ — oyuna girmez, üretim aracı.
+     Kullanım: yerel sunucuda /tools/sweep-refB.html açılır; sayfa,
+     Topuk Kesme'nin (sweep) vektör animasyonunu 4 anahtar anda dondurup
+     tek yatay şerit halinde çizer. 1040x300 pencereyle headless ekran
+     görüntüsü alınır → sweep_refB.png.
+     Dondurulan anlar (st): 0.14 load (kurulum zirvesi) · 0.20 swing
+     (aktif başı, bacak yayda) · 0.24 impact (t0=0.18, t1=0.30 → tam
+     orta) · 0.40 recover (dur=0.45).
+     Erime katmanı poseS=null ile atlanır: her hücre TAM hedef pozdur.
+     NOT: fighter.js → main.js zincirinden oyun döngüsü başlar; sahne
+     etkisiz bir ada alınır ("refb"), şerit ondan sonra boyanır — döngü
+     bilinmeyen sahnede tuvale dokunmadığı için pikseller kalıcıdır. -->
+<html lang="tr"><head><meta charset="UTF-8"><title>sweep refB</title>
+<style>body{margin:0}canvas{display:block}#controls,#trainUI,#rotate,#fsBtn,#sndBtn{display:none}</style></head><body>
+<canvas id="game"></canvas>
+<div class="controls" id="controls"><div class="pad"></div><div class="btns"></div></div>
+<div id="trainUI">
+  <button id="trnDummy">K</button><button id="trnList">L</button>
+  <button id="trnDemo">G</button><button id="trnSprite">S</button>
+  <button id="trnExit">Ç</button>
+</div>
+<div id="rotate"></div><button id="fsBtn">⛶</button><button id="sndBtn">🔊</button>
+<script type="module">
+import {game} from '../js/main.js';
+import {ctx,cvs,drawFighter} from '../js/render.js';
+import {Fighter} from '../js/fighter.js';
+import {CHARS} from '../js/characters.js';
+game.scene='refb'; // etkisiz sahne: döngü hiçbir şey çizmez
+const ANLAR=[[0.14,'1 load'],[0.20,'2 swing'],[0.24,'3 impact'],[0.40,'4 recover']];
+const HW=260; // hücre genişliği (4 hücre = 1040)
+function boya(){
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,innerWidth,innerHeight); // saf beyaz zemin
+  const mv=CHARS[0].moves.k[1]; // GÖLGE → Topuk Kesme (sweep)
+  ANLAR.forEach(([st,etiket],i)=>{
+    const f=new Fighter(CHARS[0],HW*i+HW/2,1,false); // y=GROUND (pencere 300 → 210)
+    f.state='attack';f.mv=mv;f.mvKind='k';f.chain=[mv];f.chainIdx=0;f.st=st;
+    f.poseS=null;              // erime atla: tam hedef poz
+    drawFighter(ctx,f);
+    ctx.fillStyle='#999';ctx.font='16px monospace';ctx.textAlign='center';
+    ctx.fillText(etiket,HW*i+HW/2,innerHeight-12);
+  });
+  requestAnimationFrame(boya); // her kare yeniden: geç resize temizliğine dayanıklı
+}
+requestAnimationFrame(boya);
+</script></body></html>
