@@ -82,6 +82,8 @@ function fbxOku(dosya){
       modeller.get(b[1]).ebeveyn=b[2];
     if(b[0]==='OP'&&egriDugum.has(b[1])&&modeller.has(b[2])&&String(b[3]).includes('Lcl Rotation'))
       modeller.get(b[2]).egriDugumId=b[1];
+    if(b[0]==='OP'&&egriDugum.has(b[1])&&modeller.has(b[2])&&String(b[3]).includes('Lcl Translation'))
+      modeller.get(b[2]).egriDugumTId=b[1]; // Mixamo kalça zıplaması buradan gelir (dip)
     if(b[0]==='OP'&&egriler.has(b[1])&&egriDugum.has(b[2])){
       const k=String(b[3]).replace('d|','');
       egriDugum.get(b[2]).kanal[k]=egriler.get(b[1]);
@@ -109,15 +111,21 @@ function dunyaKonumlar(modeller,egriDugum,tSn){
       const e=modeller.get(m.ebeveyn);coz(e);
       ebeM=matris.get(e.id);ebeK=konum.get(e.id);
     }
-    let rot=m.r;
+    let rot=m.r,cev=m.t;
     const ed=m.egriDugumId&&egriDugum.get(m.egriDugumId);
     if(ed){
       rot=[egriDeger(ed.kanal.X,tSn)??m.r[0],
            egriDeger(ed.kanal.Y,tSn)??m.r[1],
            egriDeger(ed.kanal.Z,tSn)??m.r[2]];
     }
+    const edT=m.egriDugumTId&&egriDugum.get(m.egriDugumTId);
+    if(edT){
+      cev=[egriDeger(edT.kanal.X,tSn)??m.t[0],
+           egriDeger(edT.kanal.Y,tSn)??m.t[1],
+           egriDeger(edT.kanal.Z,tSn)??m.t[2]];
+    }
     const R=mul(rotMat(m.pre),rotMat(rot));
-    const k=topla(ebeK,uygula(ebeM,m.t));
+    const k=topla(ebeK,uygula(ebeM,cev));
     matris.set(m.id,mul(ebeM,R));
     konum.set(m.id,k);
   };
@@ -163,10 +171,13 @@ function sentetik(){
     kareler.push({
       lean:.10,omur:.04,head:-.05,
       dip:+(2+1.4*Math.sin(2*q)).toFixed(1),
+      /* İŞARET SÖZLEŞMESİ: side=-1 uzuvlarda (lR/aR) diz/dirsek parametresi
+         NEGATİF olmalı ki eklem doğal yöne kıvrılsın (render: shin=leg0-leg1*side).
+         İlk sürümde pozitifti → MIXAMO TEST'te dizler ters kıvrılıyordu. */
       lL:[+(0.5*salL).toFixed(3),+dizL.toFixed(3)],
-      lR:[+(0.5*salR).toFixed(3),+dizR.toFixed(3)],
+      lR:[+(0.5*salR).toFixed(3),+(-dizR).toFixed(3)],
       aL:[+(0.32*salR+0.12).toFixed(3),+(0.55+0.15*salR).toFixed(3)],
-      aR:[+(0.32*salL+0.12).toFixed(3),+(0.55+0.15*salL).toFixed(3)],
+      aR:[+(0.32*salL+0.12).toFixed(3),+(-(0.55+0.15*salL)).toFixed(3)],
     });
   }
   return {kaynak:'sentetik-yuruyus',fps:FPS,kareSayisi:N,kareler};

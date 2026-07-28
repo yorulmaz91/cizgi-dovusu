@@ -179,11 +179,14 @@ function loop(now){
     }
     game.p1.update(dt,game.p2);
     game.p2.update(dt,game.p1);
-    // MIXAMO TEST oynatıcısı: JSON kareleri zamana göre dış poz olarak akar
+    // MIXAMO TEST oynatıcısı: JSON kareleri zamana göre dış poz olarak akar.
+    // Yalnız boşta/yürürken uygulanır — saldırı ve tepkiler kendi
+    // animasyonlarını oynatır (dış poz mekanik akışı EZEMEZ)
     if(game.mixamo&&game.mixamo.veri){
       game.mixamo.t+=dt;
       const v=game.mixamo.veri;
-      game.p1.disPoz=v.kareler[Math.floor(game.mixamo.t*v.fps)%v.kareSayisi];
+      game.p1.disPoz=game.p1.busy()?null
+        :v.kareler[Math.floor(game.mixamo.t*v.fps)%v.kareSayisi];
     }
     // kukla canı: son vuruştan ~1 sn sonra ikisi de tazelenir (K.O. yok)
     if(game.p2.hp<game.p2.maxHp||game.p1.hp<game.p1.maxHp)game.trainT+=dt;else game.trainT=0;
