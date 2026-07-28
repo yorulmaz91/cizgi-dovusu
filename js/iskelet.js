@@ -38,10 +38,13 @@ function kapsul(g,x1,y1,x2,y2,r){
   g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.stroke();
 }
 
-/* true dönerse çizim yapıldı; kapsam dışıysa false → vektör devam eder */
+/* true dönerse çizim yapıldı; kapsam dışıysa false → vektör devam eder.
+   ftr.disPoz doluysa (MIXAMO TEST oynatıcısı) poz oradan gelir: kapsam
+   atlanır, computePose/erime hiç devreye girmez — salt veri oynatımı */
 export function drawIskelet(g,ftr,ground){
-  if(!kapsam(ftr))return false;
-  const p=ftr.pose(),f=ftr.facing;
+  const dis=ftr.disPoz;
+  if(!dis&&!kapsam(ftr))return false;
+  const p=dis||ftr.pose(),f=ftr.facing;
   const hipY=ftr.y-46+p.dip, hip=[ftr.x+(p.hipShift||0)*f,hipY];
   const seg=(x,y,a,len)=>[x+Math.sin(a)*len*f,y+Math.cos(a)*len];
   g.save();

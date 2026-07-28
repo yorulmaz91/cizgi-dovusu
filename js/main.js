@@ -118,10 +118,24 @@ if(trnSprite)trnSprite.addEventListener('click',()=>{
   spriteEtiket();
 });
 spriteEtiket();
+/* GEÇİCİ — MIXAMO TEST: assets/anim/mixamo_test.json'u İSKELET modunda
+   oyuncu üzerinde oynatır (FBX hattının görsel kanıtı; mekanikler değişmez) */
+const trnMix=document.getElementById('trnMixamo');
+if(trnMix)trnMix.addEventListener('click',()=>{
+  if(game.scene!=='training')return;
+  if(game.mixamo){game.mixamo=null;if(game.p1)game.p1.disPoz=null;trnMix.textContent='MIXAMO TEST';return;}
+  fetch('assets/anim/mixamo_test.json').then(r=>r.json()).then(v=>{
+    game.mixamo={veri:v,t:0};
+    gorunumAyarla('iskelet');spriteEtiket(); // kanıt iskelet modunda izlenir
+    trnMix.textContent='MIXAMO ▶';
+  }).catch(()=>{trnMix.textContent='MIXAMO YOK';});
+});
 const trnExit=document.getElementById('trnExit');
 if(trnExit)trnExit.addEventListener('click',()=>{
   game.scene='select';game.selCd=.3;
   game.demo=null;screenFx.timeScale=1; // gösteri yarıda kaldıysa hızı geri al
+  game.mixamo=null;if(game.p1)game.p1.disPoz=null;
+  if(trnMix)trnMix.textContent='MIXAMO TEST';
 });
 
 /* ---------------- ana döngü ---------------- */
@@ -165,6 +179,12 @@ function loop(now){
     }
     game.p1.update(dt,game.p2);
     game.p2.update(dt,game.p1);
+    // MIXAMO TEST oynatıcısı: JSON kareleri zamana göre dış poz olarak akar
+    if(game.mixamo&&game.mixamo.veri){
+      game.mixamo.t+=dt;
+      const v=game.mixamo.veri;
+      game.p1.disPoz=v.kareler[Math.floor(game.mixamo.t*v.fps)%v.kareSayisi];
+    }
     // kukla canı: son vuruştan ~1 sn sonra ikisi de tazelenir (K.O. yok)
     if(game.p2.hp<game.p2.maxHp||game.p1.hp<game.p1.maxHp)game.trainT+=dt;else game.trainT=0;
     if(game.trainT>1&&!['hit','stagger','crumple','down','getup','thrown'].includes(game.p2.state)){

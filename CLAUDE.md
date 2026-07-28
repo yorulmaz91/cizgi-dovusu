@@ -75,7 +75,12 @@ Sıra önemli: sistem önce, içerik sonra, animasyon cilası en sona.
   computePose eklem açılarından kapsül uzuvlu hacimli kukla (kaba stil:
   siyah dolgu + beyaz eksen çizgisi — Shadow Fight sınıfı akıcılık
   fizibilitesi; kapsam GÖLGE + idle/yürüme/yer yumruk/yeop/hit, kalanı
-  vektöre düşer; frame data değişmedi). Eşlenmemiş durumlar (çömelme, hava, fırlatma, özel,
+  vektöre düşer; frame data değişmedi). MIXAMO hattı: tools/fbx-cevir.mjs
+  (fbx-parser, yalnız tools bağımlılığı) FBX'i sagital izdüşümle bizim
+  iskelet JSON'una çevirir → assets/anim/mixamo_test.json; antrenmandaki
+  GEÇİCİ "MIXAMO TEST" düğmesi bunu iskelet kuklası üzerinde oynatır
+  (disPoz dış-poz kanalı, salt görsel). Gerçek FBX gelene kadar
+  --sentetik prosedürel yürüyüş aynı şemayı üretir. Eşlenmemiş durumlar (çömelme, hava, fırlatma, özel,
   fatality, crouchblock...) vektör çizime düşer (assets/sprites/k1:
   3 bekleme + 4 yan tekme + 3 yürüme + 3 yumruk + 2 hit + 2 blok karesi;
   Gölge'nin yeop hamlesi, yer yumruk zinciri (upper hariç), yürüme, yerde
