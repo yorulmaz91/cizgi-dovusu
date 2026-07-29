@@ -51,7 +51,7 @@ export function loadSprites(){
   };
   for(let i=0;i<3;i++)al(K.bekleme,i,'bekleme-'+i+'.png');
   for(let i=0;i<4;i++)al(K.tekme,i,'tekme-'+i+'.png');
-  for(let i=0;i<3;i++)al(K.yurume,i,'walk_'+(i+1)+'.png');
+  for(let i=0;i<8;i++)al(K.yurume,i,'walk8_'+(i+1)+'.png'); // videodan 8 karelik çevrim
   for(let i=0;i<3;i++)al(K.yumruk,i,'punch_'+(i+1)+'.png');
   for(let i=0;i<2;i++)al(K.hit,i,'hit_'+(i+1)+'.png');
   for(let i=0;i<2;i++)al(K.blok,i,'block_'+(i+1)+'.png');
@@ -71,10 +71,15 @@ export function spriteTick(dt){saat+=dt;}
    üç karede AYNI x'e getirilir (referans: üç pivotun ortalaması 161.6).
    PNG'lere dokunulmaz: ofset çizim anında, yerel uzayda uygulanır —
    sola yürüyüşte scale(-1,1) ile kendiliğinden aynalanır. */
-const YURU_OFSET=[-89,14,75];   // tuval px; pivot_i + ofset_i ≈ 159.3 sabit
-                                // (kareler kırıntı temizliğiyle yeniden kesilince yeniden ölçüldü)
-const YURU_YOL_PER_KARE=72;     // kare başına kat edilen yol (ekran px) — sayı büyüdükçe
-                                // tempo yavaşlar; telefon denemesiyle seçildi (2026-07)
+/* 8 karelik VİDEO çevrimi (video_walk.mp4 → alternatif set, onaylı):
+   basılı ayak zinciri tuvalde 193.9→130.2 kayar (tek duruş fazı; ayak
+   değişimi döngü sarmalında — 17 karelik periyot bir ADIM). Ofsetler
+   basılı ayağı hücrede sabitler (referans: zincir ortalaması 166.6). */
+const YURU_OFSET=[-27,-20,-14,-11,-11,21,27,36]; // tuval px, 8 kare
+const YURU_YOL_PER_KARE=5;      // ÇEVRİM YOLU ÖLÇÜMÜNDEN: 76 tuval px × ölçek
+                                // ≈ 38.6 ekran px / 8 kare ≈ 5 (fiziksel senkron,
+                                // kayma yok). His ayarı kullanıcıya: sayı büyüdükçe
+                                // tempo yavaşlar (eski 3-kare tercihi ~27'ye denk)
 let yuruKay=0;                  // test/ayar kancası: faz kaydırma (ekran px)
 export function spriteYuruKaydir(px){yuruKay=px;}
 
@@ -138,7 +143,7 @@ function kareSec(f){
     // ADIM_EKRAN/3 px yol), geri çekilirken yol azaldığı için döngü
     // kendiliğinden tersine döner, hitstop/ağır çekimde donar, duvarda durur
     const yol=((f.x+yuruKay)*f.facing)/YURU_YOL_PER_KARE;
-    const i=((Math.floor(yol)%3)+3)%3;
+    const i=((Math.floor(yol)%8)+8)%8; // 8 karelik çevrim; geri yürüyüş = ters sıra (yol azalır)
     return{im:K.yurume[i],bob:0,of:YURU_OFSET[i]};
   }
   if(f.state==='idle')

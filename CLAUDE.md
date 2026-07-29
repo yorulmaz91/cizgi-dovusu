@@ -87,14 +87,16 @@ Sıra önemli: sistem önce, içerik sonra, animasyon cilası en sona.
   (disPoz dış-poz kanalı, salt görsel). Gerçek FBX gelene kadar
   --sentetik prosedürel yürüyüş aynı şemayı üretir. Eşlenmemiş durumlar (çömelme, hava, fırlatma, özel,
   fatality, crouchblock...) vektör çizime düşer (assets/sprites/k1:
-  3 bekleme + 4 yan tekme + 3 yürüme + 3 yumruk + 2 hit + 2 blok karesi;
+  3 bekleme + 4 yan tekme + 8 yürüme (videodan, walk8_*) + 3 yumruk +
+  2 hit + 2 blok karesi;
   Gölge'nin yeop hamlesi, yer yumruk zinciri (upper hariç), yürüme, yerde
   darbe tepkisi (hitstun %60 impact→stagger; stagger da stagger karesi;
   hava/juggle seti YOK — bekleme düşer) ve ayakta blok (gard sabit,
   emilimde kvx sönene dek emilim karesi — ayrı blockstun verisi yoktur,
   geri itiş penceresi kullanılır) eşlenmiş — yürüme
-  yol-senkron: kare kat edilen yoldan seçilir (tempo YURU_YOL_PER_KARE=72
-  ekran px/kare — telefon denemesiyle sabitlendi; geri çekilirken ters,
+  yol-senkron: kare kat edilen yoldan seçilir (tempo YURU_YOL_PER_KARE=5
+  ekran px/kare — 8-kare video çevriminin yol ölçümünden fiziksel senkron;
+  his ayarı kullanıcıda, sayı büyüdükçe yavaşlar; geri çekilirken ters,
   duvarda/hitstop'ta durur), pivot
   ayak hücre ofsetleriyle sabit (YURU_OFSET); yumruk 1→2→3→2→1, aktif
   pencere [t0,t1] impact karesiyle eşzamanlı, pivot ARKA ayak
