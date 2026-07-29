@@ -18,6 +18,20 @@ durum bilgisi bu hattın gerisindeydi, güncellendi.)
   (İstisna: walk şeridinde bilek bandı yok — bilinen eksik,
   oyun ölçeğinde batmazsa dokunulmayacak.)
 
+═══ KİMLİK KARARI (2026-07-29, tescil) ═══
+- Karakter oranı: GERÇEKÇİ — koca-kafa mirası KAPANDI. İskelet
+  kaplamasındaki sabitK=0.9 kafa ölçeği, parça entegrasyonunda
+  gerçekçi orana normalleştirilecek.
+- Resmî kimlik kartı: kimlik_v1.png (saf profil, JPEG artıkları
+  eşiklemeyle temizlenmiş). Bundan sonraki TÜM görsel üretimlerin
+  Image A'sı BUDUR. (refA_identity.png = eski Banana 2 kimliği,
+  arşiv değeri.)
+- Soyağacı: Nano Banana 2 stil tabanı + Pro profil düzeltmesi.
+- KALICI HAT KURALI: girdi JPG gelirse tools/jpg-temizle.mjs'ten
+  geçer (gri tonlama + beyaz eşiği 240 / siyah eşiği 64 — kimlik_v1
+  ölçümüyle kalibre); hat her zaman PNG işler; sprite-kes.mjs .jpg
+  kaynakları bu adımdan otomatik okur.
+
 ═══ ENTEGRE DURUM (canlıda, telefonda kısmen onaylı) ═══
 Ortak standart: 354×244 tuval, ayak-merkezi kesim +
 sprites.js'te kare bazlı drawOffset pivot sistemi, şeffaf

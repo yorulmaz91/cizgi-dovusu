@@ -27,7 +27,19 @@ const CIKTI=path.join(KOK,'assets','sprites','k1');
 const HEDEF_GARD=240;          // gard figürünün çıktı yüksekliği (px)
 const BEYAZ=245;               // arka plan beyazı eşiği (pantolon grisi ~232 güvende)
 
-function oku(p){return PNG.sync.read(fs.readFileSync(p));}
+import {jpgOkuTemizle} from './jpg-temizle.mjs';
+
+/* KALICI HAT KURALI: hat her zaman PNG işler — girdi JPG ise
+   jpg-temizle adımından (gri tonlama + eşikli artık temizliği) geçer;
+   .png bulunamazsa aynı adlı .jpg aranır */
+function oku(p){
+  if(/\.jpe?g$/i.test(p))return jpgOkuTemizle(p);
+  if(!fs.existsSync(p)){
+    const j=p.replace(/\.png$/i,'.jpg');
+    if(fs.existsSync(j))return jpgOkuTemizle(j);
+  }
+  return PNG.sync.read(fs.readFileSync(p));
+}
 
 /* 0) filigran temizliği: üst bandı (figürlerin üstünde kalan bölge) beyaza
    boya — "AI-Generated" rozeti gibi arka plana bağlı OLMAYAN köşe damgaları
