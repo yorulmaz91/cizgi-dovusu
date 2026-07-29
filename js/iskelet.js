@@ -14,6 +14,45 @@
 import {INK,PAPER} from './effects.js';
 import {drawHead} from './render.js';
 
+/* ---------- GÖRSEL KAPLAMA (skinning) ----------
+   Sprite karelerinden kesilmiş parçalar (tools/parca-kes.mjs →
+   assets/sprites/k1/parca/) kemiklere çapalanıp kemik açısıyla döner.
+   Parçalar yüklüyse kaplama çizilir; yoksa kapsül YEDEK olarak kalır.
+   GEÇİCİ kaplama: tek kareden kesim, her açıda mükemmel durmaz —
+   kalıcısı Gemini A-pose parça sayfasından gelecek (PARCA_SABLON.md). */
+const PYOL='assets/sprites/k1/parca/';
+let pman=null,pimgs={},pHazir=false,pBaslatildi=false;
+function loadParcalar(){
+  if(pBaslatildi||typeof Image==='undefined')return;
+  pBaslatildi=true;
+  fetch(PYOL+'manifest.json').then(r=>r.json()).then(m=>{
+    pman=m;
+    const adlar=Object.keys(m);let kalan=adlar.length;
+    for(const ad of adlar){
+      const im=new Image();
+      im.onload=()=>{if(--kalan===0)pHazir=true;};
+      im.src=PYOL+m[ad].dosya;
+      pimgs[ad]=im;
+    }
+  }).catch(()=>{}); // manifest yoksa kapsül yedeği sürer
+}
+
+/* parçayı birincil eklemden ikincil ekleme döndürerek çiz.
+   sabitK yoksa ölçek kemik uzunluğundan türer (k=L/kemikArt, TEK TİP —
+   parça oranları korunur); xAyna dokuyu kemik ekseni etrafında aynalar */
+function parcaCiz(g,ad,j1,j2){
+  const M=pman[ad],im=pimgs[ad];
+  if(!im||!im.naturalWidth)return;
+  const dx=j2[0]-j1[0],dy=j2[1]-j1[1],L=Math.hypot(dx,dy)||1;
+  const k=M.sabitK||L/M.kemikArt;
+  g.save();
+  g.translate(j1[0],j1[1]);
+  g.rotate(Math.atan2(-dx,dy));
+  g.scale(M.xAyna?-k:k,k);
+  g.drawImage(im,-M.capaX,-M.capaY);
+  g.restore();
+}
+
 /* bu durum iskelet prototipinde kapsanıyor mu? */
 function kapsam(f){
   if(f.state==='idle'||f.state==='walk')return true;
@@ -38,13 +77,72 @@ function kapsul(g,x1,y1,x2,y2,r){
   g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.stroke();
 }
 
+/* yerel uzayda (f=+1, x=0 taban) tüm eklem noktalarını hesapla —
+   kaplama bu noktaları kullanır, ayna translate+scale ile uygulanır */
+function eklemler(ftr,p){
+  const hip=[(p.hipShift||0),ftr.y-46+p.dip];
+  const seg=(x,y,a,len)=>[x+Math.sin(a)*len,y+Math.cos(a)*len];
+  const omur=p.omur||0;
+  const bel=[hip[0]+Math.sin(p.lean)*13,hip[1]-Math.cos(p.lean)*13];
+  const nk=[bel[0]+Math.sin(p.lean+omur)*13+(p.reach||0),bel[1]-Math.cos(p.lean+omur)*13];
+  const htw=p.hipTw||0,tw=p.twist||0,prof=p.profil||0;
+  const E={hip,bel,nk};
+  for(const[leg,side,ad]of[[p.lL,1,'lL'],[p.lR,-1,'lR']]){
+    const hx=ad==='lR'?(-2+7*htw):(2-3*htw);
+    const anc=[hip[0]+hx,hip[1]+(ad==='lR'?-3*htw:1.5*htw)];
+    const kn=seg(anc[0],anc[1],leg[0],22);
+    const ft=seg(kn[0],kn[1],leg[0]-leg[1]*side,20);
+    E[ad]={anc,kn,ft};
+  }
+  for(const[arm,side,ad]of[[p.aL,1,'aL'],[p.aR,-1,'aR']]){
+    const sx=(ad==='aR'?(-3+9*tw):(3-4*tw))*(1-.55*prof)+prof*3;
+    const om=[nk[0]+sx,nk[1]+3-(ad==='aR'?2.5*tw:0)];
+    const el=seg(om[0],om[1],arm[0],18);
+    const hn=seg(el[0],el[1],arm[0]+arm[1]*side,17);
+    E[ad]={om,el,hn};
+  }
+  E.hd=[nk[0]+Math.sin(p.lean+omur+(p.head||0))*20,nk[1]-Math.cos(p.lean+omur+(p.head||0))*20];
+  return E;
+}
+
+/* KAPLAMALI çizim — Z-ORDER (bakış yönüne göre translate+scale aynalar):
+   arka bacak → arka kol → GÖVDE → ön bacak → KAFA → ön kol
+   (telefonda raporlanan omuz binmesi bu katmanlamayla çözülür:
+   arka kol gövdenin ALTINDA, ön kol kafanın bile ÜSTÜNDE) */
+function kaplamaCiz(g,ftr,p){
+  const E=eklemler(ftr,p),sil=(ad)=>ftr.erasedLimb===ad&&ftr.erasedT>0;
+  g.save();
+  g.translate(ftr.x,0);
+  if(ftr.facing===-1)g.scale(-1,1);
+  if(!sil('lR')){parcaCiz(g,'uyluk',E.lR.anc,E.lR.kn);parcaCiz(g,'incik',E.lR.kn,E.lR.ft);}
+  if(!sil('aR')){parcaCiz(g,'ust_kol',E.aR.om,E.aR.el);parcaCiz(g,'on_kol',E.aR.el,E.aR.hn);}
+  parcaCiz(g,'govde',E.hip,E.nk);
+  if(!sil('lL')){parcaCiz(g,'uyluk',E.lL.anc,E.lL.kn);parcaCiz(g,'incik',E.lL.kn,E.lL.ft);}
+  parcaCiz(g,'kafa',E.nk,E.hd);
+  if(!sil('aL')){parcaCiz(g,'ust_kol',E.aL.om,E.aL.el);parcaCiz(g,'on_kol',E.aL.el,E.aL.hn);}
+  g.restore();
+}
+
 /* true dönerse çizim yapıldı; kapsam dışıysa false → vektör devam eder.
    ftr.disPoz doluysa (MIXAMO TEST oynatıcısı) poz oradan gelir: kapsam
    atlanır, computePose/erime hiç devreye girmez — salt veri oynatımı */
 export function drawIskelet(g,ftr,ground){
   const dis=ftr.disPoz;
   if(!dis&&!kapsam(ftr))return false;
+  loadParcalar();
   const p=dis||ftr.pose(),f=ftr.facing;
+  if(pHazir&&pman){
+    // zemin gölgesi + kaplama; kapsüller yalnız parçalar yokken yedek
+    g.save();
+    if(ftr.state!=='ko'){
+      const alt=ground-ftr.y;
+      g.fillStyle=INK==='#1A1A1A'?'rgba(0,0,0,.08)':'rgba(255,255,255,.08)';
+      g.beginPath();g.ellipse(ftr.x,ground+4,Math.max(12,30-alt*0.07),5,0,0,7);g.fill();
+    }
+    kaplamaCiz(g,ftr,p);
+    g.restore();
+    return true;
+  }
   const hipY=ftr.y-46+p.dip, hip=[ftr.x+(p.hipShift||0)*f,hipY];
   const seg=(x,y,a,len)=>[x+Math.sin(a)*len*f,y+Math.cos(a)*len];
   g.save();

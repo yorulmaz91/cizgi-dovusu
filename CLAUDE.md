@@ -75,7 +75,12 @@ Sıra önemli: sistem önce, içerik sonra, animasyon cilası en sona.
   computePose eklem açılarından kapsül uzuvlu hacimli kukla (kaba stil:
   siyah dolgu + beyaz eksen çizgisi — Shadow Fight sınıfı akıcılık
   fizibilitesi; kapsam GÖLGE + idle/yürüme/yer yumruk/yeop/hit, kalanı
-  vektöre düşer; frame data değişmedi). MIXAMO hattı: tools/fbx-cevir.mjs
+  vektöre düşer; frame data değişmedi). İskelet KAPLAMASI: sprite
+  karelerinden kesilen parçalar (tools/parca-kes.mjs →
+  assets/sprites/k1/parca/, manifest+PARCA_SABLON.md) kemiklere çapalanıp
+  döner; z-order arka bacak→arka kol→gövde→ön bacak→kafa→ön kol; parçalar
+  yüklüyse kaplama, yoksa kapsül YEDEK. GEÇİCİ: tek kareden kesim, kalıcısı
+  Gemini A-pose parça sayfasından. MIXAMO hattı: tools/fbx-cevir.mjs
   (fbx-parser, yalnız tools bağımlılığı) FBX'i sagital izdüşümle bizim
   iskelet JSON'una çevirir → assets/anim/mixamo_test.json; antrenmandaki
   GEÇİCİ "MIXAMO TEST" düğmesi bunu iskelet kuklası üzerinde oynatır
