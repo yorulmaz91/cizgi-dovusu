@@ -1,0 +1,184 @@
+{
+ "video": "video_walk.mp4",
+ "fps": 24,
+ "cevrimKare": 17,
+ "secili": {
+  "baslangic": 12,
+  "sn": [
+   0.5,
+   1.21
+  ],
+  "kareler": [
+   28,
+   13,
+   15,
+   17,
+   20,
+   22,
+   24,
+   26
+  ],
+  "olcek": 0.3424,
+  "bilgi": [
+   {
+    "kare": "yuru8_1",
+    "videoKare": 28,
+    "boy": 237,
+    "tabanKumeleri": [
+     176.9
+    ]
+   },
+   {
+    "kare": "yuru8_2",
+    "videoKare": 13,
+    "boy": 238,
+    "tabanKumeleri": [
+     177.6
+    ]
+   },
+   {
+    "kare": "yuru8_3",
+    "videoKare": 15,
+    "boy": 238,
+    "tabanKumeleri": [
+     177.6
+    ]
+   },
+   {
+    "kare": "yuru8_4",
+    "videoKare": 17,
+    "boy": 238,
+    "tabanKumeleri": [
+     177.3
+    ]
+   },
+   {
+    "kare": "yuru8_5",
+    "videoKare": 20,
+    "boy": 238,
+    "tabanKumeleri": [
+     177.3
+    ]
+   },
+   {
+    "kare": "yuru8_6",
+    "videoKare": 22,
+    "boy": 238,
+    "tabanKumeleri": [
+     177.3
+    ]
+   },
+   {
+    "kare": "yuru8_7",
+    "videoKare": 24,
+    "boy": 238,
+    "tabanKumeleri": [
+     177.2
+    ]
+   },
+   {
+    "kare": "yuru8_8",
+    "videoKare": 26,
+    "boy": 237,
+    "tabanKumeleri": [
+     177.1
+    ]
+   }
+  ]
+ },
+ "alternatif": {
+  "baslangic": 172,
+  "sn": [
+   7.17,
+   7.88
+  ],
+  "kareler": [
+   183,
+   185,
+   187,
+   172,
+   175,
+   177,
+   179,
+   181
+  ],
+  "olcek": 0.348,
+  "bilgi": [
+   {
+    "kare": "alt8_1",
+    "videoKare": 183,
+    "boy": 235,
+    "tabanKumeleri": [
+     118.1,
+     193.9
+    ]
+   },
+   {
+    "kare": "alt8_2",
+    "videoKare": 185,
+    "boy": 238,
+    "tabanKumeleri": [
+     113.9,
+     186.9
+    ]
+   },
+   {
+    "kare": "alt8_3",
+    "videoKare": 187,
+    "boy": 239,
+    "tabanKumeleri": [
+     114.6,
+     181
+    ]
+   },
+   {
+    "kare": "alt8_4",
+    "videoKare": 172,
+    "boy": 238,
+    "tabanKumeleri": [
+     177.5
+    ]
+   },
+   {
+    "kare": "alt8_5",
+    "videoKare": 175,
+    "boy": 239,
+    "tabanKumeleri": [
+     177.3
+    ]
+   },
+   {
+    "kare": "alt8_6",
+    "videoKare": 177,
+    "boy": 238,
+    "tabanKumeleri": [
+     145.6,
+     195.2
+    ]
+   },
+   {
+    "kare": "alt8_7",
+    "videoKare": 179,
+    "boy": 237,
+    "tabanKumeleri": [
+     140,
+     204.8
+    ]
+   },
+   {
+    "kare": "alt8_8",
+    "videoKare": 181,
+    "boy": 236,
+    "tabanKumeleri": [
+     130.2,
+     202.6
+    ]
+   }
+  ]
+ },
+ "temizlik": {
+  "beyazEsik": 245,
+  "siyahEsik": 64,
+  "fonMin": 251
+ }
+}
