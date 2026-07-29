@@ -18,8 +18,9 @@ import {drawHead} from './render.js';
    Sprite karelerinden kesilmiş parçalar (tools/parca-kes.mjs →
    assets/sprites/k1/parca/) kemiklere çapalanıp kemik açısıyla döner.
    Parçalar yüklüyse kaplama çizilir; yoksa kapsül YEDEK olarak kalır.
-   GEÇİCİ kaplama: tek kareden kesim, her açıda mükemmel durmaz —
-   kalıcısı Gemini A-pose parça sayfasından gelecek (PARCA_SABLON.md). */
+   v2: parçalar GERÇEK parça sayfalarından (parca_pro/parca_normal)
+   kesilir; KİMLİK KARARI gereği sabitK kafa büyütmesi yok — gerçekçi
+   oran (kimlik_v1). Eski tek-kare kesimleri assets/arsiv'de. */
 const PYOL='assets/sprites/k1/parca/';
 let pman=null,pimgs={},pHazir=false,pBaslatildi=false;
 function loadParcalar(){
