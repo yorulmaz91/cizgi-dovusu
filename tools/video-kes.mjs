@@ -34,9 +34,17 @@ const FFMPEG=require_('ffmpeg-static');
 
 const KOK=path.resolve(import.meta.dirname,'..');
 const VIDEO=path.resolve(process.argv[2]||path.join(KOK,'video_walk.mp4'));
+/* --mod=walk|idle: sinyal ve faz mantığını seçer.
+   walk: bbox GENİŞLİĞİ salınır (adım), çapa=en geniş an (temas), 8 kare
+   idle: bbox YÜKSEKLİĞİ salınır (nefes), çapa=en alçak an (nefes verme
+   dibi), gecikme aralığı geniş (nefes 1-5 sn), varsayılan 6 kare.
+   --kare=N: anahtar kare sayısı. Aday klasörü moda göre ayrılır
+   (video-aday, video-aday-idle...) — önceki adaylar ezilmez. */
+const MOD=(process.argv.find(a=>a.startsWith('--mod='))||'--mod=walk').split('=')[1];
+const KARE_N=parseInt((process.argv.find(a=>a.startsWith('--kare='))||'--kare='+(MOD==='idle'?6:8)).split('=')[1]);
 const KARE_DIZIN=path.join(os.tmpdir(),'cd-video-kare');
-const ADAY=path.join(KOK,'video-aday');
-const HEDEF_BOY=238,TW=354,TH=244,MERKEZ=177;
+const ADAY=path.join(KOK,MOD==='walk'?'video-aday':'video-aday-'+MOD);
+const HEDEF_BOY=MOD==='idle'?240:238,TW=354,TH=244,MERKEZ=177;
 
 /* ---- 1) kare çıkarma ---- */
 if(fs.existsSync(KARE_DIZIN))fs.rmSync(KARE_DIZIN,{recursive:true,force:true});
@@ -61,16 +69,23 @@ const N=M.length;
 const ort=a=>a.reduce((t,v)=>t+v,0)/a.length;
 const std=a=>{const m=ort(a);return Math.sqrt(ort(a.map(v=>(v-m)*(v-m))));};
 
-/* çevrim periyodu: W serisi otokorelasyonu (gecikme 12..48) */
-const Ws=M.map(m=>m.w),Wm=ort(Ws),Wn=Ws.map(v=>v-Wm);
-let enT=24,enR=-1e9;
-for(let lag=12;lag<=48;lag++){
+/* çevrim periyodu: sinyal otokorelasyonu.
+   walk: bbox genişliği (gecikme 12..48) · idle: bbox yüksekliği
+   (nefes yavaş: gecikme 24..120) */
+const sinyal=MOD==='idle'?M.map(m=>m.h):M.map(m=>m.w);
+const Sm=ort(sinyal),Sn=sinyal.map(v=>v-Sm);
+const [lagMin,lagMax]=MOD==='idle'?[24,120]:[12,48];
+const korr=[];
+let enR=-1e9;
+for(let lag=lagMin;lag<=Math.min(lagMax,N-20);lag++){
   let r=0,n=0;
-  for(let t=0;t+lag<N;t++){r+=Wn[t]*Wn[t+lag];n++;}
-  r/=n;
-  if(r>enR){enR=r;enT=lag;}
+  for(let t=0;t+lag<N;t++){r+=Sn[t]*Sn[t+lag];n++;}
+  r/=n;korr.push({lag,r});
+  if(r>enR)enR=r;
 }
-const T=enT;
+/* harmonik tuzağı: global tepe 2T'ye kayabilir — en küçük GÜÇLÜ tepe
+   (maksimumun %90'ı) tercih edilir */
+const T=(korr.find(k=>k.r>=enR*0.9)||korr[0]).lag;
 console.log('çevrim periyodu ≈ '+T+' kare ('+(T/24).toFixed(2)+' sn)');
 
 /* stabil segment: H std en düşük (uçlarda 12 kare pay) */
@@ -82,17 +97,25 @@ for(let s=12;s+T<N-12;s++){
 }
 skorlar.sort((a,b)=>a.skor-b.skor);
 const seg1=skorlar[0];
-const seg2=skorlar.find(k=>Math.abs(k.s-seg1.s)>=T)||skorlar[1];
+/* alternatif: tam çakışmasız yoksa en az yarım periyot ayrık; o da
+   yoksa null (video tek çevrimlik — dürüstçe raporlanır) */
+const seg2=skorlar.find(k=>Math.abs(k.s-seg1.s)>=T)
+  ||skorlar.find(k=>Math.abs(k.s-seg1.s)>=T/2)||null;
 console.log('seçilen segment: kare '+seg1.s+'-'+(seg1.s+T)+' ('+(seg1.s/24).toFixed(2)+'-'+((seg1.s+T)/24).toFixed(2)+' sn), H-std='+seg1.skor.toFixed(2));
-console.log('alternatif aday: kare '+seg2.s+'-'+(seg2.s+T)+' ('+(seg2.s/24).toFixed(2)+'-'+((seg2.s+T)/24).toFixed(2)+' sn), H-std='+seg2.skor.toFixed(2));
+if(seg2)console.log('alternatif aday: kare '+seg2.s+'-'+(seg2.s+T)+' ('+(seg2.s/24).toFixed(2)+'-'+((seg2.s+T)/24).toFixed(2)+' sn), H-std='+seg2.skor.toFixed(2));
+else console.log('alternatif aday YOK (video tek çevrimlik — yalnız seçili set üretilir)');
 
-/* 8 anahtar kare: faz çapası = segmentteki en geniş adım (temas) */
-function sekizSec(s){
-  let c0=s,enW=-1;
-  for(let t=s;t<s+T;t++)if(M[t].w>enW){enW=M[t].w;c0=t;}
-  return Array.from({length:8},(_,i)=>s+((c0-s+Math.round(i*T/8))%T));
+/* anahtar kareler: faz çapası — walk: en geniş adım (temas);
+   idle: en alçak boy (nefes verme dibi) */
+function kareSec(s){
+  let c0=s,en=MOD==='idle'?1e9:-1;
+  for(let t=s;t<s+T;t++){
+    const v=MOD==='idle'?M[t].h:M[t].w;
+    if(MOD==='idle'?v<en:v>en){en=v;c0=t;}
+  }
+  return Array.from({length:KARE_N},(_,i)=>s+((c0-s+Math.round(i*T/KARE_N))%T));
 }
-const sec1=sekizSec(seg1.s),sec2=sekizSec(seg2.s);
+const sec1=kareSec(seg1.s),sec2=seg2?kareSec(seg2.s):null;
 
 /* ---- 4) temizlik (kalibrasyonlu) ---- */
 const ornekKare=PNG.sync.read(fs.readFileSync(path.join(KARE_DIZIN,M[seg1.s].d)));
@@ -104,7 +127,11 @@ for(const[cx,cy]of[[30,30],[ornekKare.width-90,30],[30,ornekKare.height-90],[orn
   }
 }
 const BEYAZ=Math.max(200,Math.round(fonMin-6)),SIYAH=64;
-console.log('temizlik kalibrasyonu: köşe fonu min='+fonMin.toFixed(0)+' → beyaz eşiği '+BEYAZ+', siyah eşiği '+SIYAH);
+/* FON eşiği (flood için) beyazlatmadan AYRI ve toleranslı: kenara bağlı
+   gri lekeler (gölge/vinyet, min 170-200 bandı) da fon sayılır — figürün
+   koyu konturu iç beyazları korur */
+const FON=Math.min(BEYAZ,Math.max(170,Math.round(fonMin-10)));
+console.log('temizlik kalibrasyonu: köşe fonu min='+fonMin.toFixed(0)+' → beyaz eşiği '+BEYAZ+', fon eşiği '+FON+', siyah eşiği '+SIYAH);
 
 function temizle(png){
   const {width:W,height:H,data:D}=png;
@@ -115,10 +142,13 @@ function temizle(png){
     if(v>=BEYAZ)v=255;else if(v<=SIYAH)v=0;
     gri[i]=v;
   }
-  // kenardan flood-fill: fona bağlı beyaz → şeffaf (iç beyazlar opak)
+  // kenardan flood-fill: fona bağlı AÇIK bölge → şeffaf (FON eşiği
+  // toleranslı: gri lekeler dahil; iç beyazlar kontur sayesinde opak)
+  const griHam=new Uint8Array(W*H);
+  for(let i=0;i<W*H;i++)griHam[i]=(D[i*4]+D[i*4+1]+D[i*4+2])/3;
   const mask=new Uint8Array(W*H);
   const kuyruk=[];
-  const ekle=(x,y)=>{const i=y*W+x;if(!mask[i]&&gri[i]===255){mask[i]=1;kuyruk.push(i);}};
+  const ekle=(x,y)=>{const i=y*W+x;if(!mask[i]&&griHam[i]>=FON){mask[i]=1;kuyruk.push(i);}};
   for(let x=0;x<W;x++){ekle(x,0);ekle(x,H-1);}
   for(let y=0;y<H;y++){ekle(0,y);ekle(W-1,y);}
   while(kuyruk.length){
@@ -195,7 +225,7 @@ fs.mkdirSync(path.join(ADAY,'secili'),{recursive:true});
 fs.mkdirSync(path.join(ADAY,'alternatif'),{recursive:true});
 function setIsle(idxler,klasor,onek){
   const temizler=idxler.map(i=>kirp(temizle(PNG.sync.read(fs.readFileSync(path.join(KARE_DIZIN,M[i].d))))));
-  const medyanH=temizler.map(t=>t.height).sort((a,b)=>a-b)[4];
+  const medyanH=temizler.map(t=>t.height).sort((a,b)=>a-b)[KARE_N>>1];
   const oran=HEDEF_BOY/medyanH;
   const bilgi=[];
   temizler.forEach((t,n)=>{
@@ -215,19 +245,20 @@ function setIsle(idxler,klasor,onek){
   console.log(onek+': medyan boy '+medyanH+' → ölçek ×'+oran.toFixed(3));
   return {oran,bilgi};
 }
-const s1=setIsle(sec1,path.join(ADAY,'secili'),'yuru8');
-const s2=setIsle(sec2,path.join(ADAY,'alternatif'),'alt8');
+const ONEK1=(MOD==='idle'?'idle':'yuru')+KARE_N,ONEK2='alt'+KARE_N;
+const s1=setIsle(sec1,path.join(ADAY,'secili'),ONEK1);
+const s2=sec2?setIsle(sec2,path.join(ADAY,'alternatif'),ONEK2):null;
 fs.writeFileSync(path.join(ADAY,'manifest.json'),JSON.stringify({
   video:path.basename(VIDEO),fps:24,cevrimKare:T,
   secili:{baslangic:seg1.s,sn:[+(seg1.s/24).toFixed(2),+((seg1.s+T)/24).toFixed(2)],kareler:sec1,olcek:+s1.oran.toFixed(4),bilgi:s1.bilgi},
-  alternatif:{baslangic:seg2.s,sn:[+(seg2.s/24).toFixed(2),+((seg2.s+T)/24).toFixed(2)],kareler:sec2,olcek:+s2.oran.toFixed(4),bilgi:s2.bilgi},
+  alternatif:seg2?{baslangic:seg2.s,sn:[+(seg2.s/24).toFixed(2),+((seg2.s+T)/24).toFixed(2)],kareler:sec2,olcek:+s2.oran.toFixed(4),bilgi:s2.bilgi}:null,
   temizlik:{beyazEsik:BEYAZ,siyahEsik:SIYAH,fonMin:+fonMin.toFixed(0)},
 },null,1));
 
 /* kompozitler: onay için — seçili set, alternatif set, önce/sonra */
 function kompozit(klasor,onek,hedef){
-  const K=Array.from({length:8},(_,i)=>PNG.sync.read(fs.readFileSync(path.join(klasor,onek+'_'+(i+1)+'.png'))));
-  const s=new PNG({width:8*(TW/2+4)+4,height:TH/2+8});
+  const K=Array.from({length:KARE_N},(_,i)=>PNG.sync.read(fs.readFileSync(path.join(klasor,onek+'_'+(i+1)+'.png'))));
+  const s=new PNG({width:KARE_N*(TW/2+4)+4,height:TH/2+8});
   for(let i=0;i<s.width*s.height;i++){s.data[i*4]=235;s.data[i*4+1]=235;s.data[i*4+2]=232;s.data[i*4+3]=255;}
   K.forEach((k,n)=>{
     const bx=4+n*(TW/2+4);
@@ -240,6 +271,6 @@ function kompozit(klasor,onek,hedef){
   });
   fs.writeFileSync(hedef,PNG.sync.write(s));
 }
-kompozit(path.join(ADAY,'secili'),'yuru8',path.join(ADAY,'kompozit-secili.png'));
-kompozit(path.join(ADAY,'alternatif'),'alt8',path.join(ADAY,'kompozit-alternatif.png'));
+kompozit(path.join(ADAY,'secili'),ONEK1,path.join(ADAY,'kompozit-secili.png'));
+if(sec2)kompozit(path.join(ADAY,'alternatif'),ONEK2,path.join(ADAY,'kompozit-alternatif.png'));
 console.log('adaylar: '+ADAY+' (secili/, alternatif/, kompozitler, manifest.json)');
