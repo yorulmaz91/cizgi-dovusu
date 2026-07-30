@@ -94,9 +94,9 @@ Sıra önemli: sistem önce, içerik sonra, animasyon cilası en sona.
   hava/juggle seti YOK — bekleme düşer) ve ayakta blok (gard sabit,
   emilimde kvx sönene dek emilim karesi — ayrı blockstun verisi yoktur,
   geri itiş penceresi kullanılır) eşlenmiş — yürüme
-  yol-senkron: kare kat edilen yoldan seçilir (tempo YURU_YOL_PER_KARE=5
-  ekran px/kare — 8-kare video çevriminin yol ölçümünden fiziksel senkron;
-  his ayarı kullanıcıda, sayı büyüdükçe yavaşlar; geri çekilirken ters,
+  yol-senkron: kare kat edilen yoldan seçilir (tempo YURU_YOL_PER_KARE=15
+  ekran px/kare — his kademesi; 5=fiziksel senkron, 10, 27=eski his hazır;
+  sayı büyüdükçe yavaşlar; geri çekilirken ters,
   duvarda/hitstop'ta durur), pivot
   ayak hücre ofsetleriyle sabit (YURU_OFSET); yumruk 1→2→3→2→1, aktif
   pencere [t0,t1] impact karesiyle eşzamanlı, pivot ARKA ayak
