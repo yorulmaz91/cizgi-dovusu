@@ -49,7 +49,8 @@ color."
 - walk8_1..8: video kaynaklı 8 kare, yol-tabanlı seçici,
   YURU_OFSET iki fazlı, YURU_YOL_PER_KARE = 27 (KÖPRÜ DEĞER)
 - idle6_1..6: video kaynaklı, ~4sn nefes çevrimi, yapay bob yok
-  (NOT: bu ESKİ videodan, ceket eteği kusurlu — değişecek)
+  (yeni video, kuşak altı düz, commit b223003; eski set
+  assets/arsiv/idle6-v1/)
 - punch6_1..6: video kaynaklı, hitbox-kare kuralı (aktif
   pencere [t0,t1] tamamen IMPACT karesinde, kanıtlı),
   YUMRUK_OFSET ölçülmüş sıfır
@@ -57,29 +58,25 @@ color."
   yuru3/, bekleme3/, punch3/, parca-frankenstein/
 
 ═══ KUYRUK (sıradaki işler) ═══
-1. IDLE DEĞİŞİMİ: kökteki video_idle.mp4 YENİ üretimdir
-   (etek kusuru giderilmiş, saf nefes, ağırlık aktarması yok,
-   sanat yönetmeni onaylı). --mod=idle ile işlenip BAĞLANACAK,
-   eski idle6 arşive, portre yenisinden türeyecek.
-2. WALK GENİŞLETME (tempo sorununun KALICI çözümü):
+1. WALK GENİŞLETME (tempo sorununun KALICI çözümü):
    onaylı segmentten (kare 172-189 çevrimi) 8 yerine 14 kare
    kesilecek, YURU_OFSET 14'e yeniden türetilecek, çevrim
    süresi VİDEO KAYNAĞINA eşitlenecek (his kademesi arayışı
    biter, referans video). Kullanıcı bulgusu: 8 karede kalça
    salınımı ve arka bacak ara fazları kayboluyor.
-3. KICK KESİMİ: video_kick1.mp4 (kökte). ÖLÇÜLDÜ: 240 kare,
+2. KICK KESİMİ: video_kick1.mp4 (kökte). ÖLÇÜLDÜ: 240 kare,
    5 tekme olayı (kare 41/105/161/205/217), gard duraklamaları
    sağlam (49-97 arası ~2sn sabit). Ön tekme = kare 29-53
    (uzanım 183px, gövde dik), yan tekme = kare 93-121
    (uzanım 169px, gövde geriye yatıyor, yükseklik 162'ye
    düşüyor). DİKKAT: bu videonun fonu GRİ (183-216, saf beyaz
    yok) — toleranslı eşik şart.
-4. DEFANS KESİMİ: video_defense.mp4 (kökte). ÖLÇÜLDÜ: fon
+3. DEFANS KESİMİ: video_defense.mp4 (kökte). ÖLÇÜLDÜ: fon
    temiz beyaz (253). Darbe alma = kare 22-50 (genişlik
    72→170), blok = kare 110-135 (yükseklik 165→155),
    çömelme = kare 168-208 (tutulan bölüm 177-201, yükseklik
    169→125). BEKLETİLİYOR: blok kolları düzeltilecek (aşağıda).
-5. Kalan hamleler: dönerek tekme (dollyo), süpürme, hava seti,
+4. Kalan hamleler: dönerek tekme (dollyo), süpürme, hava seti,
    yere yıkılma ailesi.
 
 ═══ AÇIK KARARLAR (kullanıcı verecek) ═══
