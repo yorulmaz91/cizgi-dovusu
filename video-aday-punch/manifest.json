@@ -1,0 +1,142 @@
+{
+ "video": "video_punch.mp4",
+ "fps": 24,
+ "cevrimKare": 12,
+ "secili": {
+  "baslangic": 117,
+  "sn": [
+   4.88,
+   5.38
+  ],
+  "kareler": [
+   117,
+   129,
+   141,
+   153,
+   165,
+   177
+  ],
+  "olcek": 0.348,
+  "bilgi": [
+   {
+    "kare": "punch6_1",
+    "videoKare": 117,
+    "boy": 239,
+    "tabanKumeleri": [
+     177
+    ]
+   },
+   {
+    "kare": "punch6_2",
+    "videoKare": 129,
+    "boy": 238,
+    "tabanKumeleri": [
+     177.3
+    ]
+   },
+   {
+    "kare": "punch6_3",
+    "videoKare": 141,
+    "boy": 238,
+    "tabanKumeleri": [
+     176.7
+    ]
+   },
+   {
+    "kare": "punch6_4",
+    "videoKare": 153,
+    "boy": 235,
+    "tabanKumeleri": [
+     176.4
+    ]
+   },
+   {
+    "kare": "punch6_5",
+    "videoKare": 165,
+    "boy": 233,
+    "tabanKumeleri": [
+     177
+    ]
+   },
+   {
+    "kare": "punch6_6",
+    "videoKare": 177,
+    "boy": 237,
+    "tabanKumeleri": [
+     176.9
+    ]
+   }
+  ]
+ },
+ "alternatif": {
+  "baslangic": 12,
+  "sn": [
+   0.5,
+   1
+  ],
+  "kareler": [
+   12,
+   16,
+   28,
+   40,
+   52,
+   63
+  ],
+  "olcek": 0.348,
+  "bilgi": [
+   {
+    "kare": "alt6_1",
+    "videoKare": 12,
+    "boy": 239,
+    "tabanKumeleri": [
+     176.8
+    ]
+   },
+   {
+    "kare": "alt6_2",
+    "videoKare": 16,
+    "boy": 239,
+    "tabanKumeleri": [
+     177.3
+    ]
+   },
+   {
+    "kare": "alt6_3",
+    "videoKare": 28,
+    "boy": 238,
+    "tabanKumeleri": [
+     177.1
+    ]
+   },
+   {
+    "kare": "alt6_4",
+    "videoKare": 40,
+    "boy": 232,
+    "tabanKumeleri": [
+     177.4
+    ]
+   },
+   {
+    "kare": "alt6_5",
+    "videoKare": 52,
+    "boy": 226,
+    "tabanKumeleri": [
+     176.6
+    ]
+   },
+   {
+    "kare": "alt6_6",
+    "videoKare": 63,
+    "boy": 233,
+    "tabanKumeleri": [
+     177
+    ]
+   }
+  ]
+ },
+ "temizlik": {
+  "beyazEsik": 210,
+  "siyahEsik": 64,
+  "fonMin": 216
+ }
+}

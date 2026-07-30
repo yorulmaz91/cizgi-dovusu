@@ -68,7 +68,7 @@ for(const d of dosyalar){
     const i=(y*W+x)*4,v=(D[i]+D[i+1]+D[i+2])/3;
     if(v<180){ink++;if(x<minX)minX=x;if(x>maxX)maxX=x;if(y<minY)minY=y;if(y>maxY)maxY=y;}
   }
-  M.push({d,w:maxX-minX+1,h:maxY-minY+1,ink});
+  M.push({d,w:maxX-minX+1,h:maxY-minY+1,ink,sagUc:maxX});
 }
 const N=M.length;
 const ort=a=>a.reduce((t,v)=>t+v,0)/a.length;
@@ -110,29 +110,36 @@ function keskinlik(idx){
 
 let seg1,seg2,sec1,sec2;
 if(MOD==='punch'){
-  /* impact tepeleri: W yerel maksimumları (ortalama+0.4σ üstü, ±T/3 pencerede en büyük) */
-  const Wm2=ort(sinyal),Ws2=std(sinyal);
+  /* impact sinyali = SAĞ UÇ (maxX, yumruk ucu). Bbox genişliği yanıltır:
+     geri çekişte dirsek kutuyu SOLdan genişletir (video_punch teşhisi —
+     W tepesi gard'a düşüyordu). Olay penceresi sabit 24 kare (1 sn):
+     tekrar periyoduna güvenilmez (videoda az sayıda vuruş olabilir). */
+  const S=M.map(m=>m.sagUc);
+  const Sm2=ort(S),Ss2=std(S);
+  const PEN=24;
   const tepeler=[];
   for(let t=12;t<N-12;t++){
-    if(sinyal[t]<Wm2+0.4*Ws2)continue;
+    if(S[t]<Sm2+0.5*Ss2)continue;
     let enB=true;
-    for(let k=Math.max(0,t-Math.round(T/3));k<=Math.min(N-1,t+Math.round(T/3));k++)
-      if(sinyal[k]>sinyal[t]){enB=false;break;}
-    if(enB&&(tepeler.length===0||t-tepeler[tepeler.length-1]>=Math.round(T*0.6)))tepeler.push(t);
+    for(let k=Math.max(0,t-PEN);k<=Math.min(N-1,t+PEN);k++)
+      if(S[k]>S[t]||(S[k]===S[t]&&k<t)){enB=false;break;}
+    if(enB)tepeler.push(t);
   }
-  if(!tepeler.length)throw new Error('impact tepesi bulunamadı');
+  if(!tepeler.length)throw new Error('impact tepesi bulunamadı (sağ uç sinyali düz)');
   const puanli=tepeler.map(p=>({p,ks:keskinlik(p)})).sort((a,b)=>b.ks-a.ks);
-  console.log('impact tepeleri (keskinlik): '+puanli.map(x=>x.p+':'+x.ks.toFixed(3)).join('  '));
-  const olayKare=(p)=>{ // eşit aralıksız: gard→coil→uzanım→IMPACT→çekiş→dönüş
-    let coil=p-2,enW=1e9;
-    for(let t=Math.max(12,p-Math.round(T/2));t<p-1;t++)if(sinyal[t]<enW){enW=sinyal[t];coil=t;}
+  console.log('impact tepeleri (sağ uç + keskinlik): '+puanli.map(x=>x.p+':'+x.ks.toFixed(3)).join('  '));
+  const olayKare=(p)=>{ // gard→coil→uzanım→IMPACT→çekiş→dönüş (sağ uç eğrisinden)
+    let coil=p-2,enS=1e9;
+    for(let t=Math.max(12,p-PEN);t<p-1;t++)if(S[t]<enS){enS=S[t];coil=t;}
+    let donus=p+2,enS2=1e9;
+    for(let t=p+2;t<=Math.min(N-13,p+PEN);t++)if(S[t]<enS2){enS2=S[t];donus=t;}
     const d=Math.max(3,p-coil);
-    return [Math.max(12,coil-d),coil,coil+Math.ceil(d/2),p,
-            Math.min(N-13,p+Math.max(2,Math.round(d/2))),Math.min(N-13,p+d)];
+    return [Math.max(12,coil-Math.round(d/2)),coil,coil+Math.ceil(d/2),p,
+            Math.min(N-13,p+Math.max(1,Math.round((donus-p)/2))),donus];
   };
   sec1=olayKare(puanli[0].p);
   seg1={s:sec1[0],skor:puanli[0].ks};
-  const alt=puanli.find(x=>Math.abs(x.p-puanli[0].p)>=T*0.6);
+  const alt=puanli.find(x=>Math.abs(x.p-puanli[0].p)>=PEN);
   sec2=alt?olayKare(alt.p):null;
   seg2=alt?{s:sec2[0],skor:alt.ks}:null;
   console.log('seçilen impact: kare '+puanli[0].p+' ('+(puanli[0].p/24).toFixed(2)+' sn), keskinlik '+puanli[0].ks.toFixed(3));
@@ -298,7 +305,7 @@ function setIsle(idxler,klasor,onek){
   console.log(onek+': medyan boy '+medyanH+' → ölçek ×'+oran.toFixed(3));
   return {oran,bilgi};
 }
-const ONEK1=(MOD==='idle'?'idle':'yuru')+KARE_N,ONEK2='alt'+KARE_N;
+const ONEK1=(MOD==='idle'?'idle':MOD==='punch'?'punch':'yuru')+KARE_N,ONEK2='alt'+KARE_N;
 const s1=setIsle(sec1,path.join(ADAY,'secili'),ONEK1);
 const s2=sec2?setIsle(sec2,path.join(ADAY,'alternatif'),ONEK2):null;
 fs.writeFileSync(path.join(ADAY,'manifest.json'),JSON.stringify({
