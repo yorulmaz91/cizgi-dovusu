@@ -52,7 +52,7 @@ export function loadSprites(){
   for(let i=0;i<6;i++)al(K.bekleme,i,'idle6_'+(i+1)+'.png'); // videodan 6 karelik nefes çevrimi
   for(let i=0;i<4;i++)al(K.tekme,i,'tekme-'+i+'.png');
   for(let i=0;i<8;i++)al(K.yurume,i,'walk8_'+(i+1)+'.png'); // videodan 8 karelik çevrim
-  for(let i=0;i<3;i++)al(K.yumruk,i,'punch_'+(i+1)+'.png');
+  for(let i=0;i<6;i++)al(K.yumruk,i,'punch6_'+(i+1)+'.png'); // videodan 6 karelik yumruk olayı
   for(let i=0;i<2;i++)al(K.hit,i,'hit_'+(i+1)+'.png');
   for(let i=0;i<2;i++)al(K.blok,i,'block_'+(i+1)+'.png');
 }
@@ -83,12 +83,11 @@ const YURU_YOL_PER_KARE=15;     // his ayarı (5 çok hızlı bulundu → 15 ort
 let yuruKay=0;                  // test/ayar kancası: faz kaydırma (ekran px)
 export function spriteYuruKaydir(px){yuruKay=px;}
 
-/* YUMRUK HİZALAMASI: bu şeritte pivot ARKA AYAK. Ölçüm (taban bandı,
-   alfa ağırlıklı): arka ayak hücrede 125.6 / 139.1 / 88.4 px'te.
-   Referans = punch_1 (gard) — ofseti 0 olduğu için idle→yumruk geçişinde
-   figür yerinden oynamaz; coil ve impact kareleri arka ayağı gard'ın
-   arka ayağına sabitler, kare 3'ün ileri hamlesi serbestçe öne taşar. */
-const YUMRUK_OFSET=[0,-13,37];  // tuval px; arka_ayak_i + ofset_i ≈ 125.6 sabit
+/* YUMRUK HİZALAMASI (video 6-kare, gard-referanslı): ölçümde altı
+   karenin taban kümesi 176.4-177.3 bandında (<1px) — video sabit
+   duruştan vuruyor, kareler kendiliğinden hizalı → ofsetler ölçülmüş
+   SIFIRLAR (ileride ayar gerekirse dizi hazır). */
+const YUMRUK_OFSET=[0,0,0,0,0,0]; // tuval px, 6 kare
 
 /* HIT/BLOK HİZALAMASI (gard-referans standardı, 1. kare = 0):
    ölçüm — dört karede arka topuk 123.0-123.9 px (≤1px oynama): bu şeritler
@@ -115,12 +114,13 @@ function kareSec(f){
   }
   if(f.state==='attack'&&f.mvKind==='p'&&!f.airMove&&f.mv&&f.mv.anim!=='upper'){
     const mv=f.mv,st=f.st;
-    let i;
-    if(st<mv.t0*0.3)i=0;                      // gard → coil girişi
-    else if(st<mv.t0)i=1;                     // hazırlık: coil
-    else if(st<=mv.t1+0.02)i=2;               // AKTİF: impact — hitbox penceresi [t0,t1] tamamen burada
-    else if(st<mv.t1+(mv.dur-mv.t1)*0.6)i=1;  // toparlanma: coil
-    else i=0;                                 // gard
+    let i; // 6 faz: gard→coil→uzanım-başı→IMPACT→geri çekiş→gard-dönüş
+    if(st<mv.t0*0.35)i=0;
+    else if(st<mv.t0*0.75)i=1;
+    else if(st<mv.t0)i=2;
+    else if(st<=mv.t1+0.02)i=3;               // AKTİF: IMPACT — hitbox penceresi [t0,t1] tamamen burada
+    else if(st<mv.t1+(mv.dur-mv.t1)*0.55)i=4;
+    else i=5;
     return{im:K.yumruk[i],bob:0,of:YUMRUK_OFSET[i]};
   }
   // darbe tepkisi (yalnız yerde — hava/juggle seti ileride, şimdilik bekleme düşer):
