@@ -69,9 +69,12 @@ Sıra önemli: sistem önce, içerik sonra, animasyon cilası en sona.
   hamle süreleri/hasarlar değişmedi.
 - **SPRITE görünümü — TAMAMLANDI:** GÖLGE tüm modlarda (DÖVÜŞ dahil)
   sprite karelerle çizilir, diğer karakterler vektör. Görünüm anahtarı
-  globaldir ve ÜÇLÜ döngüdür (antrenmandaki "GÖRÜNÜM" düğmesi:
-  SPRITE → İSKELET → VEKTÖR), localStorage 'cd-sprite' ile kalıcı
-  ('1'/'2'/'0'), varsayılan SPRITE. İSKELET = js/iskelet.js prototipi:
+  globaldir ve DÖRTLÜ döngüdür (antrenmandaki "GÖRÜNÜM" düğmesi:
+  SPRITE → SPRITE 3/4 → İSKELET → VEKTÖR), localStorage 'cd-sprite'
+  ile kalıcı ('1'/'3'/'2'/'0'), varsayılan SPRITE. SPRITE 3/4 = açı
+  TESTİ: yalnız bekleme 3/4 açı setiyle (idle34_1..8, 12fps, kaynak
+  char1_idle_34_8kare.png → tools/serit-kes.mjs), kalan tüm hamleler
+  bilerek profil setinde — idle→tekme perspektif sıçraması ölçülecek. İSKELET = js/iskelet.js prototipi:
   computePose eklem açılarından kapsül uzuvlu hacimli kukla (kaba stil:
   siyah dolgu + beyaz eksen çizgisi — Shadow Fight sınıfı akıcılık
   fizibilitesi; kapsam GÖLGE + idle/yürüme/yer yumruk/yeop/hit, kalanı

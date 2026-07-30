@@ -10,26 +10,28 @@
    ============================================================ */
 const YOL='assets/sprites/k1/';
 
-/* global görünüm modu: 'sprite' (varsayılan) · 'iskelet' (prototip) ·
-   'vektor'. localStorage 'cd-sprite': '1'=sprite, '2'=iskelet, '0'=vektör
-   (eski kayıtlarla geriye uyumlu) */
+/* global görünüm modu: 'sprite' (varsayılan) · 'sprite34' (3/4 açı bekleme
+   TESTİ — yalnız idle farklı, kalan hamleler profil setiyle aynı) ·
+   'iskelet' (prototip) · 'vektor'. localStorage 'cd-sprite':
+   '1'=sprite, '3'=sprite34, '2'=iskelet, '0'=vektör (geriye uyumlu) */
 let mod='sprite';
 try{
   const k=localStorage.getItem('cd-sprite');
-  if(k==='0')mod='vektor';else if(k==='2')mod='iskelet';
+  if(k==='0')mod='vektor';else if(k==='2')mod='iskelet';else if(k==='3')mod='sprite34';
 }catch(e){}
+const KAYIT={sprite:'1',sprite34:'3',iskelet:'2',vektor:'0'};
 export function gorunum(){return mod;}
 export function gorunumAyarla(m){
-  mod=(m==='iskelet'||m==='vektor')?m:'sprite';
-  try{localStorage.setItem('cd-sprite',mod==='sprite'?'1':mod==='iskelet'?'2':'0');}catch(e){}
-  if(mod==='sprite')loadSprites();
+  mod=KAYIT[m]?m:'sprite';
+  try{localStorage.setItem('cd-sprite',KAYIT[mod]);}catch(e){}
+  if(mod==='sprite'||mod==='sprite34')loadSprites();
 }
 /* bu dövüşçü hangi görünümle çizilmeli? (karakter bazlı: yalnız GÖLGE) */
-export function spriteUygun(f){return mod==='sprite'&&f.ch&&f.ch.id==='golge';}
+export function spriteUygun(f){return (mod==='sprite'||mod==='sprite34')&&f.ch&&f.ch.id==='golge';}
 export function iskeletUygun(f){return mod==='iskelet'&&f.ch&&f.ch.id==='golge';}
 const GARD_H=240;    // gard figürünün kesimdeki boyu (px) — ölçek referansı
 const CIZIM_BOY=122; // oyundaki hedef boy (vektör çöp adam ~120px)
-const K={bekleme:[],tekme:[],yurume:[],yumruk:[],hit:[],blok:[]};
+const K={bekleme:[],tekme:[],yurume:[],yumruk:[],hit:[],blok:[],idle34:[]};
 let baslatildi=false,hazir=0,toplam=0,hata=false,nesil=0;
 
 /* kareleri bir kez yükle (anahtar ilk açıldığında çağrılır);
@@ -55,6 +57,7 @@ export function loadSprites(){
   for(let i=0;i<6;i++)al(K.yumruk,i,'punch6_'+(i+1)+'.png'); // videodan 6 karelik yumruk olayı
   for(let i=0;i<2;i++)al(K.hit,i,'hit_'+(i+1)+'.png');
   for(let i=0;i<2;i++)al(K.blok,i,'block_'+(i+1)+'.png');
+  for(let i=0;i<8;i++)al(K.idle34,i,'idle34_'+(i+1)+'.png'); // 3/4 açı bekleme (TEST)
 }
 export function spriteHazir(){return baslatildi&&toplam>0&&hazir===toplam;}
 
@@ -148,10 +151,15 @@ function kareSec(f){
     const i=((Math.floor(yol)%8)+8)%8; // 8 karelik çevrim; geri yürüyüş = ters sıra (yol azalır)
     return{im:K.yurume[i],bob:0,of:YURU_OFSET[i]};
   }
-  if(f.state==='idle')
+  if(f.state==='idle'){
+    // SPRITE 3/4 TESTİ: 8 kare @12fps (60fps'te kare başına 5 oyun karesi);
+    // modulo döngü kesintisiz — 8'den 1'e geçişte duraklama yok
+    if(mod==='sprite34')
+      return{im:K.idle34[((Math.floor(saat*12)%8)+8)%8],bob:0};
     // 6 karelik video nefesi: ~4.08 sn çevrim → kare başına 0.68 sn.
     // Yapay dikey bob KALDIRILDI — nefes hareketi karelerin içinde
     return{im:K.bekleme[Math.floor(saat/0.68)%6],bob:0};
+  }
   return null; // sprite'ı olmayan durum (çömelme, hava, fırlatma...) → vektör çizim
 }
 

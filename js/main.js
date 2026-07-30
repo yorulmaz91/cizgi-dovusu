@@ -107,14 +107,16 @@ if(trnDemo)trnDemo.addEventListener('click',()=>{
   if(game.scene!=='training')return;
   game.demo={sira:['k','p','ck','cp'],i:0,bekle:.2};
 });
-/* GÖRÜNÜM anahtarı: GLOBAL (dövüş dahil), localStorage'da kalıcı — üçlü
-   döngü: SPRITE (varsayılan) → İSKELET (hacimli kukla prototipi) → VEKTÖR */
-if(gorunum()==='sprite')loadSprites(); // varsayılan sprite: kareler baştan yüklenir
+/* GÖRÜNÜM anahtarı: GLOBAL (dövüş dahil), localStorage'da kalıcı — döngü:
+   SPRITE (varsayılan) → SPRITE 3/4 (3/4 açı bekleme TESTİ) →
+   İSKELET (hacimli kukla prototipi) → VEKTÖR */
+if(gorunum()==='sprite'||gorunum()==='sprite34')loadSprites(); // kareler baştan yüklenir
 const trnSprite=document.getElementById('trnSprite');
-const gorunumAd={sprite:'SPRITE',iskelet:'İSKELET',vektor:'VEKTÖR'};
+const gorunumAd={sprite:'SPRITE',sprite34:'SPRITE 3/4',iskelet:'İSKELET',vektor:'VEKTÖR'};
+const GORUNUM_SIRA=['sprite','sprite34','iskelet','vektor'];
 const spriteEtiket=()=>{if(trnSprite)trnSprite.textContent='GÖRÜNÜM: '+gorunumAd[gorunum()];};
 if(trnSprite)trnSprite.addEventListener('click',()=>{
-  gorunumAyarla(gorunum()==='sprite'?'iskelet':gorunum()==='iskelet'?'vektor':'sprite');
+  gorunumAyarla(GORUNUM_SIRA[(GORUNUM_SIRA.indexOf(gorunum())+1)%GORUNUM_SIRA.length]);
   spriteEtiket();
 });
 spriteEtiket();
