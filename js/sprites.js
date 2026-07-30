@@ -49,7 +49,7 @@ export function loadSprites(){
     im.src=YOL+ad;
     dizi[i]=im;
   };
-  for(let i=0;i<3;i++)al(K.bekleme,i,'bekleme-'+i+'.png');
+  for(let i=0;i<6;i++)al(K.bekleme,i,'idle6_'+(i+1)+'.png'); // videodan 6 karelik nefes çevrimi
   for(let i=0;i<4;i++)al(K.tekme,i,'tekme-'+i+'.png');
   for(let i=0;i<8;i++)al(K.yurume,i,'walk8_'+(i+1)+'.png'); // videodan 8 karelik çevrim
   for(let i=0;i<3;i++)al(K.yumruk,i,'punch_'+(i+1)+'.png');
@@ -103,7 +103,8 @@ const BLOK_OFSET=[0,1];
    mevcut hamle verisi t0/t1 esas alınır), toparlanma coil→gard;
    hit (yerde): hitstun %60 impact → stagger; stagger durumu → stagger karesi;
    blok: gard sabit, emilimde (kvx sönene dek) emilim karesi;
-   yürüme: 3 kare döngü; diğer tüm durumlar → bekleme döngüsü (3 kare ~600ms) */
+   yürüme: 8 kare yol-senkron döngü; bekleme: 6 karelik video nefesi
+   (~4 sn çevrim); diğer tüm durumlar → vektör */
 function kareSec(f){
   if(f.state==='attack'&&f.mv&&f.mv.anim==='yeop'){
     const mv=f.mv;
@@ -147,7 +148,9 @@ function kareSec(f){
     return{im:K.yurume[i],bob:0,of:YURU_OFSET[i]};
   }
   if(f.state==='idle')
-    return{im:K.bekleme[Math.floor(saat/0.2)%3],bob:Math.sin(saat*2*Math.PI/1.2)*1.5}; // hafif nefes
+    // 6 karelik video nefesi: ~4.08 sn çevrim → kare başına 0.68 sn.
+    // Yapay dikey bob KALDIRILDI — nefes hareketi karelerin içinde
+    return{im:K.bekleme[Math.floor(saat/0.68)%6],bob:0};
   return null; // sprite'ı olmayan durum (çömelme, hava, fırlatma...) → vektör çizim
 }
 

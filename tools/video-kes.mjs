@@ -34,14 +34,19 @@ const FFMPEG=require_('ffmpeg-static');
 
 const KOK=path.resolve(import.meta.dirname,'..');
 const VIDEO=path.resolve(process.argv[2]||path.join(KOK,'video_walk.mp4'));
-/* --mod=walk|idle: sinyal ve faz mantığını seçer.
+/* --mod=walk|idle|punch: sinyal ve faz mantığını seçer.
    walk: bbox GENİŞLİĞİ salınır (adım), çapa=en geniş an (temas), 8 kare
    idle: bbox YÜKSEKLİĞİ salınır (nefes), çapa=en alçak an (nefes verme
    dibi), gecikme aralığı geniş (nefes 1-5 sn), varsayılan 6 kare.
+   punch: çevrim sinyali kol uzanımı (bbox genişliği TEPESİ = impact);
+   impact tepeleri bulunur, KESKİNLİK puanı (impact karesindeki kenar
+   yoğunluğu — hız bulanıklığı eler) en yüksek tekrar seçilir; 6 kare
+   eşit aralıklı DEĞİL, olay odaklı: gard → coil (tepe öncesi en dar an)
+   → uzanım-başı → IMPACT → geri çekiş → gard-dönüş.
    --kare=N: anahtar kare sayısı. Aday klasörü moda göre ayrılır
    (video-aday, video-aday-idle...) — önceki adaylar ezilmez. */
 const MOD=(process.argv.find(a=>a.startsWith('--mod='))||'--mod=walk').split('=')[1];
-const KARE_N=parseInt((process.argv.find(a=>a.startsWith('--kare='))||'--kare='+(MOD==='idle'?6:8)).split('=')[1]);
+const KARE_N=parseInt((process.argv.find(a=>a.startsWith('--kare='))||'--kare='+(MOD==='walk'?8:6)).split('=')[1]);
 const KARE_DIZIN=path.join(os.tmpdir(),'cd-video-kare');
 const ADAY=path.join(KOK,MOD==='walk'?'video-aday':'video-aday-'+MOD);
 const HEDEF_BOY=MOD==='idle'?240:238,TW=354,TH=244,MERKEZ=177;
@@ -88,6 +93,51 @@ for(let lag=lagMin;lag<=Math.min(lagMax,N-20);lag++){
 const T=(korr.find(k=>k.r>=enR*0.9)||korr[0]).lag;
 console.log('çevrim periyodu ≈ '+T+' kare ('+(T/24).toFixed(2)+' sn)');
 
+/* keskinlik: karedeki güçlü yatay gradyan oranı (hız bulanıklığı düşükse
+   kenarlar sert → puan yüksek) — punch impact karesi seçiminde kullanılır */
+function keskinlik(idx){
+  const p=PNG.sync.read(fs.readFileSync(path.join(KARE_DIZIN,M[idx].d)));
+  const {width:W,height:H,data:D}=p;
+  let sert=0,ink=0;
+  for(let y=0;y<H;y+=2)for(let x=1;x<W;x+=2){
+    const a=(D[(y*W+x)*4]+D[(y*W+x)*4+1]+D[(y*W+x)*4+2])/3;
+    const b=(D[(y*W+x-1)*4]+D[(y*W+x-1)*4+1]+D[(y*W+x-1)*4+2])/3;
+    if(a<180)ink++;
+    if(Math.abs(a-b)>50)sert++;
+  }
+  return ink?sert/ink:0;
+}
+
+let seg1,seg2,sec1,sec2;
+if(MOD==='punch'){
+  /* impact tepeleri: W yerel maksimumları (ortalama+0.4σ üstü, ±T/3 pencerede en büyük) */
+  const Wm2=ort(sinyal),Ws2=std(sinyal);
+  const tepeler=[];
+  for(let t=12;t<N-12;t++){
+    if(sinyal[t]<Wm2+0.4*Ws2)continue;
+    let enB=true;
+    for(let k=Math.max(0,t-Math.round(T/3));k<=Math.min(N-1,t+Math.round(T/3));k++)
+      if(sinyal[k]>sinyal[t]){enB=false;break;}
+    if(enB&&(tepeler.length===0||t-tepeler[tepeler.length-1]>=Math.round(T*0.6)))tepeler.push(t);
+  }
+  if(!tepeler.length)throw new Error('impact tepesi bulunamadı');
+  const puanli=tepeler.map(p=>({p,ks:keskinlik(p)})).sort((a,b)=>b.ks-a.ks);
+  console.log('impact tepeleri (keskinlik): '+puanli.map(x=>x.p+':'+x.ks.toFixed(3)).join('  '));
+  const olayKare=(p)=>{ // eşit aralıksız: gard→coil→uzanım→IMPACT→çekiş→dönüş
+    let coil=p-2,enW=1e9;
+    for(let t=Math.max(12,p-Math.round(T/2));t<p-1;t++)if(sinyal[t]<enW){enW=sinyal[t];coil=t;}
+    const d=Math.max(3,p-coil);
+    return [Math.max(12,coil-d),coil,coil+Math.ceil(d/2),p,
+            Math.min(N-13,p+Math.max(2,Math.round(d/2))),Math.min(N-13,p+d)];
+  };
+  sec1=olayKare(puanli[0].p);
+  seg1={s:sec1[0],skor:puanli[0].ks};
+  const alt=puanli.find(x=>Math.abs(x.p-puanli[0].p)>=T*0.6);
+  sec2=alt?olayKare(alt.p):null;
+  seg2=alt?{s:sec2[0],skor:alt.ks}:null;
+  console.log('seçilen impact: kare '+puanli[0].p+' ('+(puanli[0].p/24).toFixed(2)+' sn), keskinlik '+puanli[0].ks.toFixed(3));
+  if(alt)console.log('alternatif impact: kare '+alt.p+', keskinlik '+alt.ks.toFixed(3));
+}else{
 /* stabil segment: H std en düşük (uçlarda 12 kare pay) */
 const skorlar=[];
 for(let s=12;s+T<N-12;s++){
@@ -96,14 +146,17 @@ for(let s=12;s+T<N-12;s++){
   skorlar.push({s,skor:std(Hs)+0.3*std(Is)/ort(Is)*100});
 }
 skorlar.sort((a,b)=>a.skor-b.skor);
-const seg1=skorlar[0];
+seg1=skorlar[0];
 /* alternatif: tam çakışmasız yoksa en az yarım periyot ayrık; o da
    yoksa null (video tek çevrimlik — dürüstçe raporlanır) */
-const seg2=skorlar.find(k=>Math.abs(k.s-seg1.s)>=T)
+seg2=skorlar.find(k=>Math.abs(k.s-seg1.s)>=T)
   ||skorlar.find(k=>Math.abs(k.s-seg1.s)>=T/2)||null;
-console.log('seçilen segment: kare '+seg1.s+'-'+(seg1.s+T)+' ('+(seg1.s/24).toFixed(2)+'-'+((seg1.s+T)/24).toFixed(2)+' sn), H-std='+seg1.skor.toFixed(2));
-if(seg2)console.log('alternatif aday: kare '+seg2.s+'-'+(seg2.s+T)+' ('+(seg2.s/24).toFixed(2)+'-'+((seg2.s+T)/24).toFixed(2)+' sn), H-std='+seg2.skor.toFixed(2));
-else console.log('alternatif aday YOK (video tek çevrimlik — yalnız seçili set üretilir)');
+}
+if(MOD!=='punch'){
+  console.log('seçilen segment: kare '+seg1.s+'-'+(seg1.s+T)+' ('+(seg1.s/24).toFixed(2)+'-'+((seg1.s+T)/24).toFixed(2)+' sn), H-std='+seg1.skor.toFixed(2));
+  if(seg2)console.log('alternatif aday: kare '+seg2.s+'-'+(seg2.s+T)+' ('+(seg2.s/24).toFixed(2)+'-'+((seg2.s+T)/24).toFixed(2)+' sn), H-std='+seg2.skor.toFixed(2));
+  else console.log('alternatif aday YOK (video tek çevrimlik — yalnız seçili set üretilir)');
+}
 
 /* anahtar kareler: faz çapası — walk: en geniş adım (temas);
    idle: en alçak boy (nefes verme dibi) */
@@ -115,7 +168,7 @@ function kareSec(s){
   }
   return Array.from({length:KARE_N},(_,i)=>s+((c0-s+Math.round(i*T/KARE_N))%T));
 }
-const sec1=kareSec(seg1.s),sec2=seg2?kareSec(seg2.s):null;
+if(MOD!=='punch'){sec1=kareSec(seg1.s);sec2=seg2?kareSec(seg2.s):null;}
 
 /* ---- 4) temizlik (kalibrasyonlu) ---- */
 const ornekKare=PNG.sync.read(fs.readFileSync(path.join(KARE_DIZIN,M[seg1.s].d)));
