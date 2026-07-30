@@ -1,42 +1,42 @@
 {
  "video": "video_idle.mp4",
  "fps": 24,
- "cevrimKare": 98,
+ "cevrimKare": 118,
  "secili": {
-  "baslangic": 44,
+  "baslangic": 82,
   "sn": [
-   1.83,
-   5.92
+   3.42,
+   8.33
   ],
   "kareler": [
-   127,
-   45,
-   62,
-   78,
-   94,
-   111
+   82,
+   102,
+   121,
+   141,
+   161,
+   180
   ],
-  "olcek": 0.3504,
+  "olcek": 0.3473,
   "bilgi": [
    {
     "kare": "idle6_1",
-    "videoKare": 127,
-    "boy": 237,
+    "videoKare": 82,
+    "boy": 240,
     "tabanKumeleri": [
-     177.4
+     177.2
     ]
    },
    {
     "kare": "idle6_2",
-    "videoKare": 45,
-    "boy": 238,
+    "videoKare": 102,
+    "boy": 240,
     "tabanKumeleri": [
-     177
+     177.2
     ]
    },
    {
     "kare": "idle6_3",
-    "videoKare": 62,
+    "videoKare": 121,
     "boy": 240,
     "tabanKumeleri": [
      177.3
@@ -44,23 +44,23 @@
    },
    {
     "kare": "idle6_4",
-    "videoKare": 78,
-    "boy": 240,
-    "tabanKumeleri": [
-     177.2
-    ]
-   },
-   {
-    "kare": "idle6_5",
-    "videoKare": 94,
+    "videoKare": 141,
     "boy": 240,
     "tabanKumeleri": [
      177.3
     ]
    },
    {
+    "kare": "idle6_5",
+    "videoKare": 161,
+    "boy": 240,
+    "tabanKumeleri": [
+     177.2
+    ]
+   },
+   {
     "kare": "idle6_6",
-    "videoKare": 111,
+    "videoKare": 180,
     "boy": 240,
     "tabanKumeleri": [
      177.2
@@ -69,74 +69,74 @@
   ]
  },
  "alternatif": {
-  "baslangic": 93,
+  "baslangic": 23,
   "sn": [
-   3.88,
-   7.96
+   0.96,
+   5.88
   ],
   "kareler": [
-   160,
-   176,
-   95,
-   111,
-   127,
-   144
+   33,
+   53,
+   72,
+   92,
+   112,
+   131
   ],
-  "olcek": 0.3509,
+  "olcek": 0.3473,
   "bilgi": [
    {
     "kare": "alt6_1",
-    "videoKare": 160,
-    "boy": 237,
+    "videoKare": 33,
+    "boy": 238,
     "tabanKumeleri": [
-     176.8
+     176.6
     ]
    },
    {
     "kare": "alt6_2",
-    "videoKare": 176,
+    "videoKare": 53,
     "boy": 240,
     "tabanKumeleri": [
-     177
+     177.5
     ]
    },
    {
     "kare": "alt6_3",
-    "videoKare": 95,
+    "videoKare": 72,
     "boy": 240,
     "tabanKumeleri": [
-     177
+     177.6
     ]
    },
    {
     "kare": "alt6_4",
-    "videoKare": 111,
+    "videoKare": 92,
     "boy": 240,
     "tabanKumeleri": [
-     177.1
+     177.2
     ]
    },
    {
     "kare": "alt6_5",
-    "videoKare": 127,
-    "boy": 237,
+    "videoKare": 112,
+    "boy": 240,
     "tabanKumeleri": [
-     176.7
+     177.6
     ]
    },
    {
     "kare": "alt6_6",
-    "videoKare": 144,
-    "boy": 238,
+    "videoKare": 131,
+    "boy": 241,
     "tabanKumeleri": [
-     177.5
+     176.8
     ]
    }
   ]
  },
  "temizlik": {
-  "beyazEsik": 200,
+  "beyazEsik": 244,
   "siyahEsik": 64,
-  "fonMin": 186
+  "fonMin": 250
  }
 }
