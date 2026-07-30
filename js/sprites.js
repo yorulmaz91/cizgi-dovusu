@@ -76,10 +76,11 @@ export function spriteTick(dt){saat+=dt;}
    değişimi döngü sarmalında — 17 karelik periyot bir ADIM). Ofsetler
    basılı ayağı hücrede sabitler (referans: zincir ortalaması 166.6). */
 const YURU_OFSET=[-27,-20,-14,-11,-11,21,27,36]; // tuval px, 8 kare
-const YURU_YOL_PER_KARE=15;     // his ayarı (5 çok hızlı bulundu → 15 orta kademe).
-                                // Hazır kademeler: 5 = fiziksel senkron (kayma yok),
-                                // 10 = hafif yavaş, 27 = eski 3-kare hissi.
-                                // Sayı büyüdükçe tempo yavaşlar; son söz telefonda.
+const YURU_YOL_PER_KARE=27;     // his ayarı (15 de hızlı bulundu → 27 = eski 3-kare hissi).
+                                // NOT: tempo arayışı GEÇİCİ — kalıcı çözüm, sıradaki
+                                // pakette walk döngüsünün 12-16 kareye genişletilip
+                                // çevrim süresinin video kaynağına eşitlenmesi.
+                                // 27 o zamana kadar köprü değer.
 let yuruKay=0;                  // test/ayar kancası: faz kaydırma (ekran px)
 export function spriteYuruKaydir(px){yuruKay=px;}
 
